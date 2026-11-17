@@ -36,7 +36,7 @@ No remote creation, push, merge or deploy. P0.9 skipped. Stop after Phase 3. P3.
 - [x] P1.12 `audit.py`: hash chain; `nightdesk audit verify` (catches an edited or removed line);
 - [x] P1.13 Fixture `syn`: one synthetic dataset in two captures (v1, v2) with **no rejected rows**,
 
-- [ ] Phase 1 close: acceptance, viewed screenshots, offline tests and swap pass; R3 fixes applied;330 main offline tests pass, queue scaling/CLI pass. Focused R4 running (93-file freeze); approval/local commit pending. Stop before Phase2.
+- [x] Phase1 close: acceptance/screenshots/swap/current330 offline tests/CLI pass; R4 unanimous9/10; product commit 6d11e5c,93 blobs verified. STOP before Phase2 per user.
 
 ### Phase 2 — Trust and edge cases
 - [ ] P2.1 `stations.py` + alias rows under `mappings/aliases/` (each row with a source, reviewed;

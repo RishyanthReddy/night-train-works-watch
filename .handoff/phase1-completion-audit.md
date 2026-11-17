@@ -1,6 +1,6 @@
 # Phase1 completion audit — builder checkpoint
 
-Authority: KICKOFF.md section0 and section9 P1.1–P1.13; latest user instruction requires STOP before Phase2. This is a requirement/evidence map, not a claim that council or commit is finished.
+Authority: KICKOFF.md section0 and section9 P1.1–P1.13; latest user instruction requires STOP before Phase2. This is a requirement/evidence map, council and product commit are now finished; stop-before-Phase2 checkpoint applies.
 Current product:93 files, phase1-council-r4-snapshot.json SHA256 assertions pass. Main suite330 passed22.04s with OS networking denied and six credential variables unset. All earlier tests are included; new tests verify queue enumeration bounds and missing-neighbour evidence.
 
 | Requirement | Current evidence | Status |
@@ -22,7 +22,7 @@ Current product:93 files, phase1-council-r4-snapshot.json SHA256 assertions pass
 |Repeat small swap, prior Phase0|phase1-r4-phase0-acceptance.log EXIT0: six steps, alternate YAML equivalence, JSON/XLSX sniff/ingest, merged-header refusal then explicit flatten/import, network-denied probe|verified|
 |Scope, data/licences/secrets, no remote/push|93-file snapshot only allowed Phase1 paths; protected baseline hashes checked; synthetic fixtures labelled, CC0 manifests hashed; certifi exception recorded; prior commit preflight no tracked data/remote or secret-pattern hit|verified for checked paths/patterns; no claim scanners prove source truth|
 |Independent council findings fixed|R1/R2 closed in review.md; R3 Sol queue blocker and Opus explanation/duplicate fixed; current330 tests and800-leg queue1.185s. R4 all three approved9/10|verified: unanimous R4 APPROVE9/10;93 hashes matched|
-|Local commit and final handoff|explicit candidate path list exists but must regenerate after R4; HEAD still d340990; no Phase1 commit yet|PENDING approval then local commit/hash checks/handoff|
+|Local commit and final handoff|explicit candidate path list exists but must regenerate after R4; product commit 6d11e5c4ce426ea25d565c418d9e4ac2a1ff2412;93 committed Git blobs and working files match|verified product commit/hash checks; final handoff-only commit follows|
 |Stop before Phase2|state/next/TODO/decisions preserve user's checkpoint; no Phase2 implementation files|held for user continuation|
 
 Commands: phase1-r4-offline-tests.log, phase1-r4-phase0-acceptance.log, phase1-r4-cli.log and phase1-r4-queue-scaling.log all contain EXIT:0. Initial extra CLI setup failed from resolving the venv interpreter symlink to base Python; corrected invocation passes, no code was changed for setup.

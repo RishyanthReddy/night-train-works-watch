@@ -75,3 +75,5 @@ Earlier research sources are preserved locally at history/20261117-before-phase0
 | Mixed-request sequence expansion reproduced in main code without source edits; every emitted boundary entry unknown/unlinked. | phase1-r4-mixed-requests.log EXIT0,25/50 requests and audit payload assertions; no positive inferred. | 2026-11-17 |
 
 | Phase1 R4 unanimously APPROVE9/10; all93 product hashes matched each reviewer. Frozen offline sync exit0 checked45 packages. P1-R4-O1 explicitly deferred nonblocking; local commit pending. | Saved phase1-council-r4-{opus,sol,grok}.md, completed thread reads, uv sync output, review.md decision and hash assertions. | 2026-11-17 |
+
+| Approved Phase1 product committed locally as 6d11e5c4ce426ea25d565c418d9e4ac2a1ff2412;93 Git blobs/working files match approved snapshot;4 protected hashes match; committed paths pattern scan clean; no tracked data or remote. | git commit exit0; git show/working SHA256 assertions, protected baseline, git ls-files data/, git remote -v and committed-blob pattern scan. | 2026-11-17 |

@@ -23,12 +23,13 @@ Implementation/checks by the selected agent. Updated council: Kiro Opus medium, 
 - Product commit d220f620748737ba5709bc161ca63b2cd5750cb6; all 34 reviewed hashes match its Git blobs and working files. No data files tracked; no remote configured or used.
 - Phase 0 product is complete. New work starts from d340990 on dedicated phase1 branch.
 
-## Phase1 ready to commit
-- P1.1–P1.13 and app/swap acceptance complete; phase1-completion-audit.md maps each requirement to evidence.
-- Council R4 unanimous APPROVE9/10: Kiro Opus, Codex Sol, Grok4.7. All93 product hashes matched every review. Full score history in review.md; reports phase1-council-r4-*.md.
-- Main330 tests pass22.04s with OS network denial and six credentials unset; Phase0 and full actual CLI workflow pass. Latest frozen offline sync exit0 checks45 packages.
-- Main800-leg all-sequence1 queue1.185s; operation-scoped reads/indexes, no cubic scan. Performance measurements are local and shape-specific.
-- Current task: commit approved product/evidence locally, verify all reviewed Git blobs, record completion, then STOP before Phase2. No Phase2/3 implementation, remote or push.
+## Phase1 closed — stop before Phase2
+- Product commit 6d11e5c4ce426ea25d565c418d9e4ac2a1ff2412; all93 committed blobs and working files match the approved R4 snapshot. Four protected baseline hashes match. No tracked data or remotes.
+- P1.1–P1.13 and app/swap acceptance complete; phase1-completion-audit.md maps requirements to evidence.
+- Four council rounds; final unanimous APPROVE9/10: Kiro Opus, Codex Sol, Grok4.7. All93 hashes matched every R4 review; scores/reports in review.md and phase1-council-r4-*.md.
+- Main330 tests pass22.04s with OS network denial and six credentials unset; Phase0 and full actual CLI pass. Latest frozen offline sync exit0 checks45 packages.
+- Main800-leg all-sequence1 queue1.185s; no cubic scan. Shape-specific local measurement only; mixed requests can still produce excess unknown checks (accepted nonblocking limit).
+- User checkpoint reached: STOP before Phase2. Goal remains unfinished for Phases2/3 and is to be paused pending explicit continuation. No Phase2/3 code, remote, push, merge or deployment.
 
 ## Limits / deferred
 - Phase1 has no remaining blocker; mixed-request sequence candidate expansion can produce many unknown/unlinked checks (P1-R4-O1), explicitly deferred as nonblocking. No positive join is inferred.
