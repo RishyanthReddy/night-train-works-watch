@@ -17,7 +17,7 @@
 | requests dependency removed; certifi MPL-2.0 and four other network packages removed from lock/environment. | Installed metadata inspection, uv lock output, git diff uv.lock and uv sync --frozen --offline exit 0. | 2026-11-17 |
 | KICKOFF, historical script, empty package initializer and SPEC tail remain unchanged by this work. | phase0-direct-baseline.json hashes, scope commands. AGENTS/CLAUDE hashes changed during the session; coordinator did not write/stage them. | 2026-11-17 |
 | Real operational claims are outside Phase 0; tests use synthetic inputs. | fixtures/admin/README.md, fixture/mapping contents and no fetch/model code in src. | 2026-11-17 |
+| Council round 2 approved 9/10 each with 34 matching hashes and no remaining Phase 0 blockers. | council-r2-opus.md / council-r2-sol.md, completed T3 task results. | 2026-11-17 |
+| Approved product committed locally as d220f620748737ba5709bc161ca63b2cd5750cb6; all 34 reviewed Git blobs and working files match; no tracked data or remotes. | git commit exit 0, SHA256 assertions against git show, git ls-files data/ empty, git remote -v empty. | 2026-11-17 |
 
 Earlier research sources are preserved locally at history/20261117-before-phase0-closure/sources.md. They are not revalidated by the Phase 0 build or silently committed.
-
-| Council round 2 approved 9/10 each with 34 matching hashes and no remaining Phase 0 blockers. | council-r2-opus.md / council-r2-sol.md, completed T3 task results. | 2026-11-17 |

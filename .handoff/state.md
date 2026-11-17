@@ -18,9 +18,10 @@ Implementation/checks are by the selected agent. User waived unavailable DeepSee
 - Audit batches are locked and linear in imported rows; measured synthetic 3000/6000 rows: phase0-performance-r2.log.
 - requests removed because unused in Phase 0 and it pulled MPL-2.0 certifi; frozen lock/sync succeeds.
 
-## In progress
+## Phase 0 closed
 - Opus/Sol council round 2 APPROVED 9/10 each; phase0-council-r2-snapshot.json hashes still match.
-- Final approved-snapshot local commit and post-commit checks pending. No remote configured or used.
+- Product commit d220f620748737ba5709bc161ca63b2cd5750cb6; all 34 reviewed hashes match its Git blobs and working files. No data files tracked; no remote configured or used.
+- Phase 0 product is complete. Stop before Phase 1; only the completion reply follows the handoff record.
 
 ## Limits / deferred
 - Append-only audit only: hash chain/seal, typed rail revisions/checks and UI are Phase 1+.

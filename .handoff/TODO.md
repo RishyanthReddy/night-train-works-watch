@@ -16,7 +16,7 @@ No remote creation, push, merge or deploy. P0.9 skipped. Stop before Phase 1.
 - [x] P0.9 Skipped by user.
 - [x] Six real CLI acceptance checks, including before-confirm refusal and no keys/network.
 - [x] Council: two rounds, one fix round. Opus 6.5→9/10; Sol 8→9/10. Both APPROVE same snapshot. DeepSeek unavailable and waived by user.
-- [ ] Scope/secret/data checks, local commit, handoff, swap check and final evidence.
+- [x] Scope/secret/data checks; approved product commit d220f62; handoff, swap check and final evidence complete.
 
 ## Later phases — reference only, NOT authorised in this goal
 
