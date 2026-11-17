@@ -1,0 +1,5 @@
+duration_min,status,assignee,reference,activity,note
+1,P,Person A,syn-001,Synthetic file review,Synthetic practice only
+2,R,Person B,syn-002,Synthetic comparison,Synthetic practice only
+3,P,Person C,syn-003,Synthetic export,Synthetic practice only
+0.5,D,Person D,syn-004,Synthetic archive,Synthetic practice only

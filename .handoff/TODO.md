@@ -1,41 +1,62 @@
 # Build TODO
 
-Source: KICKOFF.md section 9; start authorised by the user on 2026-11-17.
-Coordinator: Codex. Builder: Kiro Opus 5.5 medium.
-Council: Kiro Opus 5.5 medium, Codex Sol high, Cursor DeepSeek V4.1 Flash 1017 max.
-No GitHub repository creation, push, merge or deployment is authorised.
+Authority: KICKOFF.md section 9; user authorised Phase 0 only in this chat.
+Implementation/checks: current Codex agent. Council at phase end: Kiro Opus medium, Codex Sol high, Cursor DeepSeek max.
+No remote creation, push, merge or deploy. P0.9 skipped. Stop before Phase 1.
 
-## Phase 0 (current; execute in order)
-- [x] Run `uv sync --frozen`: exit 0, `Checked 23 packages in 3ms`.
-- [x] Run `uv run --offline pytest`: exit 5, collected 0 items; no tests yet.
-- [x] Pending Opus plan gate approved revision2; coordinator agrees. User start approval preserved; council only at phase end.
-- [ ] P0.1 Ignore all data/, mark SPEC first line superseded, first local commit.
-- [ ] P0.2 CLI help, bundle configuration and smoke test.
-- [ ] P0.3 Canonical Phase 0 models and bundle-local append-only audit.
-- [ ] P0.4 CSV/XLSX/JSON profiling.
-- [ ] P0.5 Scalar GenericRow mappings, gates, flattening, mapping confirmation.
-- [ ] P0.6 Two synthetic admin mappings.
-- [ ] P0.7 Source-linked generic comparison and Markdown/JSON export.
-- [ ] P0.8 Three synthetic admin fixtures and meaningful checks.
-- [ ] Run all six acceptance steps through the real CLI, including network denied / keys unset.
-- [ ] Coordinator verification and three-member independent council code review.
-- [ ] Fix any blockers (at most two fix rounds), repeat affected checks and review.
-- [ ] Local approved-snapshot commit, handoff update and swap check.
-- [ ] Phase 0 report with real output; honour the Phase 0-only boundary of this chat.
-- [x] P0.9 skipped as requested (no fetcher or scheduler).
+## Phase 0 — execute in order
+- [x] P0.1 Existing baseline fedda2c verified; data/ ignored and SPEC superseded. Fresh uv sync --frozen exit 0; uv run --offline pytest exit 0 (111 passed).
+- [x] P0.2 Existing CLI/config verified with help and passing tests.
+- [x] P0.3 Existing models/audit inspected; passing baseline tests.
+- [x] P0.4 Existing CSV/XLSX/JSON profiler inspected; 42 targeted tests passed.
+- [x] P0.5 Scalar GenericRow mappings, C1–C5, confirmation, ingest/rejects, flatten.
+- [x] P0.6 Two synthetic admin mappings.
+- [x] P0.7 Generic comparison and local Markdown/JSON exports.
+- [x] P0.8 Three synthetic fixtures; meaningful integration/edge-case checks.
+- [x] P0.9 Skipped by user.
+- [x] Six real CLI acceptance checks, including before-confirm refusal and no keys/network.
+- [x] Council: two rounds, one fix round. Opus 6.5→9/10; Sol 8→9/10. Both APPROVE same snapshot. DeepSeek unavailable and waived by user.
+- [ ] Scope/secret/data checks, local commit, handoff, swap check and final evidence.
 
-## Later phases (not dispatched)
-- [ ] Phase 1 P1.1–P1.13: planner workflow; council phase review and Opus integration checkpoint.
-- [ ] Phase 2 P2.1–P2.7: trust and edge cases; P2.8 optional; council phase review.
-- [ ] Phase 3 P3.1–P3.6: swap/isolation/security; council + Opus integration checkpoint.
-      P3.6 requires the user's GitHub/account action; no repo creation or push before permission.
-- [ ] Phase 4 P4.1: design research; user must approve direction before P4.2.
-- [ ] Phase 4 P4.2–P4.5: styling/scenario/handover/freeze; final council + Opus integration.
-      P4.6 optional additions require approval of their extra paths.
+## Later phases — reference only, NOT authorised in this goal
 
-## Evidence and running tasks
-- Setup/test output: coordinator tool calls on 2026-11-17; baseline is not green.
-- Git status: unborn `phase1-core`, existing untracked files preserved.
-- T3 capabilities: all three named council models advertised and child-enabled.
-- Council plan round1: Opus task suffix 3f198720-3717-4764-9af2-87f9f97d739d blocked; Sol fb9641f9-063f-47ba-b497-883b07ba44c5 blocked; Carbon 2d752836-0ad8-45a8-ab70-1e6b859e5a49 failed (provider API error).
-- Findings resolved: review.md; Opus revision2 APPROVE (bf360436-2538-4af0-a90c-95d3538e2130). Carbon retired by user; no retry. Product implementation not started.
+### Phase 1 — One planner task end to end
+- [ ] P1.1 `timeutil.py`: the time rules of section 7 with the listed tests.
+- [ ] P1.2 `model.py`: `Revision`, `WorkNotice`, `PathLeg`, `BoundaryEvent`, `JourneyLink`, `RunRow`, `RunPoint`,
+- [ ] P1.3 `store.py`: captures and immutable revisions under the bundle root; idempotent import (N1);
+- [ ] P1.4 `mappings/infrabel_punctuality.yaml` (`RunRow`) and `runs.py`: `TrainRun` and `Segment`
+- [ ] P1.5 `links.py`: load `JourneyLink` rows from a mapped file; confirm one by hand (CLI/UI);
+- [ ] P1.6 `changes.py`: `ChangeSet` for a selected pair of revisions, and for a pair of captures under
+- [ ] P1.7 `match.py`: date -> weekday -> clock window vs the planned pass window (D6) -> place by
+- [ ] P1.8 `border.py`: the one narrow rule of section 2 (same event kind, same reviewed point, same
+- [ ] P1.9 `review.py`: decision bound to a revision hash; follow-up with owner; stale marking (N6);
+- [ ] P1.10 `export.py`: train/date dossier as Markdown and JSON — before/after, sources, exposures,
+- [ ] P1.11 `ui/app.py`: plain working **queue** and **dossier** screens, no styling (design research
+- [ ] P1.12 `audit.py`: hash chain; `nightdesk audit verify` (catches an edited or removed line);
+- [ ] P1.13 Fixture `syn`: one synthetic dataset in two captures (v1, v2) with **no rejected rows**,
+
+### Phase 2 — Trust and edge cases
+- [ ] P2.1 `stations.py` + alias rows under `mappings/aliases/` (each row with a source, reviewed;
+- [ ] P2.2 Harden identity and dates: uncertain identity, service date vs calendar date across
+- [ ] P2.3 Scheduled runs from the saved CC0 GTFS (`adapters/gtfs.py`): expand `calendar_dates`, times
+- [ ] P2.4 `estimate.py`: every delay request returns `Refusal("prediction_not_validated", detail,
+- [ ] P2.5 Text door: `llm/client.py` (plain HTTPS to Mistral; `mistral`, `replay`, `off`), the
+- [ ] P2.6 Security fixtures, all authored and synthetic: (a) a notice containing injected
+- [ ] P2.7 `nightdesk demo check`: demo mode loads only assets listed in a manifest as synthetic or
+- [ ] P2.8 **Optional (cut independently): notice version extraction.** Two versions of a text
+
+### Phase 3 — The swap, isolation, security
+- [ ] P3.1 **Unseen-shape rehearsal**, whole path from file to export, once with all keys unset: a
+- [ ] P3.2 Isolation test: two bundles with colliding train numbers, work ids and request ids but
+- [ ] P3.3 Model policy tests: a synthetic bundle marked `nda: true` -> a model request is refused
+- [ ] P3.4 Tamper tests: edit a line, remove a line, cut the tail of a copy of the audit log; verify
+- [ ] P3.5 `docs/THREAT_MODEL.md` (one page): untrusted documents -> model -> gates; assets; what can
+- [ ] P3.6 Aikido preparation, our own repo and code only: the **user** creates the account
+
+### Phase 4 — Looks, sustainability, handover
+- [ ] P4.1 **Design research before any styling** (the plain screens of phase 1 exist already).
+- [ ] P4.2 Style the queue and dossier to the approved direction, readable from the back of a room;
+- [ ] P4.3 `co2.py` + one **scenario card**: passenger-km x share that would use the alternative mode
+- [ ] P4.4 `docs/DAY_OF.md` (section 10 made concrete with real commands) and `docs/DEMO.md` (short
+- [ ] P4.5 Final rehearsal and freeze: full test run, clean-setup install check, tag the commit.
+- [ ] P4.6 Optional, only after everything above passes, and only after the user approves the extra

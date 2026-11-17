@@ -1,0 +1,18 @@
+# Synthetic practice data only. No real operational facts.
+version: 1
+dataset: synthetic_admin
+licence: synthetic
+external_processing_allowed: true
+file: {type: csv, encoding: utf-8, delimiter: ","}
+header_row: 1
+timezone: Europe/Brussels
+record: GenericRow
+complete: false
+required: [record_id, duration_s]
+null_tokens: ["", "NULL"]
+fields:
+  record_id: {column: record_id, parse: str}
+  task: {column: task, parse: str}
+  owner: {column: owner, parse: str}
+  duration_s: {column: duration_s, parse: seconds}
+  state: {column: state, parse: "enum:{pending: pending, needs_review: needs_review, done: done}", default: unknown}

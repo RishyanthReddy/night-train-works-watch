@@ -1,0 +1,18 @@
+# Same synthetic records; reordered/renamed columns, minutes instead of seconds.
+version: 1
+dataset: synthetic_admin
+licence: synthetic
+external_processing_allowed: true
+file: {type: csv, encoding: utf-8, delimiter: ","}
+header_row: 1
+timezone: Europe/Brussels
+record: GenericRow
+complete: false
+required: [record_id, duration_s]
+null_tokens: ["", "NULL"]
+fields:
+  record_id: {column: reference, parse: str}
+  task: {column: activity, parse: str}
+  owner: {column: assignee, parse: str}
+  duration_s: {column: duration_min, parse: minutes_to_seconds}
+  state: {column: status, parse: "enum:{P: pending, R: needs_review, D: done}", default: unknown}

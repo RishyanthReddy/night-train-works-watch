@@ -1,0 +1,5 @@
+record_id,task,owner,duration_s,state,note
+syn-001,Synthetic file review,Person A,60,pending,Synthetic practice only
+syn-002,Synthetic comparison,Person B,120,needs_review,Synthetic practice only
+syn-003,Synthetic export,Person C,180,pending,Synthetic practice only
+syn-004,Synthetic archive,Person D,30,done,Synthetic practice only
