@@ -1,0 +1,30 @@
+$ nightdesk capture import tests/fixtures/syn/v1/capture.yaml --bundle test-cli-r3
+error: mapping_not_confirmed: confirm the current batch mappings in this bundle first
+exit 1
+$ nightdesk capture confirm tests/fixtures/syn/v1/capture.yaml --actor Synthetic tester --bundle test-cli-r3
+confirmed capture mappings: 25bc14a4d23c2f6f92250e3fe7f7d858d40f3886efad44fdf88e81b0b221d33e, 3adfb3ac2302f0178bb5659ddf06cdfddc328d8a902998c3815169d02098bfaf, d73155c6791b6894224a850572a9ee112d66aa8511d044f710e78c9e60c08127, d23e605e272703a56ee2ed1b1141553f026460ddddc98187efb11ceaddda0520
+exit 0
+$ nightdesk capture import tests/fixtures/syn/v1/capture.yaml --bundle test-cli-r3
+capture=1adffd614189e613bf1004e72a5a4e648767d74211c5352cd6b51f2291573f34 complete=True rejected=0 label=Synthetic v1
+exit 0
+$ nightdesk capture import tests/fixtures/syn/v2/capture.yaml --bundle test-cli-r3
+capture=acd2a6bf3c4982f8493d6954ad6b26c49bda30a05400115d2079d16246f96adc complete=True rejected=0 label=Synthetic v2
+exit 0
+outcomes=A,B,time_unknown unlocated=1 border=boundary_instants_differ
+$ nightdesk capture import tests/fixtures/syn/v2/capture.yaml --bundle test-cli-r3
+capture=acd2a6bf3c4982f8493d6954ad6b26c49bda30a05400115d2079d16246f96adc complete=True rejected=0 label=Synthetic v2
+exit 0
+$ nightdesk capture import tests/fixtures/syn/v3/capture.yaml --bundle test-cli-r3
+capture=137a1a1f1d6063164c0c209c8b104d489a8b164360ba6c66133df72c8d20e1d2 complete=True rejected=0 label=Synthetic v3
+exit 0
+$ nightdesk capture import tests/fixtures/syn/syn_bad/capture.yaml --bundle test-cli-r3
+capture=ed2dbed7b9196c1d878885fad56115c2fa271de188a173050a082dd7c536744d complete=False rejected=1 label=Synthetic syn_bad
+exit 0
+$ nightdesk audit seal --bundle test-cli-r3
+Keep this hash and count outside the audit log; source truth is not proved.
+{"count": 77, "external_seal_checked": false, "hash": "5f5dc44439d4947af1fa638d8db76f88c22e02f31187b18b0ea984eb52516396", "limits": "Internal consistency only; no proof of source truth. Tail/rewrite detection needs a trusted external seal and count.", "valid": true}
+exit 0
+$ nightdesk audit verify --seal 5f5dc44439d4947af1fa638d8db76f88c22e02f31187b18b0ea984eb52516396 --count 77 --bundle test-cli-r3
+{"count": 77, "external_seal_checked": true, "hash": "5f5dc44439d4947af1fa638d8db76f88c22e02f31187b18b0ea984eb52516396", "limits": "Internal consistency only; no proof of source truth. Tail/rewrite detection needs a trusted external seal and count.", "valid": true}
+exit 0
+PASS: CLI refusal/confirm/import, sourced checks, review/question/export, idempotence, stale/reopen, bad capture and sealed audit.

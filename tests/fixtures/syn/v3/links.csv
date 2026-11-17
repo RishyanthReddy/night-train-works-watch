@@ -1,0 +1,4 @@
+journey,network,train_no,date_rule
+syn-journey,aa,aa:101,*
+syn-journey,bb,bb:202,*
+syn-journey,cc,cc:303,*

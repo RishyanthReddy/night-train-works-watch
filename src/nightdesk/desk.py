@@ -1,0 +1,344 @@
+"""Application selections for the plain queue/dossier. Core logic stays out of UI."""
+
+from nightdesk.border import check_boundary
+from nightdesk.changes import compare_captures, compare_revisions
+from nightdesk.export import build_dossier
+from nightdesk.intake.mapping import captures, load_capture
+from nightdesk.links import load_link, covers
+from nightdesk.model import PathLeg, RunRow, ConsistencyFinding
+from nightdesk.runs import build_runs, segments
+from nightdesk.match import MATCH_RULE_VERSION
+from nightdesk.store import load_revision, ReadSession
+
+
+def snapshot(bundle, capture_id, *, reader=None):
+    reader = reader or ReadSession(bundle)
+    reader.check_bundle(bundle)
+    import re
+    if not re.fullmatch(r"[a-f0-9]{64}", capture_id):
+        raise ValueError("invalid_capture_id")
+    if (bundle.root / "batches" / capture_id).exists():
+        from nightdesk.intake.batch import load_batch
+        return load_batch(bundle, capture_id, reader=reader)
+    return load_capture(bundle.root / "captures" / capture_id, bundle, reader=reader)
+
+
+def snapshot_revisions(bundle, capture_id, *, reader=None):
+    reader = reader or ReadSession(bundle)
+    selected = snapshot(bundle, capture_id, reader=reader)
+    revisions = [load_revision(bundle, identifier, reader=reader) for identifier in selected["capture"].revision_ids]
+    if any(r.source.dataset != selected["capture"].dataset for r in revisions):
+        raise ValueError("capture_revision_dataset_mismatch")
+    return revisions
+
+
+def selected_pairs(bundle, old_capture, new_capture, *, changed_only=True, include_one_sided=False, reader=None):
+    reader = reader or ReadSession(bundle)
+    old, new = snapshot_revisions(bundle, old_capture, reader=reader), snapshot_revisions(bundle, new_capture, reader=reader)
+    def index(rows):
+        out = {}
+        for revision in rows:
+            key = (revision.source.dataset, revision.subject_type, revision.subject_key)
+            if key in out:
+                raise ValueError("ambiguous_subjects_in_selected_capture")
+            out[key] = revision
+        return out
+    a, b = index(old), index(new)
+    keys = a.keys() | b.keys() if include_one_sided else a.keys() & b.keys()
+    pairs = []
+    for key in sorted(keys):
+        left, right = a.get(key), b.get(key)
+        if not isinstance((right or left).payload, PathLeg):
+            continue
+        if left and right and changed_only and not compare_revisions(left, right).field_diffs:
+            continue
+        pairs.append((left, right))
+    return pairs
+
+
+def _context(bundle, capture_id, *, works_id=None, run_id=None, reader=None):
+    reader = reader or ReadSession(bundle)
+    selected = snapshot(bundle, capture_id, reader=reader)
+    records = snapshot_revisions(bundle, capture_id, reader=reader)
+    works_capture = snapshot(bundle, works_id, reader=reader) if works_id else selected
+    works = snapshot_revisions(bundle, works_id, reader=reader) if works_id else records
+    runs_capture = snapshot(bundle, run_id, reader=reader) if run_id else selected
+    return {"capture": selected["capture"], "legs": [r for r in records if isinstance(r.payload, PathLeg)],
+            "works": [r for r in works if r.subject_type == "work"], "works_capture": works_capture["capture"],
+            "runs": build_runs([r for r in runs_capture.get("typed_rows", []) if isinstance(r, RunRow)])}
+
+
+def _index_context(context):
+    """Index this selected capture once; there is no cross-operation cache."""
+    if "legs_by_sequence" in context:
+        return
+    from collections import defaultdict
+    by_sequence, run_index = defaultdict(list), defaultdict(list)
+    sequences, positions = {}, {}
+    for position, leg in enumerate(context["legs"]):
+        sequence = leg.payload.sequence
+        sequences[leg.revision_id] = sequence
+        positions[leg.revision_id] = position
+        if sequence is not None:
+            by_sequence[sequence].append(leg)
+    for run in context["runs"]:
+        run_index[(run.train_no, run.service_date)].append(run)
+    context.update(legs_by_sequence=by_sequence, leg_sequences=sequences,
+                   leg_positions=positions, runs_by_train_date=run_index)
+
+
+def _boundary_findings(revision, day, context, link, reviewed_points):
+    _index_context(context)
+    sequence = context["leg_sequences"].get(revision.revision_id)
+    if sequence is None:
+        return []
+    by_sequence = context["legs_by_sequence"]
+    pairs = ([(leg, revision) for leg in by_sequence.get(sequence - 1, [])] +
+             [(revision, leg) for leg in by_sequence.get(sequence + 1, [])])
+    positions = context["leg_positions"]
+    pairs.sort(key=lambda pair: (positions[pair[0].revision_id], positions[pair[1].revision_id]))
+    findings = [check_boundary(a, b, day, link=link, reviewed_points=reviewed_points,
+                    left_capture=context["capture"], right_capture=context["capture"])
+                for a, b in pairs]
+    # A neighbour observed in the other selected capture is evidence of a
+    # missing check here, never evidence of a current boundary or cancellation.
+    if link and covers(link, revision.payload, day)[0]:
+        missing = context.get("missing_legs_by_sequence", {})
+        for leg in [*missing.get(sequence - 1, []), *missing.get(sequence + 1, [])]:
+            if leg.payload.network == revision.payload.network or not covers(link, leg.payload, day)[0]:
+                continue
+            findings.append(ConsistencyFinding(rule="adjacent_leg_presence", rule_version="border-presence-v1",
+                input_refs=[revision.source, leg.source, *(member.source for member in link.members)],
+                result="unknown", reason="adjacent_leg_not_observed", detail={
+                    "service_date": day.isoformat(), "selected_capture": context["capture"].capture_id,
+                    "other_capture_revision": leg.revision_id,
+                    "limits": "Neighbour evidence is from the other selected capture; no current boundary check or cancellation is inferred."}))
+    return findings
+
+
+def _checks(revision, day, context, link, reviewed_points, *, run_train=None):
+    from nightdesk.match import match_work
+    if revision is None:
+        return {"run": None, "works": {}, "findings": [], "summary": {
+            "works": {grade: 0 for grade in ("A", "B", "time_unknown", "unlocated")},
+            "no_match": 0, "checked_pairs": 0, "unresolved": ["leg_not_observed"], "border": []}}
+    train = run_train or revision.payload.train_no
+    _index_context(context)
+    candidates = context["runs_by_train_date"].get((train, day), [])
+    if len(candidates) > 1:
+        raise ValueError("select_one_run_capture_for_train_date")
+    run = candidates[0] if candidates else None
+    points = {p.point_id for p in run.points} if run else set()
+    lines = {s.line for s in segments(run) if s.line} if run else set()
+    works, exposures = {}, []
+    for work in context["works"]:
+        exposure = match_work(work, run) if run else None
+        if exposure:
+            exposures.append(exposure)
+        # A verified no-match remains in the comparison state: otherwise an
+        # exposure disappearing would disappear from the planner's queue too.
+        works[(work.source.dataset, work.subject_key)] = {
+            "outcome": exposure.outcome if exposure else "no_match" if run else "time_unknown",
+            "reasons": exposure.reasons if exposure else [] if run else ["no_run_selected"],
+            "overlap": exposure.model_dump(mode="json")["overlap_window"] if exposure else None,
+            "attached": bool(exposure and (exposure.outcome in {"A", "B"} or
+                exposure.outcome == "time_unknown" and ({work.payload.from_point_id, work.payload.to_point_id} & points or work.payload.line in lines))),
+            "revision": work.revision_id if exposure and exposure.outcome != "unlocated" else None}
+    findings = _boundary_findings(revision, day, context, link, reviewed_points)
+    summary = {"works": {grade: sum(e.outcome == grade for e in exposures) for grade in ("A", "B", "time_unknown", "unlocated")},
+               "no_match": sum(w["outcome"] == "no_match" for w in works.values()), "checked_pairs": len(works) if run else 0,
+               "unresolved": sorted({reason for w in works.values() if w["outcome"] == "time_unknown" for reason in w["reasons"]} |
+                                    {f.reason for f in findings if f.result == "unknown" and f.reason}),
+               "border": [{"result": f.result, "reason": f.reason} for f in findings]}
+    if run is None:
+        summary["unresolved"] = sorted(set(summary["unresolved"]) | {"no_run_selected"})
+    return {"run": run, "works": works, "findings": findings, "summary": summary}
+
+
+def _check_changes(before, after, old_context, new_context):
+    from nightdesk.gates import capture_comparison_gate
+    keys = before["works"].keys() & after["works"].keys()
+    if capture_comparison_gate(old_context["works_capture"], new_context["works_capture"]).passed:
+        keys = before["works"].keys() | after["works"].keys()
+    works_changed = any(before["works"].get(k) != after["works"].get(k)
+                        and (before["works"].get(k, {}).get("attached", False)
+                             or after["works"].get(k, {}).get("attached", False)) for k in keys)
+    border = lambda found: [(f.rule, f.result, f.reason, f.detail) for f in found]
+    return works_changed or border(before["findings"]) != border(after["findings"])
+
+
+def _contexts(bundle, old_capture, new_capture, works_capture_id, run_capture_id, reader):
+    old_snapshot = snapshot(bundle, old_capture, reader=reader)
+    old_records = snapshot_revisions(bundle, old_capture, reader=reader)
+    old_context = _context(bundle, old_capture,
+        works_id=None if any(r.subject_type == "work" for r in old_records) else works_capture_id,
+        run_id=None if any(isinstance(r, RunRow) for r in old_snapshot.get("typed_rows", [])) else run_capture_id, reader=reader)
+    new_context = _context(bundle, new_capture, works_id=works_capture_id, run_id=run_capture_id, reader=reader)
+    if old_context["capture"].dataset != new_context["capture"].dataset:
+        raise ValueError("capture_dataset_mismatch")
+    for context, other in ((old_context, new_context), (new_context, old_context)):
+        _index_context(context)
+        from collections import defaultdict
+        present = {(leg.source.dataset, leg.subject_key) for leg in context["legs"]}
+        missing = defaultdict(list)
+        for leg in other["legs"]:
+            if (leg.source.dataset, leg.subject_key) not in present and leg.payload.sequence is not None:
+                missing[leg.payload.sequence].append(leg)
+        context["missing_legs_by_sequence"] = missing
+    return old_context, new_context
+
+
+def _group_rows(rows):
+    """A train/date is one task; competing source legs stay explicit inside it."""
+    from nightdesk.audit import canonical_json
+    grouped = {}
+    for row in rows:
+        grouped.setdefault((row["train_no"], row["service_date"]), []).append(row)
+    result = []
+    for key, legs in sorted(grouped.items()):
+        row = dict(legs[0])
+        row["leg_changes"] = legs
+        if len(legs) > 1:
+            row["change_kind"] = "multiple_source_leg_changes"
+            row["changed_fields"] = sorted({field for leg in legs for field in leg["changed_fields"]})
+            row["unresolved_fields"] = sorted({field for leg in legs for field in leg["unresolved_fields"]})
+            row["checks_changed"] = any(leg["checks_changed"] for leg in legs)
+            for field in ("before_operating", "after_operating"):
+                values = [leg[field] for leg in legs]
+                row[field] = True if True in values else None if None in values else False
+            row["next_owner"] = "; ".join(sorted({leg["next_owner"] for leg in legs if leg["next_owner"] != "unassigned"})) or "unassigned"
+            labels = {leg["local_review"] for leg in legs}
+            row["local_review"] = next(iter(labels)) if len(labels) == 1 else "mixed_source_leg_reviews"
+            for side in ("checks_before", "checks_after"):
+                summaries = [leg[side] for leg in legs]
+                row[side] = dict(summaries[0])
+                row[side]["unresolved"] = sorted({reason for summary in summaries for reason in summary["unresolved"]})
+                row[side]["border"] = list({canonical_json(f): f for summary in summaries for f in summary["border"]}.values())
+                if any(summary[field] != summaries[0][field] for summary in summaries for field in ("works", "no_match", "checked_pairs")):
+                    for field in ("works", "no_match", "checked_pairs"):
+                        row[side][field] = None
+                    row[side]["per_source_leg"] = [{"revision": leg["selection_revision"], "checks": leg[side]} for leg in legs]
+        result.append(row)
+    return result
+
+
+def _audit_queue_row(row):
+    return {key: [_audit_queue_row(leg) for leg in value] if key == "leg_changes" else value
+            for key, value in row.items() if key not in {"next_owner", "local_review", "unresolved_fields"}}
+
+
+def queue(bundle, old_capture, new_capture, *, works_capture_id=None, run_capture_id=None,
+          link_identifier=None, reviewed_points=None):
+    """One row per selected leg/date changed by path fields or sourced checks."""
+    from nightdesk.review import decisions, follow_ups
+    from nightdesk.audit import append_once
+    reader = ReadSession(bundle)
+    reviews, questions = decisions(bundle, reader=reader), follow_ups(bundle, reader=reader)
+    # Batch captures explicitly contain their old/new works and run observations.
+    # A separately selected works/run capture supplies missing context or an
+    # explicit after-side override; nothing chooses a newest capture implicitly.
+    old_context, new_context = _contexts(bundle, old_capture, new_capture, works_capture_id, run_capture_id, reader)
+    link = load_link(bundle, link_identifier) if link_identifier else None
+    rows, checked_rows = [], []
+    for old, new in selected_pairs(bundle, old_capture, new_capture, changed_only=False, include_one_sided=True, reader=reader):
+        anchor = new or old
+        change = compare_revisions(old, new) if old and new else None
+        if change is not None and change.status != "compared":
+            continue
+        from nightdesk.gates import capture_comparison_gate
+        comparable = capture_comparison_gate(old_context["capture"], new_context["capture"]).passed
+        for day in sorted({d for r in (old, new) if r for d in r.payload.operating_dates}):
+            active = new if new and day in new.payload.operating_dates else old or anchor
+            before = _checks(old, day, old_context, link, reviewed_points)
+            after = _checks(new, day, new_context, link, reviewed_points, run_train=active.payload.train_no)
+            checked_rows.append({"old_revision": old.revision_id if old else None, "new_revision": new.revision_id if new else None,
+                "service_date": day.isoformat(), "before": before["summary"], "after": after["summary"],
+                "works_before": [{"dataset": k[0], "subject_key": k[1], **v} for k, v in sorted(before["works"].items())],
+                "works_after": [{"dataset": k[0], "subject_key": k[1], **v} for k, v in sorted(after["works"].items())]})
+            checks_changed = _check_changes(before, after, old_context, new_context)
+            if old and new and not change.field_diffs and not checks_changed:
+                continue
+            owners = sorted({f.owner for f in questions if f.revision_id in {r.revision_id for r in (old, new) if r} and f.status != "answered"})
+            local = [d for d in reviews if d.revision_id == anchor.revision_id]
+            kind = ("changed" if change.field_diffs else "checks_changed") if change else (
+                "source_record_added" if new else "source_record_removed") if comparable else "record_presence_unknown"
+            rows.append({"train_no": active.payload.train_no, "service_date": day.isoformat(),
+                         "before_operating": day in old.payload.operating_dates if old else False if comparable else None,
+                         "after_operating": day in new.payload.operating_dates if new else False if comparable else None,
+                         "old_revision": old.revision_id if old else None, "new_revision": new.revision_id if new else None,
+                         "selection_revision": anchor.revision_id, "subject_key": anchor.subject_key, "change_kind": kind,
+                         "changed_fields": [d.field for d in change.field_diffs] if change else ["source_presence"] if comparable else [], "checks_changed": checks_changed,
+                         "checks_before": before["summary"], "checks_after": after["summary"],
+                         "next_owner": ", ".join(owners) or "unassigned",
+                         "local_review": (local[-1].disposition + (" (stale)" if local[-1].stale else "")) if local else "not_reviewed_locally",
+                         "unresolved_fields": list(anchor.payload.unresolved) + (["record_presence_unknown"] if not change and not comparable else [])})
+    rows = _group_rows(rows)
+    append_once(bundle, "comparison_checked", {
+        "old_capture": old_capture, "new_capture": new_capture, "rule_version": "changes-v1",
+        "works_capture": works_capture_id, "run_capture": run_capture_id,
+        "journey_link": link_identifier, "reviewed_points": sorted(reviewed_points or set()),
+        "check_rule_versions": {"works": MATCH_RULE_VERSION, "border": "border-v1", "boundary_presence": "border-presence-v1", "time": "time-v1"},
+        "check_results": checked_rows,
+        "changes": [_audit_queue_row(row) for row in rows]})
+    return rows
+
+
+def dossier(bundle, old_capture_id, new_capture_id, new_revision_id, service_date, *,
+            works_capture_id=None, run_capture_id=None, link_identifier=None, reviewed_points=None):
+    reader = ReadSession(bundle)
+    pair = next(((a, b) for a, b in selected_pairs(bundle, old_capture_id, new_capture_id, changed_only=False, include_one_sided=True, reader=reader)
+                 if (b or a).revision_id == new_revision_id), None)
+    if pair is None:
+        raise ValueError("select_a_path_leg_from_these_captures")
+    old, new = pair
+    old_capture = snapshot(bundle, old_capture_id, reader=reader)["capture"]
+    new_capture = snapshot(bundle, new_capture_id, reader=reader)["capture"]
+    old_context, context = _contexts(bundle, old_capture_id, new_capture_id, works_capture_id, run_capture_id, reader)
+    link = load_link(bundle, link_identifier) if link_identifier else None
+    active = new if new and service_date in new.payload.operating_dates else old or new
+    before_checked = _checks(old, service_date, old_context, link, reviewed_points)
+    # Boundary membership always uses the selected after revision, even when
+    # display/run fallback for a removed date uses the before train number.
+    checked = _checks(new, service_date, context, link, reviewed_points, run_train=active.payload.train_no)
+    works, findings, run = context["works"], checked["findings"], checked["run"]
+    report = build_dossier(bundle, old, new, service_date, run=run,
+                           works=works, findings=findings, capture_comparison=compare_captures(bundle, old_capture, new_capture, reader=reader), reader=reader)
+    report["checks_before"], report["checks_after"] = before_checked["summary"], checked["summary"]
+    report["work_records_before"] = [r.model_dump(mode="json") for r in old_context["works"]]
+    report["selected_run_before"] = before_checked["run"].model_dump(mode="json") if before_checked["run"] else None
+    report["findings_before"] = [f.model_dump(mode="json") for f in before_checked["findings"]]
+    labels = {r.source.licence for r in [old, new, *works, *old_context["works"]] if r is not None}
+    for result in (before_checked, checked):
+        if result["run"]:
+            labels.update(ref.licence for ref in result["run"].input_refs)
+        labels.update(ref.licence for finding in result["findings"] for ref in finding.input_refs)
+    report["data_label"] = "synthetic" if labels == {"synthetic"} else "see_each_source_licence"
+    from nightdesk.gates import capture_comparison_gate
+    keys = before_checked["works"].keys() & checked["works"].keys()
+    if capture_comparison_gate(old_context["works_capture"], context["works_capture"]).passed:
+        keys = before_checked["works"].keys() | checked["works"].keys()
+    report["works_state_changes"] = [{"dataset": k[0], "subject_key": k[1],
+        "before": before_checked["works"].get(k), "after": checked["works"].get(k)} for k in sorted(keys)
+        if before_checked["works"].get(k) != checked["works"].get(k)]
+    report["selections"] = {"old_capture": old_capture_id, "new_capture": new_capture_id,
+                            "works_capture": works_capture_id, "run_capture": run_capture_id,
+                            "journey_link": link_identifier, "reviewed_points": sorted(reviewed_points or set())}
+    from nightdesk.audit import append_once
+    from nightdesk.model import source_ref_payload
+    refs = {r.revision_id: source_ref_payload(r.source) for r in [old, new, *works, *old_context["works"]] if r is not None}
+    payload = {"selections": report["selections"], "revision_refs": refs,
+               "run_refs": [source_ref_payload(ref) for ref in run.input_refs] if run else [],
+               "run_refs_before": [source_ref_payload(ref) for ref in before_checked["run"].input_refs] if before_checked["run"] else [],
+               "service_date": service_date.isoformat(), "checks_before": report["checks_before"], "checks_after": report["checks_after"],
+               "works_state_changes": report["works_state_changes"], "findings_before": [
+                    {"rule": f.rule, "result": f.result, "reason": f.reason, "input_refs": [source_ref_payload(ref) for ref in f.input_refs]} for f in before_checked["findings"]],
+               "rule_versions": {"comparison": report["changes"]["rule_version"],
+               "works": MATCH_RULE_VERSION, "border": "border-v1", "boundary_presence": "border-presence-v1", "time": "time-v1", "runs": "runs-v1"},
+               "capture_comparison": {k: report["capture_comparison"][k] for k in ("status", "reason")},
+               "exposures": [{k: e[k] for k in ("work_revision", "outcome", "reasons")} for e in report["works_exposures"] + report["unlocated_checks_not_attached_to_train"]],
+               "checked_pairs": report["checked_pairs"], "no_match_checked_pairs": report["no_match_checked_pairs"],
+               "findings": [{"rule": f.rule, "rule_version": f.rule_version, "result": f.result, "reason": f.reason,
+                             "input_refs": [source_ref_payload(ref) for ref in f.input_refs]} for f in findings]}
+    event = append_once(bundle, "dossier_checked", payload)
+    report["check_audit"] = {"seq": event.seq, "hash": event.hash}
+    return report

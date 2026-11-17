@@ -1,0 +1,9 @@
+{
+  "commit": "d340990",
+  "protected": {
+    "KICKOFF.md": "4a05c4924668cb45edbb0554adca9df41678cf3725f205c651748f86c3e3418a",
+    "SPEC.md": "ed2401a1b76d5ecc6e4a5c77ef585515a16e4dea00da66100364809c3127f2c8",
+    "scripts/fetch_public.py": "5b85d29071641dc553181130b44de458937bbb33469c539c0228a3a58f991f4b",
+    ".gitignore": "929efe4b9d8861d61bca07a446afec860a3a2711eddbc1de88960a8bd4c6aec5"
+  }
+}

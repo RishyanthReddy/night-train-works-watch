@@ -1,0 +1,18 @@
+$ nightdesk mapping confirm mappings/synthetic_path_legs.yaml
+confirmed 99bbb34119d1adb9b62975d77c2a391541a588e67e2c5d388fdaa0be6d29bdc7 bundle=practice
+exit 0
+$ nightdesk ingest paths/legs.csv --mapping mappings/synthetic_path_legs.yaml
+accepted=2 rejected=0 filtered=0 licence=synthetic capture=f34616bbb590783654958a7d743d830e1546fd5bc833900b6966b3569be9f219
+exit 0
+$ nightdesk ingest paths/legs.csv --mapping mappings/synthetic_path_legs.yaml
+accepted=2 rejected=0 filtered=0 licence=synthetic capture=f34616bbb590783654958a7d743d830e1546fd5bc833900b6966b3569be9f219
+exit 0
+$ nightdesk mapping confirm mappings/synthetic_links.yaml
+confirmed 4c8b9f8b696349eab723451d6c8f8e06a13fbf4d6a651510d367e90b9e1f8614 bundle=practice
+exit 0
+$ nightdesk ingest paths/crosswalk.csv --mapping mappings/synthetic_links.yaml
+accepted=2 rejected=0 filtered=0 licence=synthetic capture=2f65de5db68b3fc2389b3700ca6591c51f4974b70109d26b6eaa65b5e546769a
+exit 0
+Immutable revision count after reimport: 2
+Capture effective complete: [('JourneyLinkMember', True), ('PathLeg', True)]
+Nested event example: {"extra":{},"unresolved":{},"point_id":"syn:start","place_name":"","kind":"departure","at":"2026-11-17T22:00:00+01:00","raw_time":"2026-11-17T22:00:00+01:00","timezone":"Europe/Brussels","unresolved_reason":null}

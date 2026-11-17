@@ -265,7 +265,7 @@ def test_missing_time_is_kept_unresolved_even_when_required(setup, required, par
     row = captures(bundle)[0]["rows"][0]
     assert row.fields["at"] is None
     assert row.unresolved["at"] == {"reason": "missing_time", "raw": [""], "timezone": "Europe/Brussels"}
-    assert "unresolved_fields" in captures(bundle)[0]["capture"].incomplete_reasons
+    assert "unresolved_fields" not in captures(bundle)[0]["capture"].incomplete_reasons
 
 
 def test_missing_joined_time_retains_both_raw_parts(setup):

@@ -1,0 +1,24 @@
+# Authored synthetic cross-border path examples; no real train or path request.
+version: 1
+dataset: synthetic_paths
+licence: synthetic
+external_processing_allowed: true
+file: {type: csv}
+record: PathLeg
+timezone: Europe/Brussels
+complete: true
+required: [request_id, network, train_no, operating_dates]
+fields:
+  request_id: {column: request_id, parse: str}
+  journey_ref: {column: journey, parse: str}
+  network: {column: network, parse: str}
+  train_no: {column: train_no, parse: str}
+  sequence: {column: sequence, parse: int}
+  operating_dates: {column: dates, parse: "list:;:date:%Y-%m-%d"}
+  source_status: {column: source_status, parse: str}
+  entry.point_id: {column: entry_point, parse: str}
+  entry.kind: {column: entry_kind, parse: "enum:{arrival: arrival, departure: departure, pass: pass, handover: handover}", default: unknown}
+  entry.at: {column: entry_time, parse: "datetime:%Y-%m-%d %H:%M"}
+  exit.point_id: {column: exit_point, parse: str}
+  exit.kind: {column: exit_kind, parse: "enum:{arrival: arrival, departure: departure, pass: pass, handover: handover}", default: unknown}
+  exit.at: {column: exit_time, parse: "datetime:%Y-%m-%d %H:%M"}

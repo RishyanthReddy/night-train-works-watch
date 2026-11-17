@@ -1,0 +1,3 @@
+journey,network,train_no,date_rule,notes
+syn-journey,aa,aa:101,*,Synthetic same-service-date rule
+syn-journey,bb,bb:202,*,Synthetic same-service-date rule

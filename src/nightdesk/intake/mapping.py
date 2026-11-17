@@ -22,9 +22,10 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 
 from nightdesk.audit import append_event, append_events, canonical_json, read_events
 from nightdesk.config import Bundle, BundleError, OUT_ROOT, ES_INPUT_ROOT, is_within, MAX_NUMBER_TEXT, MAX_NUMBER_EXPONENT
-from nightdesk.gates import common_gates
+from nightdesk.gates import common_gates, typed_field_names, typed_record
 from nightdesk.intake.table import Table, TableError, read_table
 from nightdesk.model import Capture, GenericRow, JSONValue, SourceRef
+from nightdesk.timeutil import localize
 
 
 class MappingError(ValueError):
@@ -60,7 +61,7 @@ class Mapping(_Config):
     file: FileSpec
     header_row: int = Field(default=1, ge=1)
     timezone: str | None = None
-    record: Literal["GenericRow"]
+    record: Literal["GenericRow", "WorkNotice", "PathLeg", "RunRow", "JourneyLinkMember"]
     required: list[str] = Field(default_factory=list)
     null_tokens: list[JSONValue] = Field(default_factory=lambda: ["", "NULL"])
     filter: dict[str, JSONValue] = Field(default_factory=dict)
@@ -80,19 +81,17 @@ class Mapping(_Config):
             ZoneInfo(self.timezone)
         if any(n not in self.fields for n in self.required):
             raise ValueError("required fields must be named in fields")
-        if any(not n or "." in n for n in self.fields):
-            raise ValueError("destination fields must be nonempty scalar names; dotted targets are Phase 1")
+        if any(not n or any(not p for p in n.split(".")) for n in self.fields):
+            raise ValueError("destination field names must have nonempty components")
+        if self.record == "GenericRow" and any("." in n for n in self.fields):
+            raise ValueError("GenericRow destination names are scalar; dotted targets apply to typed records")
+        if self.record != "GenericRow" and any(n not in typed_field_names(self.record) for n in self.fields):
+            raise ValueError("mapping contains a field outside the target record schema")
+        if any(a != b and b.startswith(a + ".") for a in self.fields for b in self.fields):
+            raise ValueError("destination fields overlap a nested parent")
         for spec in self.fields.values():
             columns_for(spec)
-            kind = spec.parse.split(":", 1)[0]
-            if kind in {"date", "time", "datetime"} and not spec.parse.partition(":")[2]:
-                raise ValueError("date/time/datetime parser needs a strptime format")
-            if kind in {"time", "datetime", "date_time"} and not self.timezone:
-                raise ValueError("time parsers require a declared timezone")
-            if kind == "enum":
-                enum_values(spec)
-            if spec.prefix and kind != "str":
-                raise ValueError("prefix is supported only for str parsers")
+            validate_parser(spec, self.timezone)
         return self
 
 
@@ -137,7 +136,36 @@ def load_mapping(path: str | Path) -> tuple[Mapping, str]:
 SCALAR_PARSERS = {"str", "int", "float", "seconds", "minutes_to_seconds", "date", "time", "datetime", "date_time", "enum"}
 
 
+def list_item(spec: FieldSpec) -> tuple[str, FieldSpec] | None:
+    if not spec.parse.startswith("list:"):
+        return None
+    parts = spec.parse.split(":", 2)[1:]
+    if len(parts) != 2 or len(parts[0]) != 1 or not parts[1] or parts[1].startswith("list:"):
+        raise ValueError("list parser needs one separator and a scalar item parser")
+    return parts[0], spec.model_copy(update={"parse": parts[1]})
+
+
+def validate_parser(spec: FieldSpec, zone: str | None):
+    item = list_item(spec)
+    if item:
+        if item[1].parse.startswith("date_time:"):
+            raise ValueError("list of joined multi-column datetimes is unsupported")
+        return validate_parser(item[1], zone)
+    kind, _, arg = spec.parse.partition(":")
+    if kind in {"date", "time", "datetime"} and not arg:
+        raise ValueError("date/time parser needs a strptime format")
+    if kind in {"time", "datetime", "date_time"} and not zone:
+        raise ValueError("time parsers require a declared timezone")
+    if kind == "enum":
+        enum_values(spec)
+    if spec.prefix and kind != "str":
+        raise ValueError("prefix is supported only for str parsers")
+
+
 def columns_for(spec: FieldSpec) -> list[str]:
+    item = list_item(spec)
+    if item:
+        return columns_for(item[1])
     kind, sep, arg = spec.parse.partition(":")
     if kind not in SCALAR_PARSERS or (kind in {"str", "int", "float", "seconds", "minutes_to_seconds"} and sep):
         raise ValueError(f"parser {spec.parse!r} is not in the scalar allowlist")
@@ -205,16 +233,19 @@ def json_value(value):
 
 
 def _aware(value: datetime, zone: str) -> tuple[str | None, str | None]:
-    if value.tzinfo is not None:
-        return value.isoformat(), None
-    tz = ZoneInfo(zone)
-    a, b = (value.replace(tzinfo=tz, fold=fold) for fold in (0, 1))
-    if a.utcoffset() != b.utcoffset() or a.astimezone(timezone.utc).astimezone(tz).replace(tzinfo=None) != value:
-        return None, "ambiguous_local_time"
-    return a.isoformat(), None
+    result = localize(value, zone)
+    return result.at.isoformat() if result.at is not None else None, result.reason
 
 
 def parse_value(value, spec: FieldSpec, zone: str | None):
+    item = list_item(spec)
+    if item:
+        parts = value.split(item[0]) if isinstance(value, str) else value
+        if not isinstance(parts, list):
+            raise ValueError("invalid_list")
+        values = [parse_value(v.strip() if isinstance(v, str) else v, item[1], zone) for v in parts]
+        reasons = [reason for _, reason in values if reason]
+        return [v for v, _ in values], reasons[0] if reasons else None
     kind, _, fmt = spec.parse.partition(":")
     if kind == "str":
         if isinstance(value, (dict, list)):
@@ -348,6 +379,10 @@ def map_table(table: Table, mapping: Mapping, bundle: Bundle, capture_id: str, c
                     fields[name], reason = parse_value(value, spec, mapping.timezone)
                     if reason:
                         unresolved[name] = {"reason": reason, "raw": json_value(cells), "timezone": mapping.timezone}
+                if mapping.record == "PathLeg" and name in {"entry.at", "exit.at"}:
+                    raw_name = name.rsplit(".", 1)[0] + ".raw_time"
+                    if raw_name not in mapping.fields:
+                        fields[raw_name] = " ".join("" if c is None else str(c) for c in cells)
                 empty = fields[name] is None or (isinstance(fields[name], str) and not fields[name].strip())
                 if name in mapping.required and empty and name not in unresolved:
                     raise ValueError("required_missing")
@@ -369,6 +404,12 @@ def map_table(table: Table, mapping: Mapping, bundle: Bundle, capture_id: str, c
                 for gate in common_gates(record):
                     if not gate.passed:
                         failures.append({"row": number, "field": gate.detail, "reason": gate.reason_code, "gate": gate.gate, "source": source})
+                if mapping.record != "GenericRow":
+                    _, checks = typed_record(record, mapping.record, mapping.timezone)
+                    for gate in checks:
+                        if not gate.passed:
+                            failures.append({"row": number, "field": gate.detail, "reason": gate.reason_code,
+                                             "gate": gate.gate, "source": source})
             except ValidationError:
                 failures.append({"row": number, "field": "record", "reason": "schema_invalid", "gate": "C1", "source": source})
         if failures:
@@ -388,6 +429,22 @@ def write_private(path: Path, text: str, *, exclusive: bool = True):
 
 
 def ingest(path: str | Path, mapping_path: str | Path, bundle: Bundle) -> dict:
+    """Single writer per bundle: no partially created revision is read by another importer."""
+    import fcntl
+    import os
+    bundle.real_root()
+    bundle.root.mkdir(parents=True, exist_ok=True)
+    lock = bundle.resolve(bundle.root / "ingest.lock")
+    fd = os.open(lock, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(fd, "r+") as handle:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        relation_fd = os.open(bundle.resolve(bundle.root / "predecessor.lock"), os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(relation_fd, "r+") as relations:
+            fcntl.flock(relations.fileno(), fcntl.LOCK_EX)
+            return _ingest(path, mapping_path, bundle)
+
+
+def _ingest(path: str | Path, mapping_path: str | Path, bundle: Bundle) -> dict:
     check_input(path, bundle)
     check_input(mapping_path, bundle)
     mapping, sha = load_mapping(mapping_path)
@@ -405,35 +462,69 @@ def ingest(path: str | Path, mapping_path: str | Path, bundle: Bundle) -> dict:
         raise MappingError("input changed while reading; retry")
     now = datetime.now(timezone.utc)
     rows, rejects, filtered = map_table(table, mapping, bundle, capture_id, now)
+    from nightdesk.store import ReadSession
+    reader = ReadSession(bundle)
+    reader.pending_events = []
+    typed_rows, prepared, rejected_links = [], [], []
+    if mapping.record != "GenericRow":
+        from nightdesk.store import make_revision, save_revision
+        for row in rows:
+            payload, checks = typed_record(row, mapping.record, mapping.timezone)
+            typed_rows.append(payload)
+            if mapping.record in {"WorkNotice", "PathLeg"}:
+                revision, reason = make_revision(bundle, row.source, payload,
+                    row.fields.get("predecessor"), row.fields.get("predecessor_basis"), reader=reader)
+                prepared.append(revision)
+                if reason:
+                    rejected_links.append({"record_id": row.source.record_id, "reason": reason})
     incomplete = [] if mapping.complete else ["not_declared_complete"]
     if rejects:
         incomplete.append("rejected_rows")
-    if any(r.unresolved for r in rows):
-        incomplete.append("unresolved_fields")
+    if any(r.identity == "uncertain" for r in prepared):
+        incomplete.append("identity_uncertain")
+    keys = [(r.subject_type, r.subject_key) for r in prepared]
+    if len(set(keys)) != len(keys):
+        incomplete.append("duplicate_subject")
+    saved, new_revisions = [], []
+    for revision in prepared:
+        kept, created = save_revision(bundle, revision, reader=reader)
+        saved.append(kept)
+        if created:
+            new_revisions.append(kept.revision_id)
     capture = Capture(capture_id=capture_id, bundle=bundle.name, dataset=mapping.dataset, captured_at=now,
                       declared_complete=mapping.complete, complete=not incomplete, incomplete_reasons=incomplete,
-                      filter=mapping.filter, files=[file_sha])
-    metadata = {"capture_id": capture_id, "bundle": bundle.name, "dataset": mapping.dataset,
+                      filter=mapping.filter, files=[file_sha], revision_ids=list(dict.fromkeys(r.revision_id for r in saved)))
+    metadata = {"format_version": 2, "capture_id": capture_id, "bundle": bundle.name, "dataset": mapping.dataset,
                 "path": str(path.resolve()), "file_sha256": file_sha, "mapping_sha256": sha,
                 "accepted": len(rows), "rejected": len({r["row"] for r in rejects}), "filtered": len(filtered),
                 "skipped_blank_rows": table.skipped_blank_rows, "licence": mapping.licence,
-                "timezone": mapping.timezone, "external_processing_allowed": mapping.external_processing_allowed}
+                "timezone": mapping.timezone, "external_processing_allowed": mapping.external_processing_allowed,
+                "record_type": mapping.record, "new_revision_ids": new_revisions}
     import os
     import shutil
     import tempfile
     folder.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(prefix=".pending-", dir=folder.parent))
     try:
+        mapping_raw = Path(mapping_path).read_bytes()
+        if digest(mapping_raw) != sha:
+            raise MappingError("mapping changed while reading; retry")
+        write_private(staging / "mapping.yaml", mapping_raw.decode("utf-8"))
         write_private(staging / "rows.jsonl", "".join(canonical_json(r.model_dump(mode="json")) + "\n" for r in rows))
         write_private(staging / "rejects.jsonl", "".join(canonical_json(r) + "\n" for r in rejects))
         write_private(staging / "capture.json", capture.model_dump_json(indent=2) + "\n")
         write_private(staging / "metadata.json", canonical_json(metadata) + "\n")
+        if mapping.record != "GenericRow":
+            write_private(staging / "typed_rows.jsonl", "".join(canonical_json(r.model_dump(mode="json")) + "\n" for r in typed_rows))
         os.rename(staging, folder)
     except BaseException:
         shutil.rmtree(staging)
         raise
     events = [("ingested", {"capture_id": capture_id, "mapping_sha256": sha,
-                           "accepted": len(rows), "rejected": metadata["rejected"], "filtered": len(filtered)})]
+                           "accepted": len(rows), "rejected": metadata["rejected"], "filtered": len(filtered),
+                           "revision_ids": capture.revision_ids, "declared_complete": mapping.complete,
+                           "complete": capture.complete,
+                           "artifact_hashes": {p.name: digest(p.read_bytes()) for p in folder.iterdir() if p.is_file()}})]
     for row in rows:
         events.append(("gate_accepted", {"capture_id": capture_id, "record_id": row.source.record_id,
                                         "content_sha256": row.source.content_sha256,
@@ -445,12 +536,25 @@ def ingest(path: str | Path, mapping_path: str | Path, bundle: Bundle) -> dict:
         events.append(("row_filtered", {"capture_id": capture_id, "record_id": item["source"]["record_id"], "reason": item["reason"]}))
     for number in table.skipped_blank_rows:
         events.append(("row_skipped", {"capture_id": capture_id, "row": number, "reason": "blank_row"}))
+    first_sources = {r.revision_id: r.source for r in saved}
+    for identifier in new_revisions:
+        events.append(("revision_created", {"capture_id": capture_id, "revision_id": identifier,
+                               "source_sha256": digest(canonical_json(first_sources[identifier].model_dump(mode="json")).encode())}))
+    for link in rejected_links:
+        events.append(("predecessor_rejected", {"capture_id": capture_id, **link}))
+    events.extend(reader.pending_events)
     append_events(bundle, events)
     return metadata | {"reused": False}
 
 
-def load_capture(folder: Path, bundle: Bundle) -> dict:
+def load_capture(folder: Path, bundle: Bundle, *, reader=None) -> dict:
+    from nightdesk.store import ReadSession, subject_key, revision_hash
+    from nightdesk.model import WorkNotice, PathLeg
+    reader = reader or ReadSession(bundle)
+    reader.check_bundle(bundle)
     folder = bundle.resolve(folder)
+    if folder in reader.capture_cache:
+        return reader.capture_cache[folder]
     def read(name):
         return bundle.resolve(folder / name).read_text("utf-8")
     metadata = json.loads(read("metadata.json"))
@@ -462,16 +566,87 @@ def load_capture(folder: Path, bundle: Bundle) -> dict:
         raise MappingError("capture belongs to another bundle")
     if metadata["capture_id"] != folder.name or capture.capture_id != folder.name:
         raise MappingError("capture id does not match its folder")
-    if (metadata["dataset"] != capture.dataset or metadata["file_sha256"] not in capture.files
+    if (metadata["dataset"] != capture.dataset or capture.files != [metadata["file_sha256"]]
             or metadata["accepted"] != len(rows) or metadata["rejected"] != len({r["row"] for r in rejects})
             or any(r.capture_id != capture.capture_id or r.dataset != capture.dataset
                    or r.url_or_path != metadata["path"] for r in refs)):
         raise MappingError("capture metadata and row references disagree")
-    return {"metadata": metadata, "capture": capture, "rows": rows, "rejects": rejects}
+    if digest(canonical_json([bundle.name, metadata["path"], metadata["file_sha256"], metadata["mapping_sha256"]]).encode()) != folder.name:
+        raise MappingError("capture_identity_mismatch")
+    reader.events
+    imported = reader.imports.get(capture.capture_id, {})
+    if any(name in imported and imported[name] != metadata[name] for name in ("accepted", "rejected", "mapping_sha256")):
+        raise MappingError("capture_audit_metadata_mismatch")
+    if "revision_ids" in imported and imported["revision_ids"] != capture.revision_ids:
+        raise MappingError("capture_audit_revision_ids_mismatch")
+    commitment = imported.get("artifact_hashes")
+    if commitment:
+        allowed = {"mapping.yaml", "metadata.json", "capture.json", "rows.jsonl", "rejects.jsonl", "typed_rows.jsonl"}
+        if not set(commitment) <= allowed or any(digest(bundle.resolve(folder / name).read_bytes()) != sha for name, sha in commitment.items()):
+            raise MappingError("capture_artifact_hash_mismatch")
+    elif metadata.get("format_version") == 2:
+        raise MappingError("capture_not_audited")
+    mapping = None
+    candidates = [folder / "mapping.yaml"] if (folder / "mapping.yaml").exists() else []
+    if not candidates and metadata.get("format_version") != 2:
+        candidates = [Path(p) for p in reader.confirmed.get(metadata["mapping_sha256"], [])]
+    for candidate in candidates:
+        check_input(candidate, bundle)
+        if candidate.exists() and digest(candidate.read_bytes()) == metadata["mapping_sha256"]:
+            mapping = load_mapping(candidate)[0]
+            break
+    if metadata.get("format_version") == 2 and mapping is None:
+        raise MappingError("capture_mapping_evidence_missing")
+    if mapping and (metadata["dataset"] != mapping.dataset or metadata["licence"] != mapping.licence
+                    or metadata.get("record_type", "GenericRow") != mapping.record or metadata.get("timezone") != mapping.timezone
+                    or capture.filter != mapping.filter
+                    or metadata.get("external_processing_allowed", False) != mapping.external_processing_allowed):
+        raise MappingError("capture_mapping_metadata_mismatch")
+    result = {"metadata": metadata, "capture": capture, "rows": rows, "rejects": rejects}
+    if metadata.get("record_type", "GenericRow") != "GenericRow":
+        from nightdesk.gates import TYPED_RECORDS
+        model = TYPED_RECORDS[metadata["record_type"]]
+        result["typed_rows"] = [model.model_validate_json(line) for line in read("typed_rows.jsonl").splitlines()]
+        if len(result["typed_rows"]) != len(rows):
+            raise MappingError("typed row count disagrees with capture")
+        for row, payload in zip(rows, result["typed_rows"]):
+            expected, checks = typed_record(row, metadata["record_type"], metadata["timezone"])
+            if any(not check.passed for check in checks) or payload != expected:
+                raise MappingError("typed record disagrees with source envelope")
+    payloads = [p for p in result.get("typed_rows", []) if isinstance(p, (WorkNotice, PathLeg))]
+    keys = [("work" if isinstance(p, WorkNotice) else "path_leg", subject_key(p)[0]) for p in payloads]
+    expected_ids = list(dict.fromkeys(revision_hash(bundle=bundle.name, dataset=capture.dataset,
+        subject_type=kind, subject_key=key, source_status=p.source_status if isinstance(p, PathLeg) else None, payload=p)
+        for (kind, key), p in zip(keys, payloads)))
+    if expected_ids != capture.revision_ids:
+        raise MappingError("capture_revision_ids_mismatch")
+    declared = mapping.complete if mapping else capture.declared_complete
+    reasons = [] if declared else ["not_declared_complete"]
+    if rejects:
+        reasons.append("rejected_rows")
+    if any(subject_key(p)[1] == "uncertain" for p in payloads):
+        reasons.append("identity_uncertain")
+    if len(set(keys)) != len(keys):
+        reasons.append("duplicate_subject")
+    if mapping is None:
+        # Old artifacts remain readable, but cannot establish a positive R2
+        # result when the original declaration is no longer verifiable.
+        result["capture"] = capture.model_copy(update={"complete": False,
+            "incomplete_reasons": list(dict.fromkeys(reasons + ["legacy_declaration_unverified"]))})
+    elif (capture.declared_complete != declared or capture.complete != (not reasons)
+          or capture.incomplete_reasons != reasons):
+        legacy_warning = (metadata.get("format_version") is None and not capture.complete
+                          and set(capture.incomplete_reasons) == set(reasons) | {"unresolved_fields"})
+        if not legacy_warning:
+            raise MappingError("capture_completeness_mismatch")
+    reader.capture_cache[folder] = result
+    return result
 
 
 def captures(bundle: Bundle) -> list[dict]:
     folder = bundle.resolve(bundle.root / "captures")
     if not folder.exists():
         return []
-    return [load_capture(p, bundle) for p in sorted(folder.iterdir()) if p.is_dir() and not p.name.startswith(".pending-")]
+    from nightdesk.store import ReadSession
+    reader = ReadSession(bundle)
+    return [load_capture(p, bundle, reader=reader) for p in sorted(folder.iterdir()) if p.is_dir() and not p.name.startswith(".pending-")]

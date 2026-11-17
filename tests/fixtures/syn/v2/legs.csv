@@ -1,0 +1,4 @@
+request_id,journey,network,train_no,sequence,dates,source_status,entry_point,entry_kind,entry_time,exit_point,exit_kind,exit_time,notes
+syn-request,syn-journey,aa,aa:101,1,2026-11-17,synthetic_booked,syn:origin,pass,2026-11-17 22:00,syn:border1,pass,2026-11-17 23:01,Synthetic only
+syn-request,syn-journey,bb,bb:202,2,2026-11-17,synthetic_booked,syn:border1,pass,2026-11-17 23:00,syn:border2,pass,2026-11-17 23:30,Synthetic only
+syn-request,syn-journey,cc,cc:303,3,2026-11-17,synthetic_booked,syn:border2,pass,2026-11-17 23:30,syn:final,pass,2026-11-18 00:30,Synthetic only

@@ -1,0 +1,8 @@
+version: 1
+dataset: syn
+label: Synthetic syn_bad
+complete: true
+files:
+- role: works
+  path: works.csv
+  mapping: ../../../../mappings/syn_works.yaml

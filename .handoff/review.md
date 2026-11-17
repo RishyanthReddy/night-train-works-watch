@@ -41,3 +41,77 @@ Opus 9/10 and Sol 9/10 independently approved the same 34-file snapshot, with al
 | P0-LATER-JSON | Extremely deep JSON / huge native JSON integer can fail the whole unreadable file with a low-level error. | nonblocking | wontfix | Opus R2 approved: exits 1 without writing output; clearer file-level error handling deferred. |
 | P0-LATER-CRASH | Capture rename and audit append are not one crash-atomic transaction. | nonblocking | wontfix | Opus R2 identified a possible gap but did not test it; no crash-recovery claim. Revisit with Phase 1 store/audit. |
 | P0-LATER-HARDLINK | Deliberately hard-linking data out of NDA root defeats path ancestry classification. | nonblocking | wontfix | Opus R2 explicitly excluded this intentional user action as a bypass; symlinks/case aliases are checked. |
+
+## Phase 1 council round 1 — changes requested
+
+Reports phase1-council-r1-{opus,sol,grok}.md. All89 product hashes matched. Scores Opus8, Sol7.5, Grok6.
+
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| P1-O1 | Queue hides stale flag | medium | fixed | Queue stale label + prominent UI warning; council regressions and viewed phase1-r2-stale.png. |
+| P1-O2 | A→B→A capture does not stale review | medium | fixed | Decision basis uses capture/batch observations; A→B→A/new re-review regression passes. |
+| P1-O3 | Source metadata can be edited independently | medium | fixed | First SourceRef checked against retained capture and audit SHA256; tamper regression passes. |
+| P1-O4/G3 | Line-unknown grade A spec ambiguity | high | fixed | Explicit A definition/worked example chosen; missing line shown, exact endpoints A; GTFS unresolved cap retained. test_match.py passes. |
+| P1-O5 | raw_time uses parsed value | low | fixed | Mapping retains original boundary cells; raw_time regression passes. |
+| P1-S1 | Removed operating dates hidden | high | fixed | Union operating dates + per-side presence; removed-date API test and viewed removed queue/dossier screenshots. |
+| P1-S2 | Checks absent from audit | medium | fixed | Locked deduplicated comparison/dossier audit events with selected refs, rule versions and results; regression + real audit verify. |
+| P1-S3 | Work/run evidence absent from dossier | medium | fixed | Work records/source/extra and selected run included in JSON/escaped MD/UI; regression and viewed evidence screenshot. |
+| P1-S4/G8 | Reanswered stale follow-up never closes | medium | fixed | Chronological observations/answer events; answer→new revision→reanswer→new revision regression passes. |
+| P1-G1 | Unresolved warnings mark captures incomplete | high | fixed | Unresolved time/enum warnings retained without making capture partial; typed completeness/R2 regressions pass. |
+| P1-G2 | Valid later predecessor dropped | high | fixed | First explicit predecessor stored as append-only metadata, conflict audited; immutable bytes and later-link regression passes. |
+| P1-G4 | Line-only work matches wrong stretch time | high | fixed | Line-only matching uses that line's segment pass windows; wrong-stretch no-match and matching-stretch B regressions pass. |
+| P1-G5 | Works-only changes absent from queue | high | fixed | Checks compared for unchanged legs; A→no-match remains queued and dossier opens; unrelated unlocated-only changes stay global. |
+| P1-G6 | No-match count absent from UI | medium | fixed | Scoped no-match sentence rendered; viewed phase1-r2-works.png. |
+| P1-G7 | Unresolved check summary absent from queue | medium | fixed | Before/after checks and unresolved reasons on queue rows; tests and viewed queue show check columns. |
+| P1-SELF1 | Incomplete equal-date boundary capture can agree | medium | fixed | Positive boundary check requires complete matching capture evidence; equal-date incomplete and missing-evidence regressions pass. |
+
+## Phase1 council round2 — changes requested, fixes verified
+
+All three completed against90 matching product hashes: Opus6.5/Sol8/Grok6. Reports phase1-council-r2-*.md. Fixes applied only after reviews finished.
+
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| P1-R2-S1 | Whole added/removed PathLeg subjects excluded by pair intersection, so queue/dossier cannot open them. | high | fixed | Prepared optional-side queue/dossier/source presence/review/export changes; tests cover complete removal/addition and incomplete/missing-file unknown presence.  Evidence: main 325-test offline pass; test_phase1_presence.py / test_phase1_integrity_scale.py; phase1-r3 CLI and scaling logs. |
+| P1-R2-S2 | Removed-date dossier uses old revision for after-boundary membership, dropping queue's operating_dates_differ finding. | medium | fixed | Prepared separation of after boundary identity and display/run fallback, with queue/dossier agreement regression.  Evidence: main 325-test offline pass; test_phase1_presence.py / test_phase1_integrity_scale.py; phase1-r3 CLI and scaling logs. |
+
+All R2 reports now delivered: Opus6.5/Sol8/Grok6, changes requested. Their90 product hashes matched before/after. User requested a new continuation goal; created after get_goal returned null.
+
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| P1-R2-G1 | Unknown/station-area line segments falsely provide a line-only B exposure. | high | fixed | Match only verified named-line spans; unresolved overlapping line spans stay unknown.  Evidence: main 325-test offline pass; test_phase1_presence.py / test_phase1_integrity_scale.py; phase1-r3 CLI and scaling logs. |
+| P1-R2-G3 | Raw JSON predecessor can override the first audited predecessor. | medium | fixed | Make audit metadata authoritative and refuse disagreement.  Evidence: main 325-test offline pass; test_phase1_presence.py / test_phase1_integrity_scale.py; phase1-r3 CLI and scaling logs. |
+| P1-R2-G4 | Edited capture/batch completeness flags bypass rejects/declarations. | medium | fixed | Recompute/validate effective completeness and commit source declarations/artifacts.  Evidence: main 325-test offline pass; test_phase1_presence.py / test_phase1_integrity_scale.py; phase1-r3 CLI and scaling logs. |
+| P1-R2-O1 | Repeated audit/capture reads make typed loading/import/review quadratic. | high | fixed | Introduce an operation-scoped reader/index and prove scaling on synthetic captures.  Evidence: main 325-test offline pass; test_phase1_presence.py / test_phase1_integrity_scale.py; phase1-r3 CLI and scaling logs. |
+| P1-R2-O2 | Conflicting line attribution suppresses exact-endpoint exposure as no-match. | high | fixed | Keep strong point evidence; show line disagreement explicitly.  Evidence: main 325-test offline pass; test_phase1_presence.py / test_phase1_integrity_scale.py; phase1-r3 CLI and scaling logs. |
+| P1-R2-O3 | A graded B exposure is hidden from the works-only queue by a separate attached predicate. | medium | fixed | Use the canonical exposure outcome consistently; preserve explicit W5 B semantics.  Evidence: main 325-test offline pass; test_phase1_presence.py / test_phase1_integrity_scale.py; phase1-r3 CLI and scaling logs. |
+
+## Phase1 council round3
+Opus APPROVE9/10; Sol CHANGES REQUESTED8/10; Grok APPROVE9/10. All three finished; source freeze ended before applying two-file proposal. Report phase1-council-r3-opus.md;92 hashes matched in review. No product edits while reviews remain active.
+
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| P1-R3-O1 | Remaining linked leg silently loses a boundary check when adjacent source leg is no longer observed. | low-medium, nonblocking | fixed | Builder verified loop only checks present adjacent pairs; reproduce missing-neighbour explanation before choosing bounded fix after all reviews.  Applied desk.py/index/presence fix;330 main offline tests pass, actual800-leg queue1.185s, CLI/Phase0 pass; exact proposal visual evidence matches applied code. R4 approval pending. |
+| P1-R3-O2 | no_run_selected can appear twice in unresolved summary. | cosmetic, nonblocking | fixed | Builder verified set built then appended unconditionally in _checks; remove duplicate after review freeze ends.  Applied desk.py/index/presence fix;330 main offline tests pass, actual800-leg queue1.185s, CLI/Phase0 pass; exact proposal visual evidence matches applied code. R4 approval pending. |
+
+| P1-R3-S1 | Boundary enumeration scans all leg pairs per selected leg, cubic queue cost;800 legs took58.965s in reviewer synthetic probe. | high | fixed | Prepare one operation-scoped adjacent-candidate index, preserving existing findings; deterministic bounded-enumeration regression and actual queue benchmark needed.  Applied desk.py/index/presence fix;330 main offline tests pass, actual800-leg queue1.185s, CLI/Phase0 pass; exact proposal visual evidence matches applied code. R4 approval pending. |
+
+Grok R3 low note: grouped after_operating is any-source-leg presence, with every leg retained separately. No blocker or requested fix; preserve explicit source-leg selection rather than invent a single source winner. Report phase1-council-r3-grok.md.
+
+Phase1 R3 final scores: Opus9 APPROVE, Sol8 CHANGES REQUESTED, Grok9 APPROVE; all92 hashes matched. R4 is a focused recheck of exactly desk.py and test_phase1_queue_scale.py against the new93-file freeze. No Phase2 permitted before user continuation.
+
+## Phase1 council round4 — focused recheck
+Opus APPROVE9/10,330 tests plus46 independent probes;93 hashes matched. Sol APPROVE9/10 with330 tests+7 independent checks,93 hashes matched; Grok APPROVE9/10 with330 tests and independent enumeration/boundary/CLI probes,93 hashes matched. All three approve. Reports phase1-council-r4-{opus,sol,grok}.md.
+
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| P1-R4-O1 | Pre-existing sequence-only candidate scoping yields many unlinked unknowns across distinct requests; reviewer800-leg case14.724s/400 unknown entries per row. | medium, nonblocking per Opus | wontfix | Deferred from Phase1 after unanimous R4 approval. Builder verified12500 emitted entries unknown/unlinked; no positive/automatic link. Retain as explicit efficiency/verbosity limit for later identity scoping (P2.2), which must respect explicit cross-network links rather than require equal national request ids. No Phase2 work started. |
+
+## Phase1 council — four rounds, closed
+
+| Delegate | R1 | R2 | R3 | R4 |
+|---|---|---|---|---|
+| Opus through Kiro |8/10|6.5/10|9/10|9/10 APPROVE|
+| Codex Sol |7.5/10|8/10|8/10|9/10 APPROVE|
+| Grok4.7 |6/10|6/10|9/10|9/10 APPROVE|
+
+All93 R4 product hashes matched before/after every review. No remaining Phase1 blocker. Mixed-request unknown expansion is explicitly deferred above, not silently fixed or called linear in general. User checkpoint: local commit then STOP before Phase2.

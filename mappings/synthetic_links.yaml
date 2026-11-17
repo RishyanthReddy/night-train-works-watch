@@ -1,0 +1,13 @@
+version: 1
+dataset: synthetic_crosswalk
+licence: synthetic
+external_processing_allowed: true
+file: {type: csv}
+record: JourneyLinkMember
+complete: true
+required: [journey_id, network, train_no, service_date_rule]
+fields:
+  journey_id: {column: journey, parse: str}
+  network: {column: network, parse: str}
+  train_no: {column: train_no, parse: str}
+  service_date_rule: {column: date_rule, parse: str}

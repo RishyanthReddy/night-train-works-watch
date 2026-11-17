@@ -1,0 +1,5 @@
+work_id,country,line,from_point_id,to_point_id,description,date_start,date_end,clock_from,clock_to,weekdays,recurrence,effect
+syn-A,zz,zz:1,syn:start,syn:end,Synthetic A,2026-11-17,2026-11-17,22:00,23:00,2,periodical,closure
+syn-B,zz,zz:1,syn:mid,syn:elsewhere,Synthetic B,2026-11-17,2026-11-17,22:00,23:00,2,periodical,closure
+syn-U,zz,,,,Synthetic U,2026-11-17,2026-11-17,22:00,23:00,2,periodical,closure
+syn-T,zz,zz:1,syn:start,syn:end,Synthetic T,2026-11-17,2026-11-17,22:00,23:00,2,unknown,closure

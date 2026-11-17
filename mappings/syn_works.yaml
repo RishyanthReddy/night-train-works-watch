@@ -1,0 +1,57 @@
+# Authored synthetic data only.
+version: 1
+dataset: syn
+licence: synthetic
+external_processing_allowed: true
+file:
+  type: csv
+record: WorkNotice
+timezone: Europe/Brussels
+complete: true
+required:
+- work_id
+- country
+- date_start
+- date_end
+fields:
+  work_id:
+    column: work_id
+    parse: str
+  country:
+    column: country
+    parse: str
+  line:
+    column: line
+    parse: str
+  from_point_id:
+    column: from_point_id
+    parse: str
+  to_point_id:
+    column: to_point_id
+    parse: str
+  description:
+    column: description
+    parse: str
+  date_start:
+    column: date_start
+    parse: date:%Y-%m-%d
+  date_end:
+    column: date_end
+    parse: date:%Y-%m-%d
+  clock_from:
+    column: clock_from
+    parse: time:%H:%M
+  clock_to:
+    column: clock_to
+    parse: time:%H:%M
+  weekdays:
+    column: weekdays
+    parse: list:;:int
+  recurrence:
+    column: recurrence
+    parse: 'enum:{periodical: periodical, unknown: unknown}'
+    default: unknown
+  effect:
+    column: effect
+    parse: 'enum:{closure: closure}'
+    default: unknown

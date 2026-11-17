@@ -1,0 +1,4 @@
+train_no,point_id,line_dep,line_arr,kind,name,service_date,planned_arr,planned_dep
+aa:101,syn:start,zz:1,zz:1,scheduled,Synthetic syn:start,2026-11-17,2026-11-17 22:10,2026-11-17 22:10
+aa:101,syn:mid,zz:1,zz:1,scheduled,Synthetic syn:mid,2026-11-17,2026-11-17 22:20,2026-11-17 22:20
+aa:101,syn:end,zz:1,zz:1,scheduled,Synthetic syn:end,2026-11-17,2026-11-17 22:30,2026-11-17 22:30

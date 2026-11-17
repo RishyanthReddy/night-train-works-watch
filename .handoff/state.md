@@ -2,9 +2,9 @@
 _Updated: 2026-11-17 by Codex gpt-6.1-sol_
 
 ## Goal / scope
-Complete KICKOFF.md Phase 0 P0.1–P0.8 only; skip P0.9. No Phase 1, remote, push, merge or deployment.
-User authorised building in this chat and requested a TODO, local commit, council and handoff.
-Implementation/checks are by the selected agent. User waived unavailable DeepSeek; final council is Opus + Sol.
+Current goal: Phases 1–3 in order, one task at a time, preserving completed Phase 0. No Phase 4, remote, push, merge or deployment.
+User authorised Phases1–3 with TODO/local commits/council. Latest steering: fix current Phase1 blockers first, then STOP before Phase2; await user continuation at that checkpoint.
+Implementation/checks by the selected agent. Updated council: Kiro Opus medium, Codex Sol high, Grok 4.7 high.
 
 ## Done
 - Existing baseline commit fedda2c preserved on phase0; initial fresh commands: uv sync --frozen exit 0 and pytest exit 0, 111 tests.
@@ -21,10 +21,17 @@ Implementation/checks are by the selected agent. User waived unavailable DeepSee
 ## Phase 0 closed
 - Opus/Sol council round 2 APPROVED 9/10 each; phase0-council-r2-snapshot.json hashes still match.
 - Product commit d220f620748737ba5709bc161ca63b2cd5750cb6; all 34 reviewed hashes match its Git blobs and working files. No data files tracked; no remote configured or used.
-- Phase 0 product is complete. Stop before Phase 1; only the completion reply follows the handoff record.
+- Phase 0 product is complete. New work starts from d340990 on dedicated phase1 branch.
+
+## Phase1 ready to commit
+- P1.1–P1.13 and app/swap acceptance complete; phase1-completion-audit.md maps each requirement to evidence.
+- Council R4 unanimous APPROVE9/10: Kiro Opus, Codex Sol, Grok4.7. All93 product hashes matched every review. Full score history in review.md; reports phase1-council-r4-*.md.
+- Main330 tests pass22.04s with OS network denial and six credentials unset; Phase0 and full actual CLI workflow pass. Latest frozen offline sync exit0 checks45 packages.
+- Main800-leg all-sequence1 queue1.185s; operation-scoped reads/indexes, no cubic scan. Performance measurements are local and shape-specific.
+- Current task: commit approved product/evidence locally, verify all reviewed Git blobs, record completion, then STOP before Phase2. No Phase2/3 implementation, remote or push.
 
 ## Limits / deferred
-- Append-only audit only: hash chain/seal, typed rail revisions/checks and UI are Phase 1+.
+- Phase1 has no remaining blocker; mixed-request sequence candidate expansion can produce many unknown/unlinked checks (P1-R4-O1), explicitly deferred as nonblocking. No positive join is inferred.
 - Phase 0 has no fetcher, model calls, secrets or network requirement.
 - Historical untracked scripts/fetch_public.py is untouched; it needs requests if used separately and is not the Phase 0 product.
 - Ordinary raw/raw generic comparison is labelled unvalidated; mixing it with mapped input is refused.

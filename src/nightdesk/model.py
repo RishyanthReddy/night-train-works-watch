@@ -1,4 +1,4 @@
-"""Phase 0 canonical records (KICKOFF "Canonical records").
+"""Canonical records (KICKOFF "Canonical records").
 
 All datetimes are timezone-aware. Floats must be finite. Every model is frozen and
 refuses unknown fields. `bundle` must name a known bundle (see config.get_bundle).
@@ -6,7 +6,9 @@ refuses unknown fields. `bundle` must name a known bundle (see config.get_bundle
 
 from __future__ import annotations
 
-from typing import Annotated, Any, Union
+from typing import Annotated, Any, Union, Literal
+from datetime import date, time
+import re
 
 from pydantic import (
     AfterValidator,
@@ -15,10 +17,13 @@ from pydantic import (
     ConfigDict,
     Field,
     StringConstraints,
+    model_validator,
+    field_validator,
 )
 from typing_extensions import TypeAliasType
 
-from nightdesk.config import get_bundle
+from nightdesk.config import get_bundle, WORK_EFFECTS
+from nightdesk.timeutil import utc
 
 JSONValue = TypeAliasType(
     "JSONValue",
@@ -89,7 +94,7 @@ class GateResult(_Record):
 
 
 class AuditEvent(_Record):
-    """One audit log line. Phase 0: append-only, no hash chain (prev_hash/hash stay None)."""
+    """One log line. Hash fields may be None only in a preserved Phase 0 legacy log."""
 
     seq: Annotated[int, Field(ge=0)]
     ts: AwareDatetime
@@ -106,3 +111,249 @@ def source_ref_payload(ref: SourceRef) -> dict[str, Any]:
     Drops `field_evidence` (quoted source spans), keeping only the reference.
     """
     return ref.model_dump(mode="json", exclude={"field_evidence"})
+
+
+def _namespace(value: str) -> str:
+    if not re.fullmatch(r"[^\s:]+:[^\s:]+", value):
+        raise ValueError("id_not_namespaced")
+    return value
+
+
+Namespaced = Annotated[NonEmpty, AfterValidator(_namespace)]
+
+
+class _Payload(_Record):
+    extra: dict[str, JSONValue] = Field(default_factory=dict)
+    unresolved: dict[str, JSONValue] = Field(default_factory=dict)
+
+
+class WorkNotice(_Payload):
+    work_id: str | None = None
+    country: NonEmpty
+    line: Namespaced | None = None
+    from_place: str = ""
+    to_place: str = ""
+    from_point_id: Namespaced | None = None
+    to_point_id: Namespaced | None = None
+    date_start: date
+    date_end: date
+    clock_from: time | None = None
+    clock_to: time | None = None
+    weekdays: list[int] | None = None
+    recurrence: Literal["periodical", "continuous", "unknown"] = "unknown"
+    effect: str = "unknown"
+    description: str = ""
+    published_at: AwareDatetime | None = None
+    proposed_by: Literal["adapter", "llm", "manual"] = "adapter"
+    timezone: str | None = None
+
+    @field_validator("effect")
+    @classmethod
+    def allowed_effect(cls, value):
+        if value not in WORK_EFFECTS:
+            raise ValueError("effect_not_in_canonical_vocabulary")
+        return value
+
+
+class BoundaryEvent(_Payload):
+    point_id: Namespaced | None = None
+    place_name: str = ""
+    kind: Literal["arrival", "departure", "pass", "handover", "unknown"] = "unknown"
+    at: AwareDatetime | None = None
+    raw_time: str = ""
+    timezone: str | None = None
+    unresolved_reason: str | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def unresolved_time(cls, values):
+        if not isinstance(values, dict):
+            return values
+        values = dict(values)
+        if values.get("at") is None and values.get("unresolved_reason") is None:
+            values["unresolved_reason"] = "missing_time"
+        if values.get("at") is not None and values.get("unresolved_reason") is not None:
+            raise ValueError("resolved_time_cannot_have_unresolved_reason")
+        return values
+
+
+class PathLeg(_Payload):
+    journey_ref: str | None = None
+    request_id: str | None = None
+    network: NonEmpty
+    train_no: Namespaced
+    sequence: int | None = None
+    operating_dates: list[date]
+    entry: BoundaryEvent | None = None
+    exit: BoundaryEvent | None = None
+    source_status: str | None = None
+
+
+class JourneyLinkMember(_Payload):
+    source: SourceRef
+    journey_id: NonEmpty
+    network: NonEmpty
+    train_no: Namespaced
+    # v1 source dates are ISO dates or '*': same-service-date across networks.
+    # Other rules remain unsupported/unknown until a sourced adapter exists.
+    service_date_rule: NonEmpty
+
+
+class JourneyLink(_Payload):
+    journey_id: NonEmpty
+    members: list[JourneyLinkMember]
+    basis: Literal["source", "human"]
+    source: SourceRef | None = None
+    confirmed_by: str | None = None
+
+    @model_validator(mode="after")
+    def basis_has_evidence(self):
+        if self.basis == "source" and self.source is None:
+            raise ValueError("source_link_needs_source")
+        if self.basis == "human" and not (self.confirmed_by or "").strip():
+            raise ValueError("human_link_needs_actor")
+        if not self.members:
+            raise ValueError("journey_link_has_no_members")
+        bundles = {m.source.bundle for m in self.members}
+        if self.source is not None:
+            bundles.add(self.source.bundle)
+        if len(bundles) != 1:
+            raise ValueError("journey_link_crosses_bundles")
+        return self
+
+
+class RunPoint(_Payload):
+    point_id: Namespaced
+    name: str = ""
+    line_dep: Namespaced | None = None
+    line_arr: Namespaced | None = None
+    planned_arr: AwareDatetime | None = None
+    planned_dep: AwareDatetime | None = None
+    real_arr: AwareDatetime | None = None
+    real_dep: AwareDatetime | None = None
+    delay_arr_s: int | None = None
+    delay_dep_s: int | None = None
+    source: SourceRef | None = None
+
+
+class RunRow(RunPoint):
+    source: SourceRef
+    service_date: date
+    train_no: Namespaced
+    kind: Literal["observed", "scheduled"] = "observed"
+    trip_id: str | None = None
+
+
+class TrainRun(_Payload):
+    service_date: date
+    train_no: Namespaced
+    kind: Literal["observed", "scheduled"]
+    trip_id: str | None = None
+    points: list[RunPoint]
+    input_refs: list[SourceRef] = Field(default_factory=list)
+    rule_version: str = "runs-v1"
+    path_unresolved: bool = False
+
+
+class Segment(_Record):
+    a: RunPoint
+    b: RunPoint
+    line: Namespaced | None = None
+    planned_s: int | None = None
+    input_refs: list[SourceRef] = Field(default_factory=list)
+    rule_version: str = "runs-v1"
+
+
+class Revision(_Record):
+    revision_id: Sha256
+    subject_type: Literal["work", "path_leg"]
+    subject_key: NonEmpty
+    payload: WorkNotice | PathLeg
+    source: SourceRef
+    source_status: str | None = None
+    predecessor: Sha256 | None = None
+    predecessor_basis: Literal["source_field", "human"] | None = None
+    identity: Literal["certain", "uncertain"]
+    import_status: Literal["accepted", "unresolved"] = "accepted"
+
+    @model_validator(mode="after")
+    def payload_matches_type(self):
+        if (self.subject_type == "work") != isinstance(self.payload, WorkNotice):
+            raise ValueError("subject_payload_mismatch")
+        if (self.predecessor is None) != (self.predecessor_basis is None):
+            raise ValueError("predecessor_basis_required_with_predecessor")
+        if self.predecessor == self.revision_id:
+            raise ValueError("self_predecessor")
+        return self
+
+
+class FieldDiff(_Record):
+    field: NonEmpty
+    old: JSONValue
+    new: JSONValue
+    old_present: bool = True
+    new_present: bool = True
+
+
+class ChangeSet(_Record):
+    old_revision: str | None = None
+    new_revision: str | None = None
+    old_capture: str | None = None
+    new_capture: str | None = None
+    basis: NonEmpty
+    field_diffs: list[FieldDiff] = Field(default_factory=list)
+    affected_dates: list[date] = Field(default_factory=list)
+    added: list[str] = Field(default_factory=list)
+    removed: list[str] = Field(default_factory=list)
+    status: Literal["compared", "identity_uncertain", "comparison_unavailable"]
+    reason: str | None = None
+    input_refs: list[SourceRef] = Field(default_factory=list)
+    rule_version: str = "changes-v1"
+
+
+class Exposure(_Record):
+    service_date: date
+    train_no: Namespaced
+    work_revision: Sha256
+    outcome: Literal["A", "B", "unlocated", "time_unknown"]
+    reasons: list[str] = Field(default_factory=list)
+    overlap_window: list[AwareDatetime] | None = None
+    gate_results: list[GateResult] = Field(default_factory=list)
+    input_refs: list[SourceRef] = Field(default_factory=list)
+    rule_version: str = "match-v1"
+
+
+class ConsistencyFinding(_Record):
+    rule: NonEmpty
+    rule_version: NonEmpty
+    input_refs: list[SourceRef]
+    result: Literal["mismatch", "agrees_on_checked_fields", "unknown"]
+    reason: str | None = None
+    detail: dict[str, JSONValue] = Field(default_factory=dict)
+
+
+class ReviewDecision(_Record):
+    revision_id: Sha256
+    actor: NonEmpty
+    disposition: Literal["accepted_locally", "needs_clarification", "rejected_locally"]
+    reason: NonEmpty
+    evidence: list[SourceRef] = Field(default_factory=list)
+    at: AwareDatetime
+    stale: bool = False
+
+
+class FollowUp(_Record):
+    follow_up_id: NonEmpty
+    revision_id: Sha256
+    owner: NonEmpty
+    question: NonEmpty
+    depends_on: str | None = None
+    deadline: AwareDatetime | None = None
+    deadline_source: SourceRef | None = None
+    status: Literal["open", "answered", "reopened"] = "open"
+
+    @model_validator(mode="after")
+    def no_deadline_without_source(self):
+        if self.deadline is not None and self.deadline_source is None:
+            raise ValueError("deadline_requires_source")
+        return self

@@ -1,0 +1,17 @@
+version: 1
+dataset: syn
+label: Synthetic v3
+complete: true
+files:
+- role: legs
+  path: legs.csv
+  mapping: ../../../../mappings/syn_legs.yaml
+- role: works
+  path: works.csv
+  mapping: ../../../../mappings/syn_works.yaml
+- role: runs
+  path: runs.csv
+  mapping: ../../../../mappings/syn_runs.yaml
+- role: links
+  path: links.csv
+  mapping: ../../../../mappings/syn_links.yaml

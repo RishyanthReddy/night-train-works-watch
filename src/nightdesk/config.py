@@ -40,6 +40,21 @@ TEST_BUNDLE_RE = re.compile(r"test-[a-z0-9][a-z0-9-]{0,47}")
 MAX_NUMBER_TEXT = 1024
 MAX_NUMBER_EXPONENT = 1000
 
+# Canonical vocabulary; unmapped values retain raw evidence and become unknown.
+WORK_EFFECTS = ("TOTALSPERRUNG", "FAHRZEITVERLAENGERUNG", "ABWEICHUNG_VOM_FPL", "GGL_MIT_ZS_6",
+                "GGL_MIT_ZS_8", "SONSTIGES", "closure", "restricted", "other", "unknown")
+RECURRENCES = ("periodical", "continuous", "unknown")
+EVENT_KINDS = ("arrival", "departure", "pass", "handover", "unknown")
+# Technical plausibility guard: a decade-old work start is not silently accepted.
+# Configurable review guard, not an asserted railway planning horizon.
+WORK_YEAR_BEFORE_CAPTURE = 5
+WORK_YEAR_AFTER_CAPTURE = 10
+
+STATION_AREA_LINE_PREFIXES = ("0/",)
+DATASET_ASSUMPTIONS = {
+    "infrabel_punctuality": ["Times assumed Europe/Brussels; upstream timezone on clock-change nights is not verified."],
+}
+
 
 def is_within(path: Path, root: Path) -> bool:
     """Containment by resolved path and filesystem identity (case aliases on macOS)."""

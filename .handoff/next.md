@@ -1,8 +1,7 @@
 # Next action
-Wait for the user’s next instruction; Phase 0 is complete and this goal stops before Phase 1.
+Commit the approved Phase1 product and selected evidence locally, verify93 Git blobs against phase1-council-r4-snapshot.json, update handoff with commit SHA, then STOP before Phase2 until user continuation.
 
-Product commit: d220f620748737ba5709bc161ca63b2cd5750cb6 on phase0. All 34 hashes match phase0-council-r2-snapshot.json in Git and the working tree.
-Council: two review rounds, one fix round; Opus and Sol both APPROVE 9/10 in round 2. DeepSeek unavailable and explicitly waived by user.
-Verification: 191 tests with keys unset and network denied; all six CLI acceptance steps, JSON/XLSX and merged-header flatten path pass. See phase0-completion.md and logs.
-No remote exists, no push occurred, no data files are tracked. Existing unrelated untracked files are preserved.
-To continue later, read KICKOFF.md and current handoff, then obtain the user’s Phase 1 instruction. Do not start it automatically.
+R4 all three APPROVE9/10; reports saved. Main330 offline tests, Phase0 acceptance, actual CLI integration and800-leg queue benchmark pass; latest uv sync --frozen --offline exit0 checked45 packages. Phase1-completion-audit.md maps requirements. No review remains running.
+Only nonblocking deferred issue: P1-R4-O1 mixed-request candidates yield excess unknown/unlinked entries (builder verified no positive result). Later identity scoping must respect explicit links. Do not restart review/fix loops for this accepted limit.
+
+Regenerate explicit commit candidates from frozen product and Phase1 evidence; exclude historical research/raw data/proposal copies/temporary-path files. Preserve unrelated untracked AGENTS/CLAUDE/KICKOFF/scripts/history. Protected baseline hashes must match. No remote/push/Phase4; Phase2/3 remain behind user's stop checkpoint.

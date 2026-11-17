@@ -75,6 +75,16 @@ def build_parser() -> argparse.ArgumentParser:
     intake.add_argument("--bundle", default=None)
     intake.set_defaults(func=_cmd_ingest)
 
+    batch = sub.add_parser("capture", help="confirm or import a declared multi-file capture")
+    actions = batch.add_subparsers(dest="action", required=True)
+    for action in ("confirm", "import"):
+        cmd = actions.add_parser(action)
+        cmd.add_argument("manifest")
+        cmd.add_argument("--bundle", default=None)
+        if action == "confirm":
+            cmd.add_argument("--actor", required=True)
+        cmd.set_defaults(func=_cmd_capture)
+
     rejects = sub.add_parser("rejects", help="list rejected rows in this bundle")
     rejects.add_argument("--bundle", default=None)
     rejects.set_defaults(func=_cmd_rejects)
@@ -98,6 +108,42 @@ def build_parser() -> argparse.ArgumentParser:
     compare.add_argument("--old-capture")
     compare.add_argument("--new-capture")
     compare.set_defaults(func=_cmd_compare)
+    links = sub.add_parser("links", help="import a crosswalk or explicitly confirm journey members")
+    actions = links.add_subparsers(dest="action", required=True)
+    imp = actions.add_parser("import")
+    imp.add_argument("capture")
+    imp.add_argument("--bundle", default=None)
+    imp.set_defaults(func=_cmd_links)
+    conf = actions.add_parser("confirm")
+    conf.add_argument("journey")
+    conf.add_argument("--revision", action="append", required=True)
+    conf.add_argument("--actor", required=True)
+    conf.add_argument("--service-date-rule", required=True, help="explicit ISO service date or * for same-date rule")
+    conf.add_argument("--bundle", default=None)
+    conf.set_defaults(func=_cmd_links)
+    show = actions.add_parser("list")
+    show.add_argument("--bundle", default=None)
+    show.set_defaults(func=_cmd_links)
+    review = sub.add_parser("review", help="record a local decision bound to a revision")
+    review.add_argument("revision")
+    review.add_argument("--actor", required=True)
+    review.add_argument("--disposition", choices=["accepted_locally", "needs_clarification", "rejected_locally"], required=True)
+    review.add_argument("--reason", required=True)
+    review.add_argument("--owner")
+    review.add_argument("--question")
+    review.add_argument("--bundle", default=None)
+    review.set_defaults(func=_cmd_review)
+    audit = sub.add_parser("audit", help="check a hash chain or print an external seal")
+    actions = audit.add_subparsers(dest="action", required=True)
+    for action in ("verify", "seal", "upgrade"):
+        cmd = actions.add_parser(action)
+        cmd.add_argument("--bundle", default=None)
+        if action == "verify":
+            cmd.add_argument("--seal")
+            cmd.add_argument("--count", type=int)
+        if action == "upgrade":
+            cmd.add_argument("--actor", required=True)
+        cmd.set_defaults(func=_cmd_audit)
     return parser
 
 
@@ -130,6 +176,22 @@ def _cmd_rejects(args):
     return 0
 
 
+def _cmd_capture(args):
+    from nightdesk.intake.batch import confirm_batch, ingest_batch
+    bundle = _bundle(args)
+    if args.action == "confirm":
+        print("confirmed capture mappings: " + ", ".join(confirm_batch(args.manifest, bundle, args.actor)))
+    else:
+        result = ingest_batch(args.manifest, bundle)
+        from nightdesk.links import import_links
+        from nightdesk.desk import snapshot
+        for identifier in result["children"].values():
+            if snapshot(bundle, identifier)["metadata"]["record_type"] == "JourneyLinkMember":
+                import_links(bundle, identifier)
+        print(f"capture={result['capture'].capture_id} complete={result['capture'].complete} rejected={len(result['rejects'])} label={result['metadata']['label']}")
+    return 0
+
+
 def _cmd_flatten(args):
     options = dict(header_rows=args.header_rows, sheet=args.sheet, delimiter=args.delimiter, encoding=args.encoding)
     bundle = _bundle(args)
@@ -154,6 +216,44 @@ def _cmd_compare(args):
     print("Rows absent from a selected file have unknown meaning; rejected rows are excluded.")
     for path in paths:
         print(path)
+    return 0
+
+
+def _cmd_links(args):
+    from nightdesk.links import import_links, confirm_link, links
+    bundle = _bundle(args)
+    if args.action == "import":
+        print("recorded source links: " + ", ".join(import_links(bundle, args.capture)))
+    elif args.action == "confirm":
+        print("confirmed human link: " + confirm_link(bundle, args.journey, args.revision, args.actor, args.service_date_rule))
+    else:
+        print(json.dumps([link.model_dump(mode="json") for link in links(bundle)], ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_review(args):
+    from nightdesk.review import record_decision, follow_up
+    if bool(args.owner) != bool(args.question):
+        raise ValueError("follow-up requires both --owner and --question")
+    bundle = _bundle(args)
+    decision = record_decision(bundle, args.revision, args.actor, args.disposition, args.reason)
+    print(decision.model_dump_json())
+    if args.owner:
+        print(follow_up(bundle, args.revision, args.owner, args.question).model_dump_json())
+    return 0
+
+
+def _cmd_audit(args):
+    from nightdesk.audit import verify, upgrade_legacy
+    bundle = _bundle(args)
+    if args.action == "upgrade":
+        result = upgrade_legacy(bundle, args.actor)
+    elif args.action == "verify":
+        result = verify(bundle, seal=args.seal, count=args.count)
+    else:
+        result = verify(bundle)
+        print("Keep this hash and count outside the audit log; source truth is not proved.")
+    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0
 
 

@@ -1,0 +1,38 @@
+[
+  {
+    "fixture": "cc0_2023.csv",
+    "licence": "CC0",
+    "source_url": "https://fr.ftp.opendatasoft.com/infrabel/PunctualityHistory/Data_raw_punctuality_202305.csv",
+    "local_source": "data/raw/be-es/202305.csv",
+    "source_file_sha256": "53bcff47433bec8c1dd02d757e5e51e473c5c5c73e3fddd08713ae4a83f43d1d",
+    "fixture_sha256": "d8f2d249a35b0516458c3c547b7e4a3b65846ee06e5033acf9dcb690e4a4b29c",
+    "service_date_raw": "22MAY2023",
+    "train_no_raw": "453",
+    "rows": 27,
+    "selection": "All rows with matching DATDEP and TRAIN_NO, TRAIN_SERV=EURSLEEPER; header-based filter. Rows unchanged."
+  },
+  {
+    "fixture": "cc0_2026.csv",
+    "licence": "CC0",
+    "source_url": "https://fr.ftp.opendatasoft.com/infrabel/PunctualityHistory/Data_raw_punctuality_202610.csv",
+    "local_source": "data/raw/be-es/202610.csv",
+    "source_file_sha256": "adbe5e7cb75e94c0bbeea7e2e727ca2da563cf5d5dccd7334b6f94009597a13e",
+    "fixture_sha256": "b58897c9a97737c8e6395fe74da3df63b9327de2f3de3d6ab91834932067f7cd",
+    "service_date_raw": "01OCT2026",
+    "train_no_raw": "400",
+    "rows": 42,
+    "selection": "All rows with matching DATDEP and TRAIN_NO, TRAIN_SERV=EURSLEEPER; header-based filter. Rows unchanged."
+  },
+  {
+    "fixture": "cc0_overnight.csv",
+    "licence": "CC0",
+    "source_url": "https://fr.ftp.opendatasoft.com/infrabel/PunctualityHistory/Data_raw_punctuality_202603.csv",
+    "local_source": "data/raw/be-es/202603.csv",
+    "source_file_sha256": "afeb49471dabaa98eb1425ea421ed7c547418fe6bd42baaf9acfaed14ab54f6e",
+    "fixture_sha256": "8570466aa9822e70bc68b9a9f1ec198b1c8e16d3d76cddd6ef81045804c6028d",
+    "service_date_raw": "26MAR2026",
+    "train_no_raw": "475",
+    "rows": 69,
+    "selection": "All rows with matching DATDEP and TRAIN_NO, TRAIN_SERV=EURSLEEPER; header-based filter. Rows unchanged."
+  }
+]

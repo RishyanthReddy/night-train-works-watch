@@ -1,8 +1,9 @@
 # Build TODO
 
-Authority: KICKOFF.md section 9; user authorised Phase 0 only in this chat.
-Implementation/checks: current Codex agent. Council at phase end: Kiro Opus medium, Codex Sol high, Cursor DeepSeek max.
-No remote creation, push, merge or deploy. P0.9 skipped. Stop before Phase 1.
+Authority: KICKOFF.md section 9; user now authorised Phases 1–3 in order, task by task (2026-11-17).
+Implementation/checks: current Codex agent. Council at each phase end: Kiro Opus medium, Codex Sol high, Grok 4.7 high.
+Latest checkpoint: finish Phase1 fixes/review/commit, then stop before Phase2 for user continuation.
+No remote creation, push, merge or deploy. P0.9 skipped. Stop after Phase 3. P3.6 account/remote actions remain gated.
 
 ## Phase 0 — execute in order
 - [x] P0.1 Existing baseline fedda2c verified; data/ ignored and SPEC superseded. Fresh uv sync --frozen exit 0; uv run --offline pytest exit 0 (111 passed).
@@ -18,22 +19,24 @@ No remote creation, push, merge or deploy. P0.9 skipped. Stop before Phase 1.
 - [x] Council: two rounds, one fix round. Opus 6.5→9/10; Sol 8→9/10. Both APPROVE same snapshot. DeepSeek unavailable and waived by user.
 - [x] Scope/secret/data checks; approved product commit d220f62; handoff, swap check and final evidence complete.
 
-## Later phases — reference only, NOT authorised in this goal
+## Current goal — Phases 1–3, task order enforced
 
 ### Phase 1 — One planner task end to end
-- [ ] P1.1 `timeutil.py`: the time rules of section 7 with the listed tests.
-- [ ] P1.2 `model.py`: `Revision`, `WorkNotice`, `PathLeg`, `BoundaryEvent`, `JourneyLink`, `RunRow`, `RunPoint`,
-- [ ] P1.3 `store.py`: captures and immutable revisions under the bundle root; idempotent import (N1);
-- [ ] P1.4 `mappings/infrabel_punctuality.yaml` (`RunRow`) and `runs.py`: `TrainRun` and `Segment`
-- [ ] P1.5 `links.py`: load `JourneyLink` rows from a mapped file; confirm one by hand (CLI/UI);
-- [ ] P1.6 `changes.py`: `ChangeSet` for a selected pair of revisions, and for a pair of captures under
-- [ ] P1.7 `match.py`: date -> weekday -> clock window vs the planned pass window (D6) -> place by
-- [ ] P1.8 `border.py`: the one narrow rule of section 2 (same event kind, same reviewed point, same
-- [ ] P1.9 `review.py`: decision bound to a revision hash; follow-up with owner; stale marking (N6);
-- [ ] P1.10 `export.py`: train/date dossier as Markdown and JSON — before/after, sources, exposures,
-- [ ] P1.11 `ui/app.py`: plain working **queue** and **dossier** screens, no styling (design research
-- [ ] P1.12 `audit.py`: hash chain; `nightdesk audit verify` (catches an edited or removed line);
-- [ ] P1.13 Fixture `syn`: one synthetic dataset in two captures (v1, v2) with **no rejected rows**,
+- [x] P1.1 `timeutil.py`: the time rules of section 7 with the listed tests.
+- [x] P1.2 `model.py`: `Revision`, `WorkNotice`, `PathLeg`, `BoundaryEvent`, `JourneyLink`, `RunRow`, `RunPoint`,
+- [x] P1.3 `store.py`: captures and immutable revisions under the bundle root; idempotent import (N1);
+- [x] P1.4 `mappings/infrabel_punctuality.yaml` (`RunRow`) and `runs.py`: `TrainRun` and `Segment`
+- [x] P1.5 `links.py`: load `JourneyLink` rows from a mapped file; confirm one by hand (CLI/UI);
+- [x] P1.6 `changes.py`: `ChangeSet` for a selected pair of revisions, and for a pair of captures under
+- [x] P1.7 `match.py`: date -> weekday -> clock window vs the planned pass window (D6) -> place by
+- [x] P1.8 `border.py`: the one narrow rule of section 2 (same event kind, same reviewed point, same
+- [x] P1.9 `review.py`: decision bound to a revision hash; follow-up with owner; stale marking (N6);
+- [x] P1.10 `export.py`: train/date dossier as Markdown and JSON — before/after, sources, exposures,
+- [x] P1.11 `ui/app.py`: plain working **queue** and **dossier** screens, no styling (design research
+- [x] P1.12 `audit.py`: hash chain; `nightdesk audit verify` (catches an edited or removed line);
+- [x] P1.13 Fixture `syn`: one synthetic dataset in two captures (v1, v2) with **no rejected rows**,
+
+- [ ] Phase 1 close: acceptance, viewed screenshots, offline tests and swap pass; R3 fixes applied;330 main offline tests pass, queue scaling/CLI pass. Focused R4 running (93-file freeze); approval/local commit pending. Stop before Phase2.
 
 ### Phase 2 — Trust and edge cases
 - [ ] P2.1 `stations.py` + alias rows under `mappings/aliases/` (each row with a source, reviewed;
@@ -43,7 +46,9 @@ No remote creation, push, merge or deploy. P0.9 skipped. Stop before Phase 1.
 - [ ] P2.5 Text door: `llm/client.py` (plain HTTPS to Mistral; `mistral`, `replay`, `off`), the
 - [ ] P2.6 Security fixtures, all authored and synthetic: (a) a notice containing injected
 - [ ] P2.7 `nightdesk demo check`: demo mode loads only assets listed in a manifest as synthetic or
-- [ ] P2.8 **Optional (cut independently): notice version extraction.** Two versions of a text
+- [x] P2.8 Optional notice version extraction skipped by recorded scope decision.
+
+- [ ] Phase 2 acceptance in real app, viewed screenshots, offline tests, swap check, council, local commit and handoff.
 
 ### Phase 3 — The swap, isolation, security
 - [ ] P3.1 **Unseen-shape rehearsal**, whole path from file to export, once with all keys unset: a
@@ -53,7 +58,9 @@ No remote creation, push, merge or deploy. P0.9 skipped. Stop before Phase 1.
 - [ ] P3.5 `docs/THREAT_MODEL.md` (one page): untrusted documents -> model -> gates; assets; what can
 - [ ] P3.6 Aikido preparation, our own repo and code only: the **user** creates the account
 
-### Phase 4 — Looks, sustainability, handover
+- [ ] Phase 3 acceptance in real app, viewed screenshots, offline tests, swap check, council, local commit and handoff.
+
+### Phase 4 — Not authorised: looks, sustainability, handover
 - [ ] P4.1 **Design research before any styling** (the plain screens of phase 1 exist already).
 - [ ] P4.2 Style the queue and dossier to the approved direction, readable from the back of a room;
 - [ ] P4.3 `co2.py` + one **scenario card**: passenger-km x share that would use the alternative mode

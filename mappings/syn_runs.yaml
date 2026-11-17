@@ -1,0 +1,42 @@
+# Authored synthetic data only.
+version: 1
+dataset: syn
+licence: synthetic
+external_processing_allowed: true
+file:
+  type: csv
+record: RunRow
+timezone: Europe/Brussels
+complete: true
+required:
+- service_date
+- train_no
+- point_id
+fields:
+  train_no:
+    column: train_no
+    parse: str
+  point_id:
+    column: point_id
+    parse: str
+  line_dep:
+    column: line_dep
+    parse: str
+  line_arr:
+    column: line_arr
+    parse: str
+  kind:
+    column: kind
+    parse: str
+  name:
+    column: name
+    parse: str
+  service_date:
+    column: service_date
+    parse: date:%Y-%m-%d
+  planned_arr:
+    column: planned_arr
+    parse: datetime:%Y-%m-%d %H:%M
+  planned_dep:
+    column: planned_dep
+    parse: datetime:%Y-%m-%d %H:%M
