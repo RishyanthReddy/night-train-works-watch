@@ -1,8 +1,13 @@
 # Next action
-Wait for explicit user continuation before starting Phase2 P2.1; Phase1 is closed and user asked to STOP here.
+Collect already-running focused council R6 results on exactly3-file delta from approved R5, then collect verdicts, commit this Phase1 follow-up and start Phase2 P2.1 per latest user authorisation.
 
-Phase1 product commit 6d11e5c4ce426ea25d565c418d9e4ac2a1ff2412; all93 Git blobs/working hashes match phase1-council-r4-snapshot.json. Final council all three9/10 APPROVE (four rounds); no running review. Main330 tests, Phase0 acceptance, actual CLI workflow and queue scaling pass. Full evidence phase1-completion-audit.md and phase1-r4-*.log. Final handoff-only commit follows this product commit.
+R5 unanimously approved (Opus8.5/Sol9/Grok9). All94 hashes matched all reviews. Opus nonblockers O1/O2 refined AFTER all reviews ended: explicit distinct-sequence reentry legs can be chosen together; excluded adjacent sequence yields sourced unknown. Changed desk.py,ui/app.py,test_boundary_scope.py only vsR5; phase1-council-r6-snapshot.json94files.
+Main337 tests34.55s and actualCLI pass under OSnetworkdenial/sixcredentialsunset (phase1-r6-tests/cli.log). Phase0 passed against prior five-file delta; other current regressions all included. Main live native-browser DOM confirms2mismatches after explicit reentry choices; snapshot frame failure means no new image claim. Earlier follow-up screenshots actually viewed; no model/browser source truth claim. Browser/server closed.
 
-Nonblocking P1-R4-O1: mixed-request sequence candidates cause excess unknown/unlinked checks. Builder verified no positive match/automatic link; documented deferral for later identity scoping. Keep the limit visible and respect explicit cross-network links.
+Keep product frozen during R6. No push/remote. After unanimous approval commit selected source/evidence only; do not stage historical research. Then Phase2 per KICKOFF in order, TODO/checks/browser/council/localcommit. Goal backend still reports paused; user asked resume but no active/resume update schema exists; preserve unfinished full goal, do not mark complete to replace it.
 
-Original goal remains Phases1–3, now paused at the user's before-Phase2 checkpoint. On continuation use a fresh phase chat per KICKOFF rule12, read KICKOFF and four handoff files, proceed P2.1 onward in TODO order, council/commit each phase. No Phase4. No repo creation/push/merge/deploy or external Aikido connection without explicit authorization. Preserve unrelated untracked research/AGENTS/CLAUDE/KICKOFF/scripts; never broadly stage them.
+All three exact council R6 models launched, no verdicts yet. Task handles phase1-council-r6-tasks.json; completion wakes thread, no polling. Product94 hashes frozen. After closure proceedPhase2 as latest user requests; prior stop checkpoint is superseded.
+
+R6 Opus APPROVE9/10,337 tests,94 matching hashes; report saved. Low nonblocking excluded-record origin note recorded P1-R6-O1, no extra code change planned. Product/protected hashes and credential-pattern scan pass; no data tracked or remote. Sol/Grok remain pending; do not poll.
+
+R6 Sol APPROVE9/10,337 tests+14 independent probes,94hashes match; report phase1-council-r6-sol.md. Only Grok pending. All product files remain frozen; user authorised Phase2 immediately after fix closure/commit.

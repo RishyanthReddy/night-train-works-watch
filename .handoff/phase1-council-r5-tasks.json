@@ -1,0 +1,5 @@
+{
+  "opus": "node:delegated-task:command%3Amcp%3A7bc0d59e-c9d8-4f73-9b63-4fbd4d81ff97%3Adelegate-task%3A79986dbb-52bc-41bd-b95c-e78bcd93a88e",
+  "sol": "node:delegated-task:command%3Amcp%3A7bc0d59e-c9d8-4f73-9b63-4fbd4d81ff97%3Adelegate-task%3Aacd17fc4-61e0-4c98-be6a-a90f0828c0c1",
+  "grok": "node:delegated-task:command%3Amcp%3A7bc0d59e-c9d8-4f73-9b63-4fbd4d81ff97%3Adelegate-task%3A3a9da254-af9e-4b81-aab4-2f2994ede96f"
+}

@@ -67,3 +67,7 @@ No remote creation, push, merge or deploy. P0.9 skipped. Stop after Phase 3. P3.
 - [ ] P4.4 `docs/DAY_OF.md` (section 10 made concrete with real commands) and `docs/DEMO.md` (short
 - [ ] P4.5 Final rehearsal and freeze: full test run, clean-setup install check, tag the commit.
 - [ ] P4.6 Optional, only after everything above passes, and only after the user approves the extra
+
+### Phase1 follow-up — user-authorised2026-11-18; Phase2 starts after closure
+- [x] Fix P1-R4-O1: explicit journey/date boundary scope; one unlinked summary; explicit ambiguous-leg selection.
+- [x] Mixed-request/ambiguity and prior checks/browser/council pass:337 tests, R6 allthree9/10. Local commit recorded in state.

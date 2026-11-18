@@ -77,3 +77,25 @@ Earlier research sources are preserved locally at history/20261117-before-phase0
 | Phase1 R4 unanimously APPROVE9/10; all93 product hashes matched each reviewer. Frozen offline sync exit0 checked45 packages. P1-R4-O1 explicitly deferred nonblocking; local commit pending. | Saved phase1-council-r4-{opus,sol,grok}.md, completed thread reads, uv sync output, review.md decision and hash assertions. | 2026-11-17 |
 
 | Approved Phase1 product committed locally as 6d11e5c4ce426ea25d565c418d9e4ac2a1ff2412;93 Git blobs/working files match approved snapshot;4 protected hashes match; committed paths pattern scan clean; no tracked data or remote. | git commit exit0; git show/working SHA256 assertions, protected baseline, git ls-files data/, git remote -v and committed-blob pattern scan. | 2026-11-17 |
+
+| User-authorised P1-R4-O1 follow-up passes336 tests33.53s OSnetworkdenied/sixcredentialsunset, Phase0/CLI and frozen sync; mixed800legs queue1.189s,1 border entry per row. Native UI unlinked/ambiguous/chosen states actually viewed. | phase1-mixed-fix-tests/phase0/cli/scaling.log EXIT0; phase1-mixed-fix-unlinked/ambiguous/chosen.png and native preview output; browser/server closed. | 2026-11-18 |
+
+| Final same-member/different-sequence ambiguity guard included;336 tests33.53s/Phase0/CLI pass under network denial/six credentials unset. R5 three reviews launched;94 product hashes frozen. | phase1-mixed-fix-tests/phase0/cli.log EXIT0, phase1-council-r5-snapshot.json and task handles. | 2026-11-18 |
+
+| Opus R5 approved8.5/10,336 tests;94 hashes match. Reentry/deselected-neighbour nonblockers recorded; proposed changes prepared in temporary copy, not main. | Completed thread read/report phase1-council-r5-opus.md; phase1-r5-prepared-proposal.json. | 2026-11-18 |
+
+| Prepared R5 reentry/excluded-neighbour refinements pass337 tests35.08s, OSnetworkdenied/sixcredentialsunset; not applied to main. | phase1-r5-prepared-tests.log EXIT0, proposal hash/delta assertions and phase1-r5-prepared-evidence.md. | 2026-11-18 |
+
+| Sol R5 approved9/10;336 tests+16 probes, Phase0/CLI pass networkdenied;94 hashes match;800leg mixedqueue1.217s/1entry. | Completed thread read; phase1-council-r5-sol.md copied from reviewer report. | 2026-11-18 |
+
+| User authorised Phase2 after the current fix closes and requested goal resume. Backend goal still paused at read; no active/resume update tool exists. | Latest user instruction and get_goal output/tool schema; state/next/TODO updated without claiming a changed backend status. | 2026-11-18 |
+
+| R5 all approve8.5/9/9;94 hashes matched. Applied exactly3 prepared refinement files after reviews ended. Main337 tests34.55s and CLI pass; live reentryDOM2mismatches, screenshots failed. | Saved R5reports; phase1-r6-tests/cli.log EXIT0; R5→R6SHA assertions; nativebrowserDOM; browser/server closed. No fresh reentry visual claim. | 2026-11-18 |
+
+| Focused3-file R6 recheck launched with exact council models; no verdict claimed;94 hashes match. | delegate_task starting/working outputs and phase1-council-r6-tasks.json; SHA256 assertions. | 2026-11-18 |
+
+| Opus R6 approved9/10;337 tests/94hashes; reentry and excluded-neighbour gaps fixed. Precommit product/protected hashes, pattern scan and no-data/no-remote assertions pass. | Completed thread read, phase1-council-r6-opus.md; local SHA256/pattern/git assertions. | 2026-11-18 |
+
+| Sol R6 approved9/10;337 tests+14 independent probes pass,94 hashes match. | Completed Sol thread read and saved phase1-council-r6-sol.md. | 2026-11-18 |
+
+| R6 unanimously APPROVE9/10;337 tests and94 matching hashes each. Follow-up complete pending local commit, then Phase2 authorised. | Saved phase1-council-r6-{opus,sol,grok}.md and completed thread reads. | 2026-11-18 |

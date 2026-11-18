@@ -8,7 +8,9 @@ import streamlit as st
 
 from nightdesk.audit import read_events
 from nightdesk.config import get_bundle, selected_bundle_name
-from nightdesk.desk import dossier, queue
+from nightdesk.desk import dossier, queue, snapshot_revisions
+from nightdesk.model import PathLeg
+from nightdesk.store import ReadSession
 from nightdesk.export import export_dossier
 from nightdesk.intake.mapping import captures, confirm_mapping, ingest
 from nightdesk.intake.batch import batches, confirm_batch, ingest_batch
@@ -95,12 +97,30 @@ def main():
     reviewed = {p.strip() for p in reviewed_text.split(",") if p.strip()}
     if not st.sidebar.checkbox("I reviewed those boundary point identities", key=key("reviewed")):
         reviewed = set()
+    boundary_options = {}
+    if old_id and new_id:
+        try:
+            reader = ReadSession(bundle)
+            for side, identifier in (("before", old_id), ("after", new_id)):
+                for revision in snapshot_revisions(bundle, identifier, reader=reader):
+                    if isinstance(revision.payload, PathLeg):
+                        leg = revision.payload
+                        label = f"{side}: {leg.train_no} / leg {leg.sequence} / {leg.request_id or 'request unknown'} / {revision.revision_id[:10]}"
+                        if revision.revision_id in boundary_options:
+                            boundary_options[revision.revision_id] += " / also after"
+                        else:
+                            boundary_options[revision.revision_id] = label
+        except (ValueError, OSError) as exc:
+            st.error(str(exc))
+    boundary_ids = st.sidebar.multiselect("Boundary source legs (optional)", list(boundary_options),
+        format_func=boundary_options.get, key=key(f"boundary_legs:{old_id}:{new_id}"),
+        help="If several source records fit the linked train or leg number, choose the intended records for each selected capture. Multiple legs of a re-entering train need explicit choices with distinct leg numbers. Otherwise the boundary stays unknown. Choices never create a journey link.")
     queue_tab, dossier_tab, audit_tab = st.tabs(["Queue", "Dossier", "Rejects and audit"], key=key("active_tab"), on_change="rerun")
     rows = []
     if old_id and new_id:
         try:
             rows = queue(bundle, old_id, new_id, works_capture_id=works_id, run_capture_id=runs_id,
-                         link_identifier=link_identifier, reviewed_points=reviewed)
+                         link_identifier=link_identifier, reviewed_points=reviewed, boundary_revision_ids=boundary_ids)
         except (ValueError, OSError) as exc:
             st.error(str(exc))
     with queue_tab:
@@ -133,7 +153,7 @@ def main():
                 if revision is not None:
                     report = dossier(bundle, old_id, new_id, revision, date.fromisoformat(selected[1]),
                                      works_capture_id=works_id, run_capture_id=runs_id, link_identifier=link_identifier,
-                                     reviewed_points=reviewed)
+                                     reviewed_points=reviewed, boundary_revision_ids=boundary_ids)
                     render_dossier(bundle, report, actor, key)
             except (ValueError, OSError) as exc:
                 st.error(str(exc))
@@ -203,6 +223,10 @@ def render_dossier(bundle, report, actor, key):
     with st.expander("Inspect selected run and source points"):
         st.json(report["selected_run"])
     st.write("Boundary checks")
+    if any(f["reason"] == "unlinked" for f in report["findings"]):
+        st.info("Journey not linked — boundary not checked.")
+    if any(f["reason"] in {"ambiguous_boundary_leg", "boundary_leg_not_selected"} for f in report["findings"]):
+        st.warning("Boundary source leg choice needed. Choose the intended before/after records in Boundary source legs.")
     for finding in report["findings"]:
         st.text(finding["result"] + (": " + finding["reason"] if finding["reason"] else ""))
         st.json(finding)

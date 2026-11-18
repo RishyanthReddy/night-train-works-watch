@@ -61,3 +61,13 @@ Why: latest user instruction “bfore phase 2 stop ... blockers ... fix them fir
 ## 2026-11-17 — Phase1 closure limit
 Decided: close Phase1 after unanimous R4 approval; document pre-existing mixed-request sequence candidate expansion as nonblocking and defer further scoping to later identity hardening.
 Why: no automatic journey link or positive result; builder audit proved all12500 entries in two probes unknown/unlinked. Avoid expanding a completed two-file fix into a new matching rule. User requires stopping beforePhase2. Rejected claiming general linear performance or silently hiding the limit.
+
+## 2026-11-18 — Mixed-request boundary scope follow-up
+Decided: user reopened the accepted Phase1 limit. Only the selected explicit journey link/date establishes eligible boundary legs. No link gives one sourced unknown; sequence collisions require an explicit revision choice, available in UI/API and included in audit/export. Request ids never establish a cross-network join. Operating-date fields remain for boundary comparison rather than filtering, preserving removed-date mismatches.
+Why: requested fix and passing mixed-request/ambiguity/date/UI regressions. Rejected guessed request-id joins, automatic source winners, suppressed unknowns and changes triggered only by capture id.
+
+Follow-up self-review also treats competing source records for the same linked network/train as ambiguous even if their sequence numbers differ. An explicit choice narrows them; no source winner is inferred. Regression covers both same/different sequence ambiguity. Final336-test offline run passes33.53s.
+
+## 2026-11-18 — Phase2 continuation authorised
+Decided: finish/review/commit the current Phase1 mixed-request follow-up, then start Phase2 as next phase/goal using task order, TODO, actual offline/browser checks, council and local commits.
+Why: user explicitly requested “after this start phase-2 ... resume goal ... same approach”. Earlier stop-beforePhase2 is superseded after this fix closes. No remote/push/Phase4 authorization added.

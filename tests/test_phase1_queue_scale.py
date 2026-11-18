@@ -7,6 +7,8 @@ import pytest
 from test_phase1_council import workspace, load
 from nightdesk.desk import _checks, queue, dossier
 from nightdesk.links import import_links
+from test_border import source
+from nightdesk.model import JourneyLink, JourneyLinkMember
 
 DAY=date(2026,11,17)
 
@@ -19,28 +21,30 @@ def test_leg_sequence_inspections_are_bounded_per_selected_context(n,monkeypatch
         def sequence(self):
             accesses[0]+=1
             return 1
-    legs=[SimpleNamespace(payload=Payload(),revision_id=str(i)) for i in range(n)]
+    legs=[SimpleNamespace(payload=Payload(),revision_id=str(i),identity="certain",source=source()) for i in range(n)]
     def no_pair(*args,**kwargs):
         pytest.fail("No adjacent sequence exists")
     monkeypatch.setattr("nightdesk.desk.check_boundary",no_pair)
     for side in range(2):
-        context={"runs":[],"works":[],"legs":legs,"capture":None}
+        context={"runs":[],"works":[],"legs":legs,"capture":SimpleNamespace(capture_id="synthetic-capture")}
         for revision in legs:
             result=_checks(revision,DAY,context,None,set())
-            assert result["summary"]["unresolved"]==["no_run_selected"]
+            assert result["summary"]["unresolved"]==["no_run_selected","unlinked"]
     assert accesses[0]<=4*n
 
 
 def test_only_actual_adjacent_pairs_are_checked(monkeypatch):
     n=500;calls=[]
-    legs=[SimpleNamespace(payload=SimpleNamespace(sequence=i+1,train_no="aa:1"),revision_id=str(i)) for i in range(n)]
+    legs=[SimpleNamespace(payload=SimpleNamespace(sequence=i+1,train_no=f"aa:{i}",network="aa"),revision_id=str(i),identity="certain",source=source()) for i in range(n)]
     def check(a,b,*args,**kwargs):
         calls.append((a.payload.sequence,b.payload.sequence))
         return SimpleNamespace(result="unknown",reason="unlinked")
     monkeypatch.setattr("nightdesk.desk.check_boundary",check)
+    link=JourneyLink(journey_id="synthetic-link",basis="source",source=source(),members=[
+        JourneyLinkMember(source=source(),journey_id="synthetic-link",network="aa",train_no=f"aa:{i}",service_date_rule="*") for i in range(n)])
     for side in range(2):
-        context={"runs":[],"works":[],"legs":legs,"capture":None}
-        for revision in legs: _checks(revision,DAY,context,None,set())
+        context={"runs":[],"works":[],"legs":legs,"capture":SimpleNamespace(capture_id="synthetic-capture")}
+        for revision in legs: _checks(revision,DAY,context,link,set())
     assert len(calls)==4*(n-1)
     assert all(b==a+1 for a,b in calls)
 

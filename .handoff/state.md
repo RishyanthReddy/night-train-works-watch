@@ -1,5 +1,5 @@
 # State
-_Updated: 2026-11-17 by Codex gpt-6.1-sol_
+_Updated: 2026-11-18 by Codex gpt-6.1-sol_
 
 ## Goal / scope
 Current goal: Phases 1–3 in order, one task at a time, preserving completed Phase 0. No Phase 4, remote, push, merge or deployment.
@@ -32,7 +32,7 @@ Implementation/checks by the selected agent. Updated council: Kiro Opus medium, 
 - User checkpoint reached: STOP before Phase2. Goal remains unfinished for Phases2/3 and is to be paused pending explicit continuation. No Phase2/3 code, remote, push, merge or deployment.
 
 ## Limits / deferred
-- Phase1 has no remaining blocker; mixed-request sequence candidate expansion can produce many unknown/unlinked checks (P1-R4-O1), explicitly deferred as nonblocking. No positive join is inferred.
+- User reopened P1-R4-O1 on2026-11-18; fix implemented and verified, focused council/local follow-up commit pending. Phase2 stays held.
 - Phase 0 has no fetcher, model calls, secrets or network requirement.
 - Historical untracked scripts/fetch_public.py is untouched; it needs requests if used separately and is not the Phase 0 product.
 - Ordinary raw/raw generic comparison is labelled unvalidated; mixing it with mapped input is refused.
@@ -40,3 +40,12 @@ Implementation/checks by the selected agent. Updated council: Kiro Opus medium, 
 - Swap: new local input plus confirmed mapping YAML; reviewed aliases/adapters/config only when later needed. Flatten is explicit.
 - Deeply nested/oversized native JSON can fail the file safely with a low-level error; crash recovery is not guaranteed. See nonblocking review ledger.
 - Earlier planning/research memory is preserved locally under history/20261117-before-phase0-closure/; it is not silently staged.
+
+## Current authorised follow-up
+- Explicit journey/date scope now filters boundary candidates; no link yields one sourced unknown. Ambiguous sequence groups require explicit source revision choices in UI/API; choices are audited/exported and never create links.
+-336 tests pass33.53s OSnetworkdenied/sixcredentialsunset; Phase0/full CLI pass; mixed400requests800legs queue1.189s, one unlinked entry per row. Logs phase1-mixed-fix-*.log.
+-Three new native-browser screenshots actually viewed: unlinked summary, ambiguity warning, chosen records restoring real mismatch. Browser/server closed. No fallback needed this time.
+-Focused council R5 launched on94 product files, all three exact skill models; R5 all approve:Opus8.5/Sol9/Grok9. Prepared reentry/choice refinements now applied after all finished; main337 tests34.55s/CLI pass. R6 focused recheck launched, Allthree APPROVE9/10 with337 tests/94 hashes (phase1-council-r6-tasks.json). Then local commit and STOP. No Phase2 code started yet; now authorised after this follow-up closes. No remote action.
+
+## Latest user steering —2026-11-18
+User explicitly authorised starting Phase2 after this follow-up and asked to resume the goal. Finish/review/commit the present fix first. P2.1–P2.7 then in order; optionalP2.8 stays skipped. Same council/local-only workflow. Phase3 scope from original goal remains later work; Phase4 never authorised. Goal tool currently still reports paused, and its available update tool has no active/resume status; do not falsely claim backend status changed.

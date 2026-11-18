@@ -4,7 +4,7 @@ from nightdesk.border import check_boundary
 from nightdesk.changes import compare_captures, compare_revisions
 from nightdesk.export import build_dossier
 from nightdesk.intake.mapping import captures, load_capture
-from nightdesk.links import load_link, covers
+from nightdesk.links import load_link, coverage_by_train, link_id
 from nightdesk.model import PathLeg, RunRow, ConsistencyFinding
 from nightdesk.runs import build_runs, segments
 from nightdesk.match import MATCH_RULE_VERSION
@@ -87,33 +87,125 @@ def _index_context(context):
                    leg_positions=positions, runs_by_train_date=run_index)
 
 
+BOUNDARY_SCOPE_VERSION = "boundary-scope-v1"
+
+
+def _boundary_scope(context, link, day):
+    """Only explicitly linked members can be boundary candidates.
+
+    The cache belongs to this operation's context and holds its link object.
+    Operating dates are compared by the boundary rule, not filtered here:
+    otherwise a removed operating date would hide its mismatch.
+    """
+    key = (id(link), day)
+    cache = context.setdefault("boundary_scopes", {})
+    if key in cache:
+        return cache[key]
+    from collections import defaultdict
+    coverage = coverage_by_train(link, day)
+    choices = context.get("boundary_revision_ids", frozenset())
+    present, missing = defaultdict(list), defaultdict(list)
+    ambiguous = {}
+    excluded = defaultdict(list)
+    def choose_members(legs):
+        members = defaultdict(list)
+        for leg in legs:
+            members[(leg.payload.network, leg.payload.train_no)].append(leg)
+        selected = []
+        for candidates in members.values():
+            chosen = [leg for leg in candidates if leg.revision_id in choices]
+            if chosen:
+                for leg in candidates:
+                    if leg.revision_id not in choices and leg.payload.sequence is not None:
+                        excluded[leg.payload.sequence].append(leg)
+            candidates = chosen or candidates
+            sequences = [leg.payload.sequence for leg in candidates]
+            explicit_distinct_legs = bool(chosen) and None not in sequences and len(set(sequences)) == len(sequences)
+            if len(candidates) > 1 and not explicit_distinct_legs:
+                ambiguous.update({leg.revision_id: len(candidates) for leg in candidates})
+            selected.extend(candidates)
+        return selected
+    eligible = [leg for leg in context["legs"]
+        if coverage.get((leg.payload.network, leg.payload.train_no), (False, None))[0]]
+    for leg in choose_members(eligible):
+        if coverage.get((leg.payload.network, leg.payload.train_no), (False, None))[0]:
+            sequence = context["leg_sequences"][leg.revision_id]
+            if sequence is not None:
+                present[sequence].append(leg)
+    absent = [leg for legs in context.get("missing_legs_by_sequence", {}).values() for leg in legs
+        if coverage.get((leg.payload.network, leg.payload.train_no), (False, None))[0]]
+    for leg in choose_members(absent):
+        missing[leg.payload.sequence].append(leg)
+    # Only an explicit choice can narrow competing source legs. Request ids
+    # may differ between networks and never establish a journey by themselves.
+    for groups in (present, missing):
+        for sequence, legs in groups.items():
+            chosen = [leg for leg in legs if leg.revision_id in choices]
+            if chosen:
+                excluded[sequence].extend(leg for leg in legs if leg.revision_id not in choices)
+                groups[sequence] = chosen
+    scope = {"link": link, "link_id": link_id(link), "coverage": coverage,
+             "present": present, "missing": missing, "ambiguous": ambiguous, "excluded": excluded}
+    cache[key] = scope
+    return scope
+
+
 def _boundary_findings(revision, day, context, link, reviewed_points):
+    def unknown(reason, **detail):
+        refs = [revision.source]
+        if link and link.source:
+            refs.append(link.source)
+        return ConsistencyFinding(rule="boundary_check_scope", rule_version=BOUNDARY_SCOPE_VERSION,
+            input_refs=refs, result="unknown", reason=reason,
+            detail={"service_date": day.isoformat(), "selected_capture": context["capture"].capture_id,
+                    "limits": "No boundary pair checked; no current event or cancellation inferred.", **detail})
+    if revision.identity != "certain":
+        return [unknown("identity_uncertain")]
+    if link is None:
+        return [unknown("unlinked")]
     _index_context(context)
+    scope = _boundary_scope(context, link, day)
+    covered, reason = scope["coverage"].get((revision.payload.network, revision.payload.train_no), (False, "unlinked"))
+    if not covered:
+        return [unknown(reason)]
     sequence = context["leg_sequences"].get(revision.revision_id)
     if sequence is None:
-        return []
-    by_sequence = context["legs_by_sequence"]
-    pairs = ([(leg, revision) for leg in by_sequence.get(sequence - 1, [])] +
-             [(revision, leg) for leg in by_sequence.get(sequence + 1, [])])
+        return [unknown("leg_sequence_unknown")]
+    own_group = scope["present"].get(sequence, [])
+    if not any(leg.revision_id == revision.revision_id for leg in own_group):
+        return [unknown("boundary_leg_not_selected", sequence=sequence)]
+    own_count = max(len(own_group), scope["ambiguous"].get(revision.revision_id, 0))
+    if own_count != 1:
+        return [unknown("ambiguous_boundary_leg", sequence=sequence, candidate_count=own_count)]
+    pairs, findings = [], []
+    for neighbor_sequence in (sequence - 1, sequence + 1):
+        neighbors = scope["present"].get(neighbor_sequence, [])
+        count = max([len(neighbors), *(scope["ambiguous"].get(leg.revision_id, 0) for leg in neighbors)])
+        if count > 1:
+            findings.append(unknown("ambiguous_boundary_leg", sequence=neighbor_sequence, candidate_count=count))
+        elif neighbors:
+            neighbor = neighbors[0]
+            pairs.append((neighbor, revision) if neighbor_sequence < sequence else (revision, neighbor))
+        if not neighbors and scope["excluded"].get(neighbor_sequence):
+            findings.append(unknown("boundary_leg_not_selected", sequence=neighbor_sequence))
+        missing = scope["missing"].get(neighbor_sequence, [])
+        count = max([len(missing), *(scope["ambiguous"].get(leg.revision_id, 0) for leg in missing)])
+        if count > 1:
+            findings.append(unknown("ambiguous_boundary_leg", sequence=neighbor_sequence,
+                                    candidate_count=count, evidence="other_selected_capture"))
+        elif missing:
+            leg = missing[0]
+            if leg.payload.network != revision.payload.network:
+                findings.append(ConsistencyFinding(rule="adjacent_leg_presence", rule_version="border-presence-v1",
+                    input_refs=[revision.source, leg.source, *(member.source for member in link.members)],
+                    result="unknown", reason="adjacent_leg_not_observed", detail={
+                        "service_date": day.isoformat(), "selected_capture": context["capture"].capture_id,
+                        "other_capture_revision": leg.revision_id,
+                        "limits": "Neighbour evidence is from the other selected capture; no current boundary check or cancellation is inferred."}))
     positions = context["leg_positions"]
     pairs.sort(key=lambda pair: (positions[pair[0].revision_id], positions[pair[1].revision_id]))
-    findings = [check_boundary(a, b, day, link=link, reviewed_points=reviewed_points,
-                    left_capture=context["capture"], right_capture=context["capture"])
-                for a, b in pairs]
-    # A neighbour observed in the other selected capture is evidence of a
-    # missing check here, never evidence of a current boundary or cancellation.
-    if link and covers(link, revision.payload, day)[0]:
-        missing = context.get("missing_legs_by_sequence", {})
-        for leg in [*missing.get(sequence - 1, []), *missing.get(sequence + 1, [])]:
-            if leg.payload.network == revision.payload.network or not covers(link, leg.payload, day)[0]:
-                continue
-            findings.append(ConsistencyFinding(rule="adjacent_leg_presence", rule_version="border-presence-v1",
-                input_refs=[revision.source, leg.source, *(member.source for member in link.members)],
-                result="unknown", reason="adjacent_leg_not_observed", detail={
-                    "service_date": day.isoformat(), "selected_capture": context["capture"].capture_id,
-                    "other_capture_revision": leg.revision_id,
-                    "limits": "Neighbour evidence is from the other selected capture; no current boundary check or cancellation is inferred."}))
-    return findings
+    return [check_boundary(a, b, day, link=link, reviewed_points=reviewed_points,
+                left_capture=context["capture"], right_capture=context["capture"]) for a, b in pairs] + findings
 
 
 def _checks(revision, day, context, link, reviewed_points, *, run_train=None):
@@ -163,11 +255,12 @@ def _check_changes(before, after, old_context, new_context):
     works_changed = any(before["works"].get(k) != after["works"].get(k)
                         and (before["works"].get(k, {}).get("attached", False)
                              or after["works"].get(k, {}).get("attached", False)) for k in keys)
-    border = lambda found: [(f.rule, f.result, f.reason, f.detail) for f in found]
+    border = lambda found: [(f.rule, f.result, f.reason,
+        {k: v for k, v in f.detail.items() if k != "selected_capture"}) for f in found]
     return works_changed or border(before["findings"]) != border(after["findings"])
 
 
-def _contexts(bundle, old_capture, new_capture, works_capture_id, run_capture_id, reader):
+def _contexts(bundle, old_capture, new_capture, works_capture_id, run_capture_id, reader, boundary_revision_ids=None):
     old_snapshot = snapshot(bundle, old_capture, reader=reader)
     old_records = snapshot_revisions(bundle, old_capture, reader=reader)
     old_context = _context(bundle, old_capture,
@@ -176,7 +269,12 @@ def _contexts(bundle, old_capture, new_capture, works_capture_id, run_capture_id
     new_context = _context(bundle, new_capture, works_id=works_capture_id, run_id=run_capture_id, reader=reader)
     if old_context["capture"].dataset != new_context["capture"].dataset:
         raise ValueError("capture_dataset_mismatch")
+    choices = frozenset(boundary_revision_ids or ())
+    allowed = {leg.revision_id for context in (old_context, new_context) for leg in context["legs"]}
+    if not choices <= allowed:
+        raise ValueError("select_boundary_legs_from_these_captures")
     for context, other in ((old_context, new_context), (new_context, old_context)):
+        context["boundary_revision_ids"] = choices
         _index_context(context)
         from collections import defaultdict
         present = {(leg.source.dataset, leg.subject_key) for leg in context["legs"]}
@@ -228,7 +326,7 @@ def _audit_queue_row(row):
 
 
 def queue(bundle, old_capture, new_capture, *, works_capture_id=None, run_capture_id=None,
-          link_identifier=None, reviewed_points=None):
+          link_identifier=None, reviewed_points=None, boundary_revision_ids=None):
     """One row per selected leg/date changed by path fields or sourced checks."""
     from nightdesk.review import decisions, follow_ups
     from nightdesk.audit import append_once
@@ -237,7 +335,7 @@ def queue(bundle, old_capture, new_capture, *, works_capture_id=None, run_captur
     # Batch captures explicitly contain their old/new works and run observations.
     # A separately selected works/run capture supplies missing context or an
     # explicit after-side override; nothing chooses a newest capture implicitly.
-    old_context, new_context = _contexts(bundle, old_capture, new_capture, works_capture_id, run_capture_id, reader)
+    old_context, new_context = _contexts(bundle, old_capture, new_capture, works_capture_id, run_capture_id, reader, boundary_revision_ids)
     link = load_link(bundle, link_identifier) if link_identifier else None
     rows, checked_rows = [], []
     for old, new in selected_pairs(bundle, old_capture, new_capture, changed_only=False, include_one_sided=True, reader=reader):
@@ -277,14 +375,15 @@ def queue(bundle, old_capture, new_capture, *, works_capture_id=None, run_captur
         "old_capture": old_capture, "new_capture": new_capture, "rule_version": "changes-v1",
         "works_capture": works_capture_id, "run_capture": run_capture_id,
         "journey_link": link_identifier, "reviewed_points": sorted(reviewed_points or set()),
-        "check_rule_versions": {"works": MATCH_RULE_VERSION, "border": "border-v1", "boundary_presence": "border-presence-v1", "time": "time-v1"},
+        "boundary_revision_ids": sorted(boundary_revision_ids or ()),
+        "check_rule_versions": {"works": MATCH_RULE_VERSION, "border": "border-v1", "boundary_presence": "border-presence-v1", "boundary_scope": BOUNDARY_SCOPE_VERSION, "time": "time-v1"},
         "check_results": checked_rows,
         "changes": [_audit_queue_row(row) for row in rows]})
     return rows
 
 
 def dossier(bundle, old_capture_id, new_capture_id, new_revision_id, service_date, *,
-            works_capture_id=None, run_capture_id=None, link_identifier=None, reviewed_points=None):
+            works_capture_id=None, run_capture_id=None, link_identifier=None, reviewed_points=None, boundary_revision_ids=None):
     reader = ReadSession(bundle)
     pair = next(((a, b) for a, b in selected_pairs(bundle, old_capture_id, new_capture_id, changed_only=False, include_one_sided=True, reader=reader)
                  if (b or a).revision_id == new_revision_id), None)
@@ -293,7 +392,7 @@ def dossier(bundle, old_capture_id, new_capture_id, new_revision_id, service_dat
     old, new = pair
     old_capture = snapshot(bundle, old_capture_id, reader=reader)["capture"]
     new_capture = snapshot(bundle, new_capture_id, reader=reader)["capture"]
-    old_context, context = _contexts(bundle, old_capture_id, new_capture_id, works_capture_id, run_capture_id, reader)
+    old_context, context = _contexts(bundle, old_capture_id, new_capture_id, works_capture_id, run_capture_id, reader, boundary_revision_ids)
     link = load_link(bundle, link_identifier) if link_identifier else None
     active = new if new and service_date in new.payload.operating_dates else old or new
     before_checked = _checks(old, service_date, old_context, link, reviewed_points)
@@ -322,7 +421,8 @@ def dossier(bundle, old_capture_id, new_capture_id, new_revision_id, service_dat
         if before_checked["works"].get(k) != checked["works"].get(k)]
     report["selections"] = {"old_capture": old_capture_id, "new_capture": new_capture_id,
                             "works_capture": works_capture_id, "run_capture": run_capture_id,
-                            "journey_link": link_identifier, "reviewed_points": sorted(reviewed_points or set())}
+                            "journey_link": link_identifier, "reviewed_points": sorted(reviewed_points or set()),
+                            "boundary_revision_ids": sorted(boundary_revision_ids or ())}
     from nightdesk.audit import append_once
     from nightdesk.model import source_ref_payload
     refs = {r.revision_id: source_ref_payload(r.source) for r in [old, new, *works, *old_context["works"]] if r is not None}
@@ -333,7 +433,7 @@ def dossier(bundle, old_capture_id, new_capture_id, new_revision_id, service_dat
                "works_state_changes": report["works_state_changes"], "findings_before": [
                     {"rule": f.rule, "result": f.result, "reason": f.reason, "input_refs": [source_ref_payload(ref) for ref in f.input_refs]} for f in before_checked["findings"]],
                "rule_versions": {"comparison": report["changes"]["rule_version"],
-               "works": MATCH_RULE_VERSION, "border": "border-v1", "boundary_presence": "border-presence-v1", "time": "time-v1", "runs": "runs-v1"},
+               "works": MATCH_RULE_VERSION, "border": "border-v1", "boundary_presence": "border-presence-v1", "boundary_scope": BOUNDARY_SCOPE_VERSION, "time": "time-v1", "runs": "runs-v1"},
                "capture_comparison": {k: report["capture_comparison"][k] for k in ("status", "reason")},
                "exposures": [{k: e[k] for k in ("work_revision", "outcome", "reasons")} for e in report["works_exposures"] + report["unlocated_checks_not_attached_to_train"]],
                "checked_pairs": report["checked_pairs"], "no_match_checked_pairs": report["no_match_checked_pairs"],

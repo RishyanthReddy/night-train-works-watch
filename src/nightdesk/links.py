@@ -78,20 +78,30 @@ def confirm_link(bundle: Bundle, journey_id: str, revision_ids: list[str], actor
     return save_link(bundle, JourneyLink(journey_id=journey_id, members=members, basis="human", confirmed_by=actor))
 
 
-def covers(link: JourneyLink, leg: PathLeg, service_date: date) -> tuple[bool, str | None]:
-    matches = [m for m in link.members if m.network == leg.network and m.train_no == leg.train_no]
-    unknown = False
-    for member in matches:
+def coverage_by_train(link: JourneyLink, service_date: date) -> dict:
+    """Compile the explicit crosswalk once for a selected service date."""
+    coverage = {}
+    for member in link.members:
+        key = (member.network, member.train_no)
+        if coverage.get(key, (False, None))[0]:
+            continue
         if member.service_date_rule == "*":
-            return True, None
+            coverage[key] = (True, None)
+            continue
         try:
             day = date.fromisoformat(member.service_date_rule)
         except ValueError:
-            unknown = True
+            coverage[key] = (False, "unsupported_service_date_rule")
         else:
             if day == service_date:
-                return True, None
-    return False, "unsupported_service_date_rule" if unknown else "unlinked"
+                coverage[key] = (True, None)
+            else:
+                coverage.setdefault(key, (False, "unlinked"))
+    return coverage
+
+
+def covers(link: JourneyLink, leg: PathLeg, service_date: date) -> tuple[bool, str | None]:
+    return coverage_by_train(link, service_date).get((leg.network, leg.train_no), (False, "unlinked"))
 
 
 def find_link(leg: PathLeg, service_date: date, candidates: list[JourneyLink]):

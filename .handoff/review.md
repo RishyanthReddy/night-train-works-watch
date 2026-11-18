@@ -104,7 +104,7 @@ Opus APPROVE9/10,330 tests plus46 independent probes;93 hashes matched. Sol APPR
 
 | ID | Finding | Severity | Status | Fixed by |
 |---|---|---|---|---|
-| P1-R4-O1 | Pre-existing sequence-only candidate scoping yields many unlinked unknowns across distinct requests; reviewer800-leg case14.724s/400 unknown entries per row. | medium, nonblocking per Opus | wontfix | Deferred from Phase1 after unanimous R4 approval. Builder verified12500 emitted entries unknown/unlinked; no positive/automatic link. Retain as explicit efficiency/verbosity limit for later identity scoping (P2.2), which must respect explicit cross-network links rather than require equal national request ids. No Phase2 work started. |
+| P1-R4-O1 | Pre-existing sequence-only candidate scoping yields many unlinked unknowns across distinct requests; reviewer800-leg case14.724s/400 unknown entries per row. | medium | fixed | User explicitly reopened and authorised fix2026-11-18. Previous disposition:  Deferred from Phase1 after unanimous R4 approval. Builder verified12500 emitted entries unknown/unlinked; no positive/automatic link. Retain as explicit efficiency/verbosity limit for later identity scoping (P2.2), which must respect explicit cross-network links rather than require equal national request ids. No Phase2 work started. |
 
 ## Phase1 council — four rounds, closed
 
@@ -115,3 +115,23 @@ Opus APPROVE9/10,330 tests plus46 independent probes;93 hashes matched. Sol APPR
 | Grok4.7 |6/10|6/10|9/10|9/10 APPROVE|
 
 All93 R4 product hashes matched before/after every review. No remaining Phase1 blocker. Mixed-request unknown expansion is explicitly deferred above, not silently fixed or called linear in general. User checkpoint: local commit then STOP before Phase2.
+
+## Phase1 follow-up — user explicitly authorised2026-11-18
+P1-R4-O1 now fixed: explicit journey/date eligibility before pairing, single unlinked scope explanation, ambiguous source groups stay unknown until explicit UI/API revision choice; choices and scope rule audited.336 tests pass with network denied/six credential variables unset; actual mixed800leg queue1.189s with one border entry per row. Three viewed native browser screenshots. Focused council R5 pending; no Phase2 implementation. Prior deferral above is superseded by this follow-up.
+
+## Phase1 council R5 — follow-up review
+Opus APPROVE8.5/10, all94 hashes match,336 tests pass. Sol APPROVE9/10 with336 tests+16 probes, Grok APPROVE9/10 with336 tests;94 hashes matched every reviewer. All R5 finished before prepared changes applied. Product stays frozen until all finish.
+
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| P1-R5-O1 | Explicit selection of multiple distinct-sequence legs for a re-entering linked train still yields ambiguity. | medium, nonblocking per Opus | fixed | Prepare resolving explicit distinct-sequence choices without automatic grouping.  Main337 tests34.55s and actual CLI pass under OSnetworkdenial/sixcredentialsunset; reentry partial/full choice regression. Live DOM shows2mismatches, snapshot frames failed; no new visual claim. Focused R6 pending. |
+| P1-R5-O2 | Excluding a neighbour via explicit choice drops the boundary explanation. | low | fixed | Prepare one sourced boundary_leg_not_selected unknown for that neighbour sequence.  Main337 tests34.55s and actual CLI pass under OSnetworkdenial/sixcredentialsunset; reentry partial/full choice regression. Live DOM shows2mismatches, snapshot frames failed; no new visual claim. Focused R6 pending. |
+
+## Phase1 council R6 — focused three-file refinement recheck
+Opus APPROVE9/10;337 tests,94 matching hashes. Sol APPROVE9/10 with337 tests+14 independent probes,94 hashes matched; Grok APPROVE9/10 with337 tests; all94 hashes match. All three approve. Reports phase1-council-r6-{opus,sol,grok}.md.
+
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| P1-R6-O1 | Conservative excluded-neighbour unknown may refer to the other selected capture without distinguishing its origin in that finding. | low, nonblocking | wontfix | Record as a bounded provenance-display limit; it never yields a positive boundary. Full selected revision ids remain in report/audit. Avoid extending this completed fix into another review cycle absent material issue. |
+
+R5 follow-up scores: Opus8.5/Sol9/Grok9 APPROVE; R6 refinement scores: allthree9/10 APPROVE. P1-R4-O1 and P1-R5-O1/O2 closed; only accepted low provenance limit P1-R6-O1. No more fix cycle required for it.
