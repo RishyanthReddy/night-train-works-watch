@@ -1,0 +1,26 @@
+{
+  "opus": {
+    "taskId": "node:delegated-task:command%3Amcp%3A616c2331-fcba-47e7-9e66-a59bd3e26047%3Adelegate-task%3Abefa83bd-fbe1-4392-ac48-0ba59a8b678a",
+    "threadId": "thread:delegated-task:command%3Amcp%3A616c2331-fcba-47e7-9e66-a59bd3e26047%3Adelegate-task%3Abefa83bd-fbe1-4392-ac48-0ba59a8b678a",
+    "status": "completed APPROVE",
+    "score": 9
+  },
+  "sol": {
+    "taskId": "node:delegated-task:command%3Amcp%3A616c2331-fcba-47e7-9e66-a59bd3e26047%3Adelegate-task%3Ae598efa2-56f6-49a9-9534-72056b1a3c30",
+    "threadId": "thread:delegated-task:command%3Amcp%3A616c2331-fcba-47e7-9e66-a59bd3e26047%3Adelegate-task%3Ae598efa2-56f6-49a9-9534-72056b1a3c30",
+    "status": "failed usage limit; no verdict",
+    "score": null
+  },
+  "grok": {
+    "taskId": "node:delegated-task:command%3Amcp%3A616c2331-fcba-47e7-9e66-a59bd3e26047%3Adelegate-task%3A4236b5f6-2791-429d-9f08-ec8d5675237a",
+    "threadId": "thread:delegated-task:command%3Amcp%3A616c2331-fcba-47e7-9e66-a59bd3e26047%3Adelegate-task%3A4236b5f6-2791-429d-9f08-ec8d5675237a",
+    "status": "completed APPROVE",
+    "score": 9
+  },
+  "sol_retry": {
+    "taskId": "node:delegated-task:command%3Amcp%3A54bcac85-6785-4e04-8287-50289c5cc78d%3Adelegate-task%3Aa38a565f-2d78-4535-a0b3-99f092675494",
+    "threadId": "thread:delegated-task:command%3Amcp%3A54bcac85-6785-4e04-8287-50289c5cc78d%3Adelegate-task%3Aa38a565f-2d78-4535-a0b3-99f092675494",
+    "status": "completed APPROVE",
+    "score": 9
+  }
+}

@@ -51,14 +51,14 @@ No remote creation, push, merge or deploy. P0.9 skipped. Stop after Phase 3. P3.
 - [x] Phase2close:429offlinechecks, actualCLI/app/viewedscreenshots/swap, R3unanimous9/10, localproductcommit 493d570;128blobsverified, handoffupdated.
 
 ### Phase 3 — The swap, isolation, security
-- [ ] P3.1 **Unseen-shape rehearsal**, whole path from file to export, once with all keys unset: a
-- [ ] P3.2 Isolation test: two bundles with colliding train numbers, work ids and request ids but
-- [ ] P3.3 Model policy tests: a synthetic bundle marked `nda: true` -> a model request is refused
-- [ ] P3.4 Tamper tests: edit a line, remove a line, cut the tail of a copy of the audit log; verify
-- [ ] P3.5 `docs/THREAT_MODEL.md` (one page): untrusted documents -> model -> gates; assets; what can
-- [ ] P3.6 Aikido preparation, our own repo and code only: the **user** creates the account
+- [x] P3.1 **Unseen-shape rehearsal**, whole path from file to export, once with all keys unset: a
+- [x] P3.2 Isolation test: two bundles with colliding train numbers, work ids and request ids but
+- [x] P3.3 Model policy tests: a synthetic bundle marked `nda: true` -> a model request is refused
+- [x] P3.4 Tamper tests: edit a line, remove a line, cut the tail of a copy of the audit log; verify
+- [x] P3.5 `docs/THREAT_MODEL.md` (one page): untrusted documents -> model -> gates; assets; what can
+- [x] P3.6 Local-only preparation complete; own-code scope/documented connection gate in phase3-aikido-preparation.md. External account/repo connection/scan/report remains user-gated, not run. Original task: the **user** creates the account
 
-- [ ] Phase 3 acceptance in real app, viewed screenshots, offline tests, swap check, council, local commit and handoff.
+- [x] Phase 3 closed locally after browser DOM acceptance, offline tests, all three council approvals and a verified local commit. Screenshot frames were unavailable.
 
 ### Phase 4 — Not authorised: looks, sustainability, handover
 - [ ] P4.1 **Design research before any styling** (the plain screens of phase 1 exist already).
@@ -98,3 +98,27 @@ Phase2 builder acceptance: phase2-final-tests.log381passed36.09s EXIT0; frozen o
 - [x] O3/O4: no-source/no-mappingtimezone basis=none; ordinary month prose accepted, explicit unknownmonth/contradictions stillrefused.
 - [x] Focused71tests3.81s EXIT0/networkdenied/sixkeysunset.
 - [x] Finalfullsuite429passed40.09s/networkdenied, actualCLIPhase0/2EXIT0; R3freeze128files. Focusedcouncil/localcommit remainpending. Phase3 stillhelduntilPhase2closes.
+
+P3.1 evidence: phase3-p31-tests.log1pass0.35s EXIT0/networkdenied/sixkeysunset; newCSV/YAML local-midnight, authoredmergedXLSXrefusal→flatten→mapping, Germanquotedmanual, genericadmin; dossier/localreview/MDJSONexports. No corecode change.
+
+P3.2: phase3-p32-tests.log2pass3.06s, repeatedfullAppTestswitches and APIcache/review/audit/exportisolation withcollidingids. P3.3: phase3-p33-tests.log9pass0.96s includingdefaultoff/explicitCLIallow/revoke/fixedmockhost/privatecache andproductionformvisibleNDAbeforeconsentrefusal. Networkdenied/sixkeysunset exceptin-processfakekeymock.
+
+P3.4 phase3-p34-tests.log13pass1.05s: edited/missingmiddle/cuttailcopies fail API/actualCLIagainsttrustedseal/count; productionAppTestshowssealedtailfailure, originalauditunchanged. P3.5 phase3-p35-tests.log4pass0.66s includingauthoredXLSMvaluesonly anddemoallowlist; phase3-security-scan.json290commits922blobs/zero selectedpatternmatches,no eval/exec/compilecall,no trackeddata/remote. P3.6localprep only; no account/connection/scan.
+
+### Phase3 added German rolling-window check (user-authorised)
+- [x] Recheck local snapshots without network: counts, shared equality, version and validity bounds; phase3-german-recheck.log. Restricted/unknown-licence originals stay under data/, never staged/demo.
+- [x] Separate expired_out_of_window/entering_window in comparison/export/audit; preserve partial-capture R2 refusal.
+- [x] Synthetic edge cases/local German regression and real dossier/JSON/Markdown/audit checks passed; mandatory tests cover incomplete/mismatched filters without invented forward coverage. Final fresh suite/council below.
+
+- [x] Phase 3 final suite, all three council approvals, verified fixes and local commit.
+
+Phase3 frozen baseline:452tests46.73s EXIT0, actualPhase0/2/3CLI EXIT0.145hashes. R1Opus/Sol/Grok launched, verdicts pending; no sourceedits during review. German originals untracked; synthetic fixture and optionallocaltest only.
+
+### Phase3 council R1 correction
+- [x] S1 canonical/raw validity conflict → visible unknown evidence, consistent precise clocks retained.
+- [x] O1 R2 source-presence lists keep unknown notes; only proved expired/entering exclusions removed.
+- [x] O2 explicit hours fill absent policy only; conflicting declarations stay unknown with both inputs retained.
+- [x] G1 local checkpoint refs documented, no ref/history mutation or push.
+- [x] Full offline suite, CLI acceptance, round 2 council and local commit.
+
+Phase 3 round 2 closed with all three approvals at 9/10. The local run passed 476 tests. Product commit: `383c2c8833a28dd68aa606f8e16d02f7a5e2623f`. All 145 reviewed files match their committed copies.

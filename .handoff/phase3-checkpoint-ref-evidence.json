@@ -1,0 +1,9 @@
+{
+  "HEAD_reachable_data_paths": 0,
+  "all_ref_reachable_data_paths": 20,
+  "local_t3_ref_count": 293,
+  "index_data_paths": 0,
+  "remote_configured": false,
+  "limit": "Local checkpoint refs not modified; no push authorised. Before future push verify only intended branch objects, never mirror/--all/refs/t3.",
+  "push_help_verified": "git push -h: --all pushes branches; --mirror mirrors all refs. Keep future push explicit to intended reviewed branch; never include refs/t3."
+}

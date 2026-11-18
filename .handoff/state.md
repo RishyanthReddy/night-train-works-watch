@@ -1,38 +1,27 @@
 # State
 _Updated: 2026-11-18 by Codex_
 
-## Goal / scope
-User authorised Phases1–3 in order, TODO, real checks, council and local commits. Phase1 follow-up is closed and Phase2 continuation explicitly authorised. No Phase4, remote creation, push, merge or deployment.
-Selected agent does implementation and checks; council only delegates. Members: Kiro Opus medium, Codex Sol high, Grok4.7 high.
-Backend goal still paused despite explicit user resume; available goal tools cannot resume or replace an unfinished goal. Work follows the user's resumed instruction; never falsely complete the full goal.
+## Goal and scope
+Build through Phase3, task order/TODO, real checks, council and local commits.
+No Phase4, remote creation, push, merge, deployment or external scanner connection.
+Selected agent does implementation/checks. Council only: Kiro Opus medium, Sol high, Grok high.
+Phases 1 through 3 are complete locally.
 
 ## Done
-- Phase0 product d220f620748737ba5709bc161ca63b2cd5750cb6, handoff d340990;191 offline tests and six CLI acceptance steps, council Opus/Sol9/10. Historical evidence archived, not re-invented.
-- Phase1 product6d11e5c4ce426ea25d565c418d9e4ac2a1ff2412, handoff ff4581bd05815305f8b9b475b9ba7472291c4217; R4 unanimous9/10.
-- Phase1 mixed-request/reentry follow-up1ff48d320d5256e0a4b292ce1f1c64eb91b9db0e; R6 unanimous9/10,94 reviewed blobs match,337 offline tests. Only accepted low P1-R6-O1 remains (conservative unknown provenance display). Reports/ledger retained.
-- Phase2 P2.1–P2.7 implemented on phase2 from1ff48d3; optionalP2.8 skipped. TODO maps tasks to evidence.
-- Reviewed bundle-scoped aliases; uncertain identities/date binding stay unknown; local saved-GTFS adapter retains raw proof, scheduled-only unresolved path, B cap; no observed times/lines guessed.
-- Delay request always refuses, without a numeric prediction; dossier/UI/export include reason and required evidence.
-- Source-quoted manual text and optional Mistral/replay/off proposals use typed gates. Dataset flag plus explicit audited bundle consent required before live Mistral. Fixed HTTPS host, no redirect, private bundle cache. No live model request or spend.
-- Three authored poisoned notices rejected with visible reason; tests assert no capture/mapping/review change. Public demo manifest hashes27 synthetic assets and follows provenance; NDA/unlisted/restricted/tampered inputs refused.
+- Phase0 and Phase1 closed; historical evidence in archives and prior reports.
+- Phase2 product493d570c895b824cb6afe92e286d85a999ebb833; closure7c6919c97ad0184dcc321c16a03df90433ecd90c.128 reviewed blobs match, R3 unanimous9/10. Current branch phase3.
+- P3.1 unfamiliar CSV/YAML, merged XLSX refusal/flatten, German manual notice and generic admin comparison through local export.
+- P3.2 colliding bundles API and repeated full AppTest switches isolate records/cache/decisions/audit/exports.
+- P3.3 synthetic NDA policy refuses before consent, mocked fixed Mistral host after explicit CLI consent, revoke/private cache verified.
+- P3.4 readonly audit-copy verification CLI/API/UI with trusted external seal/count; edited/missing/tail failures and original unchanged.
+- P3.5 threat model and authored XLSM values-only proof; local selected-pattern history/current-tree scan. P3.6 local scanner preparation only; account/connection/report not run.
+- Initial440tests46.62s exit0 OSnetworkdenied/sixkeysunset; Phase3 actual CLI acceptance passed. Logs phase3-full-tests.log/phase3-acceptance.log.
+- Production app DOM acceptance: A→B isolation, review/export, synthetic NDA before-consent refusal and sealed tamper-copy failure. External network blocked except loopback; socket probe errno1. Owned tab closed/server stopped. phase3-app-evidence.json.
 
-## Verification
-- phase2-final-tests.log:381 passed36.09s, exit0, OS network denial and six credential variables unset. Earlier focused logs retained.
-- uv sync --frozen --offline exit0,45 packages checked. git diff --check exit0; four protected hashes match; no tracked data or configured remote.
-- phase2-phase0-acceptance.log exit0: six commands and JSON/XLSX/flatten/import still pass.
-- phase2-acceptance.log exit0: actual offline CLI replay equality, three poison refusals, demo check and GTFS22 accepted0 rejected. Three synthetic dossier cases stay unknown with expected reasons and export locally.
-- Viewed five native-browser screenshots: phase2-app-{different,clock,partial,refusal,poison}.png. Actual app showed different_boundary_points, ambiguous_local_time, incomplete_capture; malicious replay refused; delay reason/no number. Native tab/server closed, no browser fallback.
-- Swap: new local file + confirmed mapping; aliases under mappings/aliases; GTFS adapter namespace supplied explicitly; text dataset mapping and precise source quotes. No core source-specific column names introduced.
+## Phase 3 closure
 
-## In progress
-Phase2 R1changesrequested7.5/8/7; R2OpusAPPROVE8.5/Solchangesrequested8.5/GrokAPPROVE9, all128hashesmatch. AllR2reviewsfinished before five-file correction. Metadata/deepJSON/corruptZIP/provenancelabel/monthprose regressions pass. Final429tests40.09s EXIT0/networkdenied/sixkeysunset and bothactualCLIflowsEXIT0. R3freeze128files, R3unanimousAPPROVE9/10 each;429tests independentlypass/128hashesmatch/CLIpass. Allreviewsfinished, localcommitnext; no Phase3yet.
-
-## Limits / unknown
-- Live model API/key/billing not exercised; mocked HTTPS only. JSON mode docs checked before implementation, URLs in sources.md.
-- Quotes prove presence, not meaning; supported deterministic date spelling/month-declaration checks do not claim general language understanding.
-- GTFS input ids use an explicit feed namespace, no national point/train correspondence guessed; multiple trips remain separate.
-- Browser server logged Streamlit automatic Arrow conversion of heterogeneous diff values; app completed without exception. No claim of a warning-free server log.
-- Earlier state/sources preserved at history/20261118-before-phase2-council/. No Phase3 started.
-
-## Phase2 closed
-Approved product committedlocally as 493d570c895b824cb6afe92e286d85a999ebb833; all128approvedGitblobs match R3freeze. No remote/push/trackeddata. P2.1–P2.7 andacceptance/swap/councilcomplete, P2.8skipped. ContinueoriginalauthorisedPhase3next; no Phase4.
+- Product commit `383c2c8833a28dd68aa606f8e16d02f7a5e2623f` on phase3. All 145 Git blobs match the approved SHA-256 snapshot.
+- Sol, Opus and Grok approved round 2 at 9/10. Sol's retry passed after the initial usage-limit failure.
+- The offline run passed 476 tests. Phase 0, 2 and 3 CLI acceptance exited 0. Browser DOM acceptance verified isolation, local review/export, the NDA refusal and audit-copy rejection. Screenshot frames were unavailable.
+- The rolling-window check and all material council findings are resolved. See review.md and phase3-r2-final-tests.log.
+- Local Aikido preparation is complete. Account creation, repository connection and external scanning remain user-gated. The branch and index contain no tracked data paths, and Git has no configured remote.

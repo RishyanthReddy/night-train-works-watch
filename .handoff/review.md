@@ -206,3 +206,23 @@ Rounds3. All128R3producthashes matched eachreviewer andbuilder. No openmaterialP
 | Opus through Kiro |7.5/10 changes|8.5/10 APPROVE|9/10 APPROVE|
 | Codex Sol |8/10 changes|8.5/10 changes|9/10 APPROVE|
 | Grok4.7 |7/10 changes|9/10 APPROVE|9/10 APPROVE|
+
+## Phase3 council R1
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| P3-R1-S1 | Raw retained dates override conflicting canonical validity, yielding false expiry/entry | medium | fixed | Canonical/envelope/individual date consistency, visible conflict evidence; ordinary JSON intake regressions and real dossier/exports/audit pass. phase3-r2-final-tests.log476passedEXIT0. |
+
+SolR1 CHANGESREQUESTED8.5/10;451passed1expectedlocal-data-skip, actualPhase0/2/3CLIpass,145hashesmatch. OtherR1verdictspending.
+
+| P3-R1-O1 | Unknown validity suppresses otherwise eligible R2 one-sided rows | medium | fixed | Only proven expired/entering excluded; unknown notes retain R2 presence rows. Complete/partial and old/new invalid-bound cases pass in476test run. |
+| P3-R1-O2 | Explicit hours silently override contradictory retained window declaration | medium | fixed | Direct/role/either-capture declarations preserved; explicit hours cannot override, conflict inputs retained/audited. Six policy cases plus new-capture conflict pass in476test run. |
+
+OpusR1 CHANGESREQUESTED7.5/10;451passed1skip,CLIflowsPASS,145hashesmatch. Fourlowresiduals nonblocking; canonical/rawlowL2 duplicates SolS1materialfinding. GrokR1pending; no sourceedit.
+
+| P3-R1-G1 | Local T3 checkpoint refs reach historical data paths, absent from HEAD/index | low | wontfix | Parent verified ref/object path metadata only; phase3-checkpoint-ref-evidence.json. No remote/push allowed; preserve T3 refs, never push refs/t3 or mirror. --all is branches-only (git push -h); still use an explicit reviewed branch. Before any future authorised push verify intended branch reachability only. |
+
+Phase3R1allcomplete:Opus7.5changes/Sol8.5changes/Grok9APPROVE.145hashesmatch before correction. Three medium comparison findings independentlyreproduced; proceed bounded fix. G1acceptedlocal-ref limit, no history/ref deletion.
+
+## Phase 3 council round 2 final verdict
+
+Opus, Grok and Sol each approved at 9/10. The first Sol attempt hit a usage limit. The user requested a retry, which independently verified the three fixes with 475 tests passed, one expected skip and 51 probes passed. All Phase 0, 2 and 3 CLI acceptance runs exited 0. See phase3-council-r2-sol.md and the Opus and Grok reports. The committed product matches all 145 reviewed hashes.

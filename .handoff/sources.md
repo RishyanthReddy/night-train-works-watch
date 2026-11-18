@@ -45,3 +45,41 @@ Earlier evidence retained verbatim at history/20261118-before-phase2-council/sou
 | GrokR3 APPROVE9/10,429tests42.47s/Phase0+2CLIpass/128hashes. R3unanimous9/10; no remainingmaterialPhase2findings. |CompletedGrokthreadread; phase2-council-r3-grok.md;128SHAassertions.|2026-11-18|
 
 | Phase2productcommittedlocally 493d570c895b824cb6afe92e286d85a999ebb833;128approvedGitblobs matchR3snapshot. No remote/push/data tracked. |gitcommitexit0 andgitshowSHA256assertions; priorno-data/no-remotechecks.|2026-11-18|
+
+| German works snapshot 2026-11-18T0524Z captured: baustellen 45408 rec/36927789 B sha256 740268e8fb9181f97cac07f1ab175c3ac49f903d48136edd87d6be260dce071a; streckenruhen 747; stoerungen 47; all HTTP 200; manifest complete=false. | /tmp/nd-fetch/de_snapshot.py run output and data/snapshots/de/2026-11-18T0524Z/manifest.json. | 2026-11-18 |
+| Snapshot 17->18 Nov delta is window-edge churn, not real change: 776 ids only in old, 456 only in new, 44952 in both, 0 shared records differ. All 776 dropped have zeitraum.ende 2026-11-17 (60) or 2026-11-18 (716); all 456 added have beginn 2027-02-09 (419) or 2027-02-10 (37) = capture date + 84 d, the ROLLIEREND stunden 2016 window. Both manifests carry identical baustellenDatenstand 2026-11-16T13:16:21.432552. | de_diff.py on both baustellen.json; python histogram of zeitraum.ende/beginn and gueltigkeiten bisDatum; manifest filter/zeitraum. | 2026-11-18 |
+| Naive works diff over the rolling window would report 776 removals and 456 additions that are pure window movement; removal conclusions must therefore use the per-record validity end, not set membership alone. | Follows directly from the two rows above; no product code changed. | 2026-11-18 |
+| Correction to the earlier 14->17 Nov works delta: of 3496 ids only in the 14 Nov capture, 3224 have zeitraum.ende on 2026-11-14/15/16/17 and left the rolling window; 199 ended after 2026-11-18 and are the only candidates for genuine change or cancellation. The 3009 "new" side includes 1430 beginning 2027-02-06..08 (window edge) plus 87 starting 2026-12-14. Earlier reporting of "3496 gone" as change overstated it. | de_diff.py plus python histogram over zeitraum.ende/beginn on 2026-11-14 and 2026-11-17T1119Z baustellen.json. | 2026-11-18 |
+
+| Phase3 initial440tests46.62s EXIT0, OSnetworkdenied/sixkeysunset; actualCLI acceptance EXIT0; production app DOM isolation/review/export/NDA/tamper checks. Screenshot frames unavailable, no visual claim. |phase3-full-tests.log, phase3-acceptance.log, phase3-app-evidence.json; native preview actions/evaluations and closed tab; server stopping.|2026-11-18|
+| German17→18 counts44952shared/776old/456new; shared records equal, versions same, both incomplete.14→17 gone3496,199 end after18Nov. |.venv/bin/python -I /tmp/nightdesk-german-check.py data/snapshots/de; phase3-german-recheck.log. Originals remain local/restricted.|2026-11-18|
+
+| German rolling-window unit/local/end-to-end18checks passed8.30s; full451passed49.77s before last cleanup. Finalfocusedcheck caught cleanup NameError, fixed before council; fresh final full suite pending. |phase3-window-e2e-fixed-tests.log, phase3-final-tests.log, phase3-freeze-check-tests.log; changes.py work.timezone guard correction.|2026-11-18|
+
+| Corrected cleanup run451tests46.19s EXIT0 networkdenied/sixkeysunset; Phase0/2/3 actual CLI alsoEXIT0. Latest differing-filter conservative-expiry delta has fresh targeted check pending before freeze. |phase3-final-frozen-tests.log; phase3-phase0-acceptance.log, phase3-phase2-acceptance.log, phase3-final-acceptance.log; tests/test_window_membership.py.|2026-11-18|
+
+| Final145-file productfreeze passes452tests46.73s EXIT0 and23focused3.46s, networkdenied/sixkeysunset. All145hashes match after exact3council launch; no verdict yet. |phase3-council-baseline-tests.log, phase3-current-window-tests.log, phase3-council-r1-snapshot.json/task responses and tasks.json; SHA256 assertions.|2026-11-18|
+
+| SolR1changesrequested8.5/10;451passed1skip/CLIpass/145hashes. Parent independently reproduced false expiry and entry through normal synthetic intake in unchanged isolated reviewcopy;145mainhashesstillmatch. |Completedthreadread, phase3-council-r1-sol.md, phase3-r1-sol-parent-repro.log EXIT0; SHAassertions.|2026-11-18|
+
+| OpusR1changesrequested7.5/10;451passed1skip/CLIpass/145hashes. Parent reproduced unknown row suppression and contradictory window override in unchanged isolated copy;145mainhashesmatch. |CompletedOpusthreadread, phase3-council-r1-opus.md, phase3-r1-opus-parent-repro.log3passedEXIT0; SHAassertions.|2026-11-18|
+
+| GrokR1APPROVE9/10,451passed1skip/CLIpass/145hashes; allR1finished before edits. Parent verified HEAD/index exclude data, localT3checkpoint refs retain historical paths; no remote. |CompletedGrokthreadread; phase3-council-r1-grok.md; phase3-checkpoint-ref-evidence.json metadata-only Git commands.|2026-11-18|
+| BoundedS1/O1/O2corrections pass42focusedtests3.50s, including real German regression. Finalfullsuite pending; no findings falselyclosed. |phase3-r2-focused-tests.log EXIT0; comparison/tests plus threatmodel checkpoint-ref note only.|2026-11-18|
+
+| R1corrections verified476tests48.66s EXIT0 networkdenied/sixkeysunset, including on-disk German regression. ActualPhase0/2/3CLI EXIT0,45packagesfrozenofflinechecked,protectedhashes/scopepass. R2freeze145files/3filedelta. |phase3-r2-final-tests.log; phase3-r2-phase0/2/3-acceptance.log; phase3-r2-delta.json; SHA256assertions.|2026-11-18|
+
+| OpusR2APPROVE9/10;475passed1expectedskip/20probes/CLIpass. SolR2failedusage/noverdict.145mainhashesmatch; no replacement. |CompletedOpus/Solthreadreads; phase3-council-r2-opus.md/tasks.json/sol-unavailable.md; SHA256assertions. Userchoicequestionpending.|2026-11-18|
+
+| All 145 R2 product hashes match and the 24-path product commit list is ready. | SHA-256 check against phase3-council-r2-snapshot.json and phase3-local-commit-candidates.json. Git index unstaged, no tracked data/ paths, and no remote. | 2026-11-18 |
+
+| All 24 product commit candidates retain their bytes through Git clean filters. | Compared git hash-object against git hash-object --no-filters for every candidate and rechecked the 145-file council snapshot. | 2026-11-18 |
+
+| Grok approved Phase 3 round 2 at 9/10. The isolated run passed 475 tests and 77 probes, skipped the local data test as expected, and passed all three CLI acceptance scripts. | Completed review thread and phase3-council-r2-grok.md. Parent rechecked all 145 product hashes. | 2026-11-18 |
+
+| Phase 3 goal marked blocked while Sol is unavailable and the review choice remains pending. | Goal API confirmed blocked. Local Git HEAD remains 7c6919c and no Phase 3 commit exists. | 2026-11-18 |
+
+| User-requested Sol retry submitted with GPT-6.1 Sol high. | T3 delegate_task reported starting and all 145 snapshot hashes matched before launch. See phase3-council-r2-tasks.json. | 2026-11-18 |
+
+| Sol retry approved at 9/10. The copy passed 475 tests and 51 probes, with one expected local-data skip, and all three CLI acceptance runs exited 0. | Completed Sol retry thread and phase3-council-r2-sol.md. | 2026-11-18 |
+| Phase 3 product committed locally as 383c2c8833a28dd68aa606f8e16d02f7a5e2623f. All 145 committed product hashes match the council snapshot. HEAD and the index contain no data paths. | git commit, SHA-256 over git show HEAD paths, git rev-list HEAD and git ls-files. | 2026-11-18 |

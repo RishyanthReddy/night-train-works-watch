@@ -1,4 +1,3 @@
 # Next action
-Read KICKOFF Phase3 and start P3.1 unseen-shape rehearsal, then P3.2–P3.6 in order, TODO/council/localcommit. Phase2 closed at 493d570c895b824cb6afe92e286d85a999ebb833 with128approvedblobs and unanimousR3 scores9/10.429tests40.09s/CLI/appacceptancepassed.
 
-AllowedPhase3: src/nightdesk/**,mappings/**,tests/**,docs/THREAT_MODEL.md,.handoff/**. No Phase4/remotecreation/push/merge/deploy. P3.6 onlylocalpreparation; externalaccount/connection awaitsuser. No keyneeded; mockedMistralonly. Selectedagentallimplementation; council exact3modelsatphaseend. Fullgoalstillbackendpaused/noresumeAPI; userexplicitlyresumedwork, preserveunfinishedgoal.
+Stop at Phase 3. The reviewed product is committed locally as `383c2c8833a28dd68aa606f8e16d02f7a5e2623f`. Any Phase 4 work or GitHub, push, merge, deployment or external Aikido action requires separate user authorization.
