@@ -38,9 +38,14 @@ class BatchManifest(_Config):
 
 
 def load_manifest(path, bundle):
+    from nightdesk.demo import demo_input
+
     path = Path(path)
     check_input(path, bundle)
+    approved = demo_input(bundle, path, kind={"capture_manifest"})
     raw = path.read_bytes()
+    if approved and digest(raw) != approved.sha256:
+        raise MappingError("demo_asset_hash_mismatch")
     manifest = BatchManifest.model_validate(safe_yaml(raw.decode("utf-8")))
     files = []
     for item in manifest.files:
@@ -202,7 +207,7 @@ def load_batch(bundle, identifier, *, reader=None):
     return result
 
 
-def batches(bundle):
+def batches(bundle, *, reader=None):
     folder = bundle.resolve(bundle.root / "batches")
-    reader = ReadSession(bundle)
+    reader = reader or ReadSession(bundle)
     return [load_batch(bundle, p.name, reader=reader) for p in sorted(folder.iterdir()) if not p.name.startswith(".pending-")] if folder.exists() else []

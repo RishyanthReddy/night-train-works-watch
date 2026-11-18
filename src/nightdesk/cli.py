@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections.abc import Sequence
 
 from nightdesk.intake.sniff import format_profile, profile
 from nightdesk.intake.table import FILE_TYPES, TableError, read_table
-from nightdesk.config import get_bundle, selected_bundle_name
+from nightdesk.config import PUBLIC_DEMO_BUNDLE, get_bundle, selected_bundle_name
 from nightdesk.intake.mapping import captures, confirm_mapping, ingest, check_input
 from nightdesk.intake.flatten import flatten, write_flat
 
@@ -33,6 +34,79 @@ def _cmd_sniff(args: argparse.Namespace) -> int:
         print(json.dumps(prof, ensure_ascii=False, indent=2, default=str))
     else:
         print(format_profile(prof))
+    return 0
+
+
+def _cmd_infrabel(args):
+    from nightdesk.adapters.infrabel import fetch_d1, fetch_works
+    fetch = fetch_works if args.works else fetch_d1
+    return _run_source_capture(_bundle(args), "infrabel_works" if args.works else "infrabel_d1", fetch)
+
+
+def _cmd_strecken_info(args):
+    from nightdesk.adapters.strecken_info import stage_works
+    return _run_source_capture(_bundle(args), "strecken_info_works", stage_works, args.manifest)
+
+
+def _cmd_ns(args):
+    from nightdesk.adapters.ns import fetch_maintenance
+    return _run_source_capture(_bundle(args), "ns_maintenance", fetch_maintenance)
+
+
+def _cmd_rijden_archive(args):
+    from nightdesk.adapters.rijden_archive import stage_month
+    return _run_source_capture(_bundle(args), "rijden_archive", stage_month, args.file, args.month)
+
+
+def _cmd_db(args):
+    from datetime import date
+    from nightdesk.adapters.db_timetables import fetch_timetables
+    return _run_source_capture(_bundle(args), "db_timetables", fetch_timetables, args.eva, date.fromisoformat(args.date), args.hour)
+
+
+def _cmd_swiss(args):
+    from nightdesk.adapters.swiss_siri import fetch_siri
+    return _run_source_capture(_bundle(args), "swiss_siri_works", fetch_siri, gtfs_paths=args.gtfs_reference)
+
+
+def _cmd_archive(args):
+    from datetime import date
+    from nightdesk.adapters.train_archive import fetch_daily
+    return _run_source_capture(_bundle(args), "train_archive_reports", fetch_daily, args.provider,
+                               date.fromisoformat(args.date), trip_id=args.trip_id, route=args.route)
+
+
+def _run_source_capture(bundle, dataset, capture, *args, **kwargs):
+    from nightdesk.audit import append_event
+    if bundle.nda or bundle.name == PUBLIC_DEMO_BUNDLE:
+        raise ValueError("provider_capture_requires_practice_bundle")
+    try:
+        saved = capture(bundle, *args, **kwargs)
+    except (ValueError, OSError, RecursionError) as exc:
+        code = str(exc) if type(exc) is ValueError else ""
+        if not re.fullmatch(r"[a-zA-Z][a-zA-Z0-9_]{0,95}", code):
+            code = "source_capture_unavailable"
+        append_event(bundle, "source_capture_refused", {"dataset": dataset, "reason": code})
+        raise ValueError(code) from None
+    append_event(bundle, "source_capture_staged", {"dataset": dataset, **saved})
+    print(json.dumps(saved, sort_keys=True))
+    return 0
+
+
+def _cmd_evidence(args):
+    from nightdesk.desk import run_options
+    from nightdesk.export import export_es_run_comparison, export_run_evidence, export_works_evidence
+    bundle = _bundle(args)
+    if args.action == "runs":
+        print(json.dumps(run_options(bundle, [args.capture]), ensure_ascii=False, indent=2))
+        return 0
+    if args.action == "run":
+        paths = export_run_evidence(bundle, args.capture, args.selection)
+    elif args.action == "works":
+        paths = export_works_evidence(bundle, args.capture, args.before)
+    else:
+        paths = export_es_run_comparison(bundle, args.review)
+    print(json.dumps([str(path) for path in paths]))
     return 0
 
 
@@ -102,6 +176,65 @@ def build_parser() -> argparse.ArgumentParser:
         if action == "confirm":
             cmd.add_argument("--actor", required=True)
         cmd.set_defaults(func=_cmd_capture)
+
+    infrabel = sub.add_parser("fetch-infrabel", help="save a public Infrabel D-1 capture for offline intake")
+    infrabel.add_argument("--bundle", required=True, help="destination practice or test bundle")
+    infrabel.add_argument("--works", action="store_true", help="capture the long-term works export instead of D-1")
+    infrabel.set_defaults(func=_cmd_infrabel)
+
+    strecken_info = sub.add_parser("stage-strecken-info", help="stage a saved partial German works capture")
+    strecken_info.add_argument("manifest")
+    strecken_info.add_argument("--bundle", required=True, help="destination practice or test bundle")
+    strecken_info.set_defaults(func=_cmd_strecken_info)
+
+    ns = sub.add_parser("fetch-ns", help="capture Dutch NS maintenance for offline intake")
+    ns.add_argument("--bundle", required=True, help="destination practice or test bundle")
+    ns.set_defaults(func=_cmd_ns)
+
+    rijden = sub.add_parser("stage-rijden-archive", help="stage saved Dutch ES 452/453 archive reports")
+    rijden.add_argument("file", help="monthly services CSV.gz from Rijden de Treinen")
+    rijden.add_argument("--month", required=True, help="service month YYYY-MM")
+    rijden.add_argument("--bundle", required=True, help="destination practice or test bundle")
+    rijden.set_defaults(func=_cmd_rijden_archive)
+
+    db = sub.add_parser("fetch-db-timetables", help="capture one German station's plan and published changes")
+    db.add_argument("--bundle", required=True)
+    db.add_argument("--eva", required=True)
+    db.add_argument("--date", required=True, help="local plan day YYYY-MM-DD")
+    db.add_argument("--hour", type=int, required=True, help="local plan hour (00–23)")
+    db.set_defaults(func=_cmd_db)
+
+    swiss = sub.add_parser("fetch-swiss-siri", help="capture explicitly planned Swiss rail situations")
+    swiss.add_argument("--bundle", required=True)
+    swiss.add_argument("--gtfs-reference", action="append", default=[], metavar="ZIP",
+                       help="official Swiss GTFS release for exact dated journey mode evidence; repeat for another timetable year")
+    swiss.set_defaults(func=_cmd_swiss)
+
+    archive = sub.add_parser("fetch-train-archive", help="capture one daily archive trip or exact source route")
+    archive.add_argument("--bundle", required=True)
+    archive.add_argument("--provider", required=True)
+    archive.add_argument("--date", required=True, help="service day YYYY-MM-DD")
+    archive_selection = archive.add_mutually_exclusive_group(required=True)
+    archive_selection.add_argument("--trip-id")
+    archive_selection.add_argument("--route")
+    archive.set_defaults(func=_cmd_archive)
+
+    evidence = sub.add_parser("evidence", help="inspect or export source evidence without a path revision")
+    evidence_sub = evidence.add_subparsers(dest="action", required=True)
+    for action in ("runs", "run", "works"):
+        command = evidence_sub.add_parser(action)
+        command.add_argument("capture")
+        command.add_argument("--bundle", default=None)
+        if action == "run":
+            command.add_argument("selection")
+        if action == "works":
+            command.add_argument("--before", help="earlier works capture for comparison")
+        command.set_defaults(func=_cmd_evidence)
+
+    comparison = evidence_sub.add_parser("es-comparison", help="compare reviewed ES schedule and Infrabel observations")
+    comparison.add_argument("review", help="review JSON in the selected practice bundle")
+    comparison.add_argument("--bundle", default=None)
+    comparison.set_defaults(func=_cmd_evidence)
 
     gtfs = sub.add_parser("gtfs", help="import a local GTFS schedule as unresolved-path scheduled runs")
     gtfs_sub = gtfs.add_subparsers(dest="action", required=True)
@@ -177,6 +310,8 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument("--manifest", default="mappings/demo.yaml")
     check.add_argument("--bundle", default=None)
     check.set_defaults(func=_cmd_demo)
+    serve = actions.add_parser("serve", help="check and open the locked, local public demo")
+    serve.set_defaults(func=_cmd_demo_serve)
     consent = sub.add_parser("consent", help="record explicit bundle consent to Mistral only")
     consent.add_argument("--bundle", default=None)
     consent.add_argument("--actor", required=True)
@@ -223,6 +358,22 @@ def _cmd_demo(args):
     registry = check_demo(args.manifest, get_bundle(args.bundle) if args.bundle else None)
     print(f"demo check passed: {len(registry.assets)} hashed CC0/synthetic assets; input references checked; no network")
     return 0
+
+
+def _cmd_demo_serve(_args):
+    import os
+    from pathlib import Path
+    import subprocess
+    from nightdesk.config import BUNDLE_ENV, CREDENTIAL_ENV_VARS, PUBLIC_DEMO_ENV, PUBLIC_DEMO_MANIFEST
+    from nightdesk.demo import check_demo
+
+    check_demo(PUBLIC_DEMO_MANIFEST, get_bundle(PUBLIC_DEMO_BUNDLE))
+    env = {key: value for key, value in os.environ.items() if key not in CREDENTIAL_ENV_VARS}
+    env.update({BUNDLE_ENV: PUBLIC_DEMO_BUNDLE, PUBLIC_DEMO_ENV: "1"})
+    app = Path(__file__).resolve().parent / "ui/app.py"
+    return subprocess.call([sys.executable, "-m", "streamlit", "run", str(app),
+                            "--server.address=127.0.0.1", "--server.headless=true",
+                            "--browser.gatherUsageStats=false"], env=env)
 
 
 def _cmd_consent(args):

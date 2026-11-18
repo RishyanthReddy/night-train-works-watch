@@ -80,3 +80,26 @@ Why: KICKOFF P2.1–P2.7, official GTFS/Mistral docs and passing focused/full ch
 Decided: retain agency_timezone for GTFS stop_times, even when stops declare another valid zone. Validate stop_timezone names as input quality; never reinterpret stop_times through them. Official GTFS reference explicitly says arrival/departure use agency.agency_timezone, not stops.stop_timezone (https://gtfs.org/documentation/schedule/reference/#stop_timestxt, reopened2026-11-18). Grok G2 timing-change recommendation is disputed; a regression now fixes the intended agency-based instant and invalid-zone refusal.
 Decided: same train/date run variants require an explicit observation selection; without one the queue/dossier stays usable and works checks stay unknown. Selection identifies source observation and is audited/exported. No guessed trip or national train correspondence. Reject unsupported frequency feeds and bound output expansion before normalizing rows.
 Why: R1 concrete reproductions and Phase2 scope. Rejected automatic trip winner, unsupported frequencies declared complete, or changing the official time basis to match a reviewer expectation.
+
+## 2026-11-18 — Infrabel D-1 live integration
+
+Use explicit fetch and existing confirmed offline intake. D-1 point labels remain feed-local because the API has no PTCAR number. The operator-filtered snapshots remain incomplete for operational comparison. Record raw sources and use a synthetic path pair to exercise the live observations in the dossier.
+
+## 2026-11-18 — Real-data evidence
+
+Use provider-scoped identifiers, original capture times when evidenced, and separate scheduled, published and observed fields. Keep native time and location evidence in the retained record. These boundaries follow the user-provided source mapping, provider documentation in real-data-integration-plan.md, and actual replay and AppTest checks in sources.md. Use independent evidence tabs so a source record can be read without an invented path. The German snapshot without a manifest remains unverified for chronological intake. Unknown-licence captures remain local and cannot enter the manifest-gated public demo. Swiss download and Train Archive ES limits are explicit in state.md.
+
+Require source time at or before import time and retain both for envelope captures. R1 independently reproduced false expiry from a future time. Two declared rolling windows now bound a window-entry finding at both captures. A whole-station DB reply is evidence of station events only. The archive keeps native stop order and version, and Swiss validity gaps remain separate. Regression and actual saved-capture checks are logged in review.md.
+
+Swiss rail classification may rely on explicit mode in the notice or an exact date-qualified SJYID match to an active trip and documented rail route type in an official Swiss GTFS release. The raw archives, hash, release date coverage, and example references remain local evidence. Affected place or line names do not establish mode. If nothing qualifies and mode is unresolved, refuse the capture. For Train Archive keep a separate coverage conclusion for each checked sample. A shared station or a same-number trip alone cannot qualify an ES match. The planning thread advisory and live/offline results are recorded in sources.md.
+
+## European Sleeper coverage research
+
+Proposed first increment is Belgian observed coverage with Infrabel D-1/monthly data and an attributed, local-only Dutch archive pilot. A separate scheduled and published live pilot can use the community feed if reuse terms are confirmed. Preserve provider-native keys and review service-date, direction and station links. Keep Swiss and Train Archive coverage unknown until the dated provider identity is proven. The user authorized the national-feed build and requested a final three-member council.
+
+Require a recorded local GTFS import receipt with the ZIP hash and a supported rule version for the schedule side, plus the reviewed Infrabel mapping hash for the observation side. Users explicitly select runs and station pairs. An exact common planned instant and consistent source order are required for each pair. This follows the Opus synthetic spoofed-dataset check and a regression that rejects copied normalized GTFS rows without a receipt. The comparison records local provenance without asserting source authenticity.
+
+
+## Public demo and real-data checkpoint
+
+The named demo bundle requires manifest-approved ingress in the core file, batch, alias and replay paths. Live provider staging and unrestricted GTFS import stay in practice. The public launcher locks to the demo bundle, checks its exact data first and binds loopback. Practice and NDA ingestion keep their existing workflows. This implements the parent review's mechanical gate without a global licence override. The demo uses the previously approved synthetic assets and one already-tracked CC0 Infrabel run, with source evidence shown separately.

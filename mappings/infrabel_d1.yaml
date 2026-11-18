@@ -1,0 +1,25 @@
+# CC0 Infrabel D-1 capture. Point labels are scoped to this feed.
+version: 1
+dataset: infrabel_d1
+licence: CC0
+external_processing_allowed: false
+file: {type: json, records_path: results}
+timezone: Europe/Brussels
+record: RunRow
+complete: false
+required: [service_date, train_no, point_id]
+null_tokens: ["", "NULL"]
+filter: {train_serv: EURSLEEPER}
+fields:
+  service_date: {column: datdep, parse: "date:%Y-%m-%d"}
+  train_no: {column: train_no, parse: str, prefix: "be:"}
+  point_id: {column: d1_point_label, parse: str, prefix: "be-infrabel-d1:"}
+  name: {column: ptcar_lg_nm_nl, parse: str}
+  line_dep: {column: line_no_dep, parse: str, prefix: "be:"}
+  line_arr: {column: line_no_arr, parse: str, prefix: "be:"}
+  planned_arr: {parse: "date_time:[planned_date_arr, planned_time_arr]", date_format: "%Y-%m-%d", time_format: "%H:%M:%S"}
+  planned_dep: {parse: "date_time:[planned_date_dep, planned_time_dep]", date_format: "%Y-%m-%d", time_format: "%H:%M:%S"}
+  real_arr: {parse: "date_time:[real_date_arr, real_time_arr]", date_format: "%Y-%m-%d", time_format: "%H:%M:%S"}
+  real_dep: {parse: "date_time:[real_date_dep, real_time_dep]", date_format: "%Y-%m-%d", time_format: "%H:%M:%S"}
+  delay_arr_s: {column: delay_arr, parse: seconds}
+  delay_dep_s: {column: delay_dep, parse: seconds}

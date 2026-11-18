@@ -1,0 +1,18 @@
+version: 1
+dataset: rijden_archive
+licence: CC BY 4.0
+file: {type: json, records_path: results}
+captured_envelope: true
+timezone: UTC
+record: RunRow
+complete: false
+required: [service_date, train_no, trip_id, point_id]
+fields:
+  service_date: {column: "Service:Date", parse: "date:%Y-%m-%d"}
+  train_no: {column: nd_train, parse: str}
+  trip_id: {column: "Service:RDT-ID", parse: str}
+  point_id: {column: nd_point, parse: str}
+  name: {column: "Stop:Station name", parse: str, default: ""}
+  kind: {column: nd_kind, parse: str}
+  planned_arr: {column: "Stop:Arrival time", parse: "datetime:%Y-%m-%dT%H:%M:%S%z"}
+  planned_dep: {column: "Stop:Departure time", parse: "datetime:%Y-%m-%dT%H:%M:%S%z"}

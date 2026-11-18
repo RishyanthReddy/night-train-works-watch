@@ -95,6 +95,9 @@ def validate_proposal(bundle, text, proposal, *, dataset, licence, mode, capture
 
 
 def submit_text(bundle, text, proposal, mapping_path, *, actor, mode='manual'):
+    from nightdesk.config import PUBLIC_DEMO_BUNDLE
+    if bundle.name == PUBLIC_DEMO_BUNDLE:
+        raise ValueError("demo_replay_only")
     if not actor.strip(): raise ValueError('text_actor_required')
     if mode not in {'manual','llm','replay'}: raise ValueError('unknown_text_mode')
     check_input(mapping_path,bundle)

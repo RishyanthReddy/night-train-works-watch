@@ -226,3 +226,52 @@ Phase3R1allcomplete:Opus7.5changes/Sol8.5changes/Grok9APPROVE.145hashesmatch bef
 ## Phase 3 council round 2 final verdict
 
 Opus, Grok and Sol each approved at 9/10. The first Sol attempt hit a usage limit. The user requested a retry, which independently verified the three fixes with 475 tests passed, one expected skip and 51 probes passed. All Phase 0, 2 and 3 CLI acceptance runs exited 0. See phase3-council-r2-sol.md and the Opus and Grok reports. The committed product matches all 145 reviewed hashes.
+
+## Real-data council round 1
+
+Opus 7/10, Sol 8/10, Grok 6/10. All three passed frozen integrity (166/166). Opus and Sol each passed 487 tests with one expected local-only skip and Phase 0, 2 and 3 acceptance. Grok independently reproduced the DB grouping and Swiss validity issues. Grok's focused AppTest timed out at 3 seconds and passed with an extended timeout.
+
+| ID | Finding | Severity | Status | Evidence |
+| --- | --- | --- | --- | --- |
+| RD-R1-O1/O2/O6 | Future capture time, omitted row filter, malformed envelope errors | high / medium / low | fixed | Separate capture/import fields, time and replay guards, provider and applied filter retained, structured refusal. Provider and capture evidence regressions. |
+| RD-R1-O3/G1/G6 | DB cancellation and whole-station scope unclear, sibling stops split into runs | high | fixed | Group by native dated DB trip, scope and stop status in UI/export, retained plan/changed fields and station-only path limit. Synthetic three-stop regression and offline replay of 977 actual points. Planned-clock matching remains the documented basis. |
+| RD-R1-O4/G2 | Swiss gap and mixed mode | high | fixed locally | Per-period dates for inspection and membership, explicit rail plus mixed-mode marker, declared excluded count and synthetic tests. No live payload because the provider object still returns HTTP 403. |
+| RD-R1-S1 | Source run label interpreted as Markdown | medium | fixed | Plain-text renderer and synthetic AppTest regression. |
+| RD-R1-O5/G3 | Archive duplicate rows, ordering and local-time warnings | medium | fixed | Native stop order, retained dedup count, distinct conflicting records resulting in unresolved order, explicit-offset clocks accepted and fold/gap warnings shown. Synthetic tests and 439-row actual replay. |
+| RD-R1-G4/G5/O7 | Future window boundary, local German date projection, raw provenance | medium | fixed | Newly selected declared window must reach a validity start, ISO offsets projected into Berlin, raw German body retained with private permissions. Local comparison reproduces 776/456 and verifies raw hashes. |
+| RD-R1-G7/G8 | Large full export and minor source display details | medium / low | accepted scope | Paginated work and finding lists, deferred sidebar run options, Swiss raw payload stored once. Full exports intentionally keep every record. D-1 retains per-page fetch time; import time remains on its legacy capture. NS multi-section details remain in the source work. |
+
+## Real-data council round 2
+
+Sol and Opus approved 9/10 each, with 490 tests passed and one expected local-data skip, all three phase acceptance scripts exit 0, and all 166 hashes unchanged. Sol ran 17 independent checks. See real-data-council-r2.json for the report and probe paths. Grok R2 cancellation requested because the R3 freeze supersedes it.
+
+## Real-data council round 3
+
+Swiss live transport and dated native mode join changed five paths. The new 167-file snapshot passed 492 offline tests, Phase 0, 2 and 3 acceptance, and actual Swiss capture, intake and AppTest/export. R3 tasks and scope in real-data-council-r3.json.
+
+Opus R3 approved 9/10 and independently verified all 167 hashes, 491 tests with one expected local-data skip, and all nine live-adapter fixture tests. Its findings are fail-closed coverage limits, except that unresolved explicit mode values are undercounted. The parent reproduced this with synthetic `unknown`, `all`, `train` and `intercityRail` declarations. The actual Swiss capture had no mode declarations, so these exclusions did not affect its counts. The parent also checked all 362 exported records and found no midnight EndTime projection in that sample. Other low notes are overlapping GTFS releases, duplicate calendar lines and raw-copy disk use.
+
+Grok R3 approves 9/10. No open material finding and no new ledger row. A private copy of the 167-file freeze passed six synthetic probe groups: Swiss calendar, exceptions and route types; disagreement, ambiguity and declared mode; intake, gap filter and refusal; DB native trip, station scope and same train/date; archive order, conflict and clocks; declared rolling-window bounds. Focused pytest imported that copy and passed 48 tests, with 1 skip, in 2.89s. Freeze and copy hashed 167/167 with no extras before and after. The parent 492-test suite, live Swiss capture and Train Archive sample were not re-run here. An explicit hour count with no declared windows still marks a start past the new edge as entering; both declared windows mark it `membership_unknown` / `starts_beyond_current_window`. That matches the locked rule. Probe report: `/tmp/nightdesk-r3-grok-probe.json`.
+
+Sol R3 approved 9/10. The independent checks passed 491 tests with one expected local-data skip, 52 additional probes and Phase 0, 2 and 3 acceptance. All 167 hashes matched. ND-R3-SOL-1 is a low diagnostic limitation: unresolved counts do not distinguish absent IDs, inactive or out-of-release dates and conflicting references. Retained XML and ZIP evidence supports follow-up. Exclusion stays conservative. The report path is in real-data-council-r3.json.
+
+
+## European Sleeper national-feed council R1
+
+Opus approved 8.5/10 against 171 frozen hashes. Independent suite 493 passed and one local-data skip. Sol failed on usage quota with no score. Grok dispatched on the same freeze.
+
+| Finding | Status | Verification |
+| --- | --- | --- |
+| Dataset name alone could assert GTFS or Infrabel provenance | Fixed locally | GTFS import receipt and known Infrabel mapping hashes, copied-ingest and altered mapping regressions, real CLI/AppTest replay |
+| Sign-prefixed or non-integer reported delays could display as empty | Fixed locally | Plus accepted, unparsed value retained with visible warning, synthetic RDT regression |
+| Partial source coverage absent from comparison Markdown and UI | Fixed locally | Real ES 475 comparison displayed partial Infrabel evidence and exported it offline |
+
+Grok reviewed the unchanged 171-file freeze, not the later worktree. Score 8/10, changes requested. Those three "Fixed locally" rows are not in this freeze: `es_runs.py` still accepts a dataset whose name ends with `_gtfs`, `_minutes` still returns null for `+8` and `8.5` with no warning field, and the comparison limits still do not count unreviewed stops. Freeze hashes matched 171/171 before the probes and again after. No freeze or product file was written. Synthetic probes: `/tmp/nightdesk-es-r1-probe.py` and `/tmp/nightdesk-es-r1-plus`. Focused pytest on the freeze copy: 18 passed in 0.87s (`test_es_national.py`, `test_gtfs.py`, `test_cli.py`, `test_demo.py`). Parent real-data counts, live reuse terms, and Swiss/Train Archive ES identity were not rechecked.
+
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| ES-R1-G1 | Two stops in one Dutch service with the same station code and different `Stop:RDT-ID`s both become `nl-rdt-stop:SAME`. Native stop ids stay in extra. | medium | fixed | Repeated station code in the same service refused. Synthetic duplicate check and October archive replay verified. |
+| ES-R1-G2 | A cancelled stop with empty clocks is kept, then sorted after timed stops. The run banner says `source_stop_sequence_unresolved`, including on a fully timed run. The point still has `missing_time` in its own unresolved object. | medium | fixed | Dutch points stay in archive file order. Clockless stop regression retains missing_planned_time and no pass window is inferred. |
+| ES-R1-G3 | `+8` and `8.5` become null in `rdt_arrival_delay_min` / `rdt_departure_delay_min`. The raw strings remain. No warning key is added, so the new UI columns display empty. | medium | fixed | Signed whole minutes and visible warnings for unparsed nonempty delays. Synthetic +8 and 1.5 regression. |
+| ES-R1-G4 | Scheduled provenance is `dataset.endswith("_gtfs")` plus kind `scheduled`. Observed provenance is dataset name `infrabel_d1` or `infrabel_punctuality`. No mapping hash or GTFS import receipt is required. | medium | fixed | GTFS import receipt and approved mapping hashes. Synthetic copied rows and altered mapping refused. Real ES 475 replay passed. |
+| ES-R1-G5 | Comparison Markdown shows the encoded point id and source refs, not the raw GTFS stop id, and does not count stops left out of the review. The JSON report contains both. | low | fixed | Native stop IDs and unreviewed counts in report, UI and export. Synthetic assertions and real ES 475 AppTest. |

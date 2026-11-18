@@ -19,6 +19,21 @@ def escaped(value) -> str:
     return re.sub(r"([\\`*_{}\[\]()#+.!|>~-])", r"\\\1", text).replace("\r", " ").replace("\n", "<br>")
 
 
+def provenance_entry(role, capture, source, licence):
+    return {
+        "role": role, "capture_id": capture["capture_id"], "dataset": capture["dataset"],
+        "source": source, "licence": licence, "captured_at": capture.get("captured_at"),
+        "complete": capture["complete"], "incomplete_reasons": capture.get("incomplete_reasons", []),
+    }
+
+
+def _provenance_markdown(report):
+    items = report.get("provenance", [])
+    if not items:
+        return []
+    return ["", "## Capture provenance", "", *["- " + escaped(item) for item in items], ""]
+
+
 def _source(row):
     if row is None:
         return "—"
@@ -37,6 +52,7 @@ def markdown(report: dict) -> str:
              "Changed between these selected files.", ""]
     for limit in report["limits"]:
         lines.append(f"- {escaped(limit)}")
+    lines += _provenance_markdown(report)
     for side in ("old", "new"):
         info = report["inputs"][side]
         lines += ["", f"{side}: mode={escaped(info['mode'])}, excluded rejected rows={len({r['row'] for r in info['rejects']})}."]
@@ -171,6 +187,7 @@ def dossier_markdown(report: dict) -> str:
     lines = ["# Train/date dossier", "", f"Data: {escaped(report['data_label'])}.",
              f"Train: {escaped(report['train_no'])}; service date: {escaped(report['service_date'])}.", ""]
     lines += ["- " + escaped(limit) for limit in report["limits"]]
+    lines += _provenance_markdown(report)
     sections = [("Delay request", report["delay_request"]), ("Before", report["before"]), ("After", report["after"]), ("Changed fields", report["changes"]),
                 ("Capture completeness comparison", report["capture_comparison"]),
                 ("Work membership — window observations, not announcements or cancellations", report.get("work_membership_comparison")),
@@ -198,6 +215,81 @@ def export_dossier(report: dict, bundle: Bundle, out: str | Path | None = None):
     """Local JSON/Markdown only. No messaging, publication or national approval."""
     if report.get("bundle") != bundle.name or report.get("kind") != "train_date_dossier":
         raise ValueError("invalid_dossier_bundle_or_kind")
+    return _export_report(report, bundle, out, prefix="dossier", md_text=dossier_markdown(report),
+                          event_kind="dossier_exported", event={
+                              "rule_version": report["rule_version"],
+                              "revision_ids": [report[side]["revision_id"] for side in ("before", "after") if report[side] is not None],
+                          })
+
+
+def export_run_evidence(bundle: Bundle, capture_id: str, selection_id: str, out: str | Path | None = None):
+    from nightdesk.desk import run_evidence
+    report = run_evidence(bundle, capture_id, selection_id)
+    run = report["run"]
+    md_text = "\n".join([
+        "# Source run evidence", "",
+        escaped(f"{run['train_no']} / {run['service_date']} / {run['kind']}"), "",
+        *["- " + escaped(limit) for limit in report["limits"]],
+        *_provenance_markdown(report),
+        "", "## Capture", "", escaped(report["capture"]),
+        "", "## Capture origin", "", escaped(report["capture_origin"]),
+        "", "## Run points and sources", "", escaped(run), "",
+    ])
+    if "timetable_status" in report:
+        md_text += "\n## Published timetable status\n\n" + escaped(report["timetable_status"]) + "\n"
+    if report["capture"]["dataset"] == "rijden_archive" and report["capture_origin"]:
+        md_text += "\n## Archive attribution\n\n" + escaped(report["capture_origin"]["evidence"].get("attribution")) + "\n"
+    return _export_report(report, bundle, out, prefix="run-evidence", md_text=md_text,
+                          event_kind="run_evidence_exported", event={
+                              "capture_id": capture_id, "selection_id": selection_id,
+                              "rule_version": run["rule_version"],
+                          })
+
+
+def export_es_run_comparison(bundle, review_path, out=None):
+    from nightdesk.es_runs import compare_runs
+
+    report = compare_runs(bundle, review_path)
+    review = report["review"]
+    md_text = "\n".join([
+        "# European Sleeper run comparison", "",
+        escaped("ES " + report["train"]), "",
+        *["- " + escaped(limit) for limit in report["limits"]],
+        *_provenance_markdown(report),
+        "", "## Points outside the review", "", escaped(report["unreviewed_points"]),
+        "", "## Reviewed run and station choices", "", escaped(review),
+        "", "## Scheduled and observed evidence", "",
+        *["- " + escaped(station) for station in report["stations"]],
+        "", "## Source captures", "", escaped(report["scheduled"]["capture"]),
+        "", escaped(report["observed"]["capture"]), "",
+    ])
+    return _export_report(report, bundle, out, prefix="es-run-comparison", md_text=md_text,
+                          event_kind="es_run_comparison_exported",
+                          event={"rule_version": report["rule_version"], "review": review})
+
+
+def export_works_evidence(bundle, capture_id, before_id=None, out=None):
+    from nightdesk.desk import works_evidence
+    report = works_evidence(bundle, capture_id, before_id)
+    changes = report["comparison"]
+    lines = ["# Works evidence", "", "Source validity and membership describe the selected captures.",
+             *_provenance_markdown(report),
+             "", "## Capture", "", escaped(report["capture"]), "", escaped(report["capture_origin"])]
+    if changes is not None:
+        lines += ["", "## Before capture", "", escaped(report["before_capture"]),
+                  "", escaped(report["before_capture_origin"]), "",
+                  "## Comparison", "", escaped(changes["status"]), "", escaped(changes["reason"])]
+        for name in ("field_diffs", "added", "removed", "membership_changes"):
+            lines += ["", "### " + name.replace("_", " ").capitalize(), ""]
+            lines.extend("- " + escaped(item) for item in changes[name])
+    lines += ["", "## Selected works and sources", ""]
+    lines.extend("- " + escaped(record) for record in report["records"])
+    return _export_report(report, bundle, out, prefix="works-evidence", md_text="\n".join(lines) + "\n",
+                          event_kind="works_evidence_exported",
+                          event={"capture_id": capture_id, "before_capture_id": before_id})
+
+
+def _export_report(report, bundle, out, *, prefix, md_text, event_kind, event):
     def check_refs(value):
         if isinstance(value, dict):
             if {"dataset", "record_id", "capture_id", "bundle"} <= value.keys() and value["bundle"] != bundle.name:
@@ -209,11 +301,10 @@ def export_dossier(report: dict, bundle: Bundle, out: str | Path | None = None):
                 check_refs(item)
     check_refs(report)
     json_text = json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n"
-    md_text = dossier_markdown(report)
     key = digest(json_text.encode() + b"\0" + md_text.encode())
     folder = bundle.resolve(out or bundle.root / "exports")
     folder.mkdir(parents=True, exist_ok=True)
-    paths = [folder / ("dossier-" + key + suffix) for suffix in (".md", ".json")]
+    paths = [folder / (prefix + "-" + key + suffix) for suffix in (".md", ".json")]
     for path, text in zip(paths, (md_text, json_text)):
         bundle.resolve(path)
         if path.is_symlink():
@@ -223,7 +314,5 @@ def export_dossier(report: dict, bundle: Bundle, out: str | Path | None = None):
                 raise ValueError("existing_dossier_differs")
         else:
             write_private(path, text)
-    append_event(bundle, "dossier_exported", {"json_sha256": digest(json_text.encode()), "rule_version": report["rule_version"],
-                                            "revision_ids": [report[side]["revision_id"] for side in ("before", "after") if report[side] is not None],
-                                            "paths": [str(p) for p in paths]})
+    append_event(bundle, event_kind, {**event, "json_sha256": digest(json_text.encode()), "paths": [str(p) for p in paths]})
     return tuple(paths)

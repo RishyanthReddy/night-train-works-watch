@@ -2,7 +2,7 @@
 
 from nightdesk.border import check_boundary, BORDER_RULE_VERSION
 from nightdesk.changes import compare_captures, compare_revisions
-from nightdesk.export import build_dossier
+from nightdesk.export import build_dossier, provenance_entry
 from nightdesk.intake.mapping import captures, load_capture
 from nightdesk.links import load_link, coverage_by_train, link_id
 from nightdesk.model import PathLeg, RunRow, ConsistencyFinding
@@ -30,6 +30,18 @@ def snapshot_revisions(bundle, capture_id, *, reader=None):
     if any(r.source.dataset != selected["capture"].dataset for r in revisions):
         raise ValueError("capture_revision_dataset_mismatch")
     return revisions
+
+
+def capture_provenance(bundle, selected, role, *, reader):
+    metadata = selected["metadata"]
+    children = [entry for child_role, identifier in selected.get("children", {}).items()
+                for entry in capture_provenance(bundle, snapshot(bundle, identifier, reader=reader),
+                                                f"{role} / {child_role}", reader=reader)]
+    licences = ", ".join(sorted({entry["licence"] for entry in children})) if children else "UNKNOWN"
+    origin = metadata.get("capture_origin") or {}
+    source = origin.get("evidence", {}).get("source_url") or metadata["path"]
+    return [provenance_entry(role, selected["capture"].model_dump(mode="json"), source,
+                             metadata.get("licence", licences)), *children]
 
 
 def selected_pairs(bundle, old_capture, new_capture, *, changed_only=True, include_one_sided=False, reader=None):
@@ -216,14 +228,85 @@ def run_choice_id(run):
         "trip_id": run.trip_id, "refs": [(r.dataset,r.capture_id,r.record_id,r.content_sha256) for r in run.input_refs]})
 
 
-def run_options(bundle, capture_ids):
-    reader = ReadSession(bundle)
+def run_options(bundle, capture_ids, *, reader=None):
+    reader = reader or ReadSession(bundle)
     options = {}
     for identifier in dict.fromkeys(i for i in capture_ids if i):
         selected = snapshot(bundle, identifier, reader=reader)
         for run in build_runs([r for r in selected.get("typed_rows", []) if isinstance(r, RunRow)]):
             options[run_choice_id(run)] = f"{run.train_no} / {run.service_date} / {run.kind} / trip {run.trip_id or 'not stated'} / {identifier[:10]}"
     return options
+
+
+def run_evidence(bundle, capture_id, selection_id, *, reader=None):
+    """Inspect one source run without requiring a path revision or joining captures."""
+    reader = reader or ReadSession(bundle)
+    selected = snapshot(bundle, capture_id, reader=reader)
+    runs = build_runs([row for row in selected.get("typed_rows", []) if isinstance(row, RunRow)])
+    run = next((run for run in runs if run_choice_id(run) == selection_id), None)
+    if run is None:
+        raise ValueError("select_run_from_this_capture")
+    report = {
+        "kind": "run_evidence",
+        "bundle": bundle.name,
+        "capture": selected["capture"].model_dump(mode="json"),
+        "capture_origin": selected["metadata"].get("capture_origin"),
+        "provenance": capture_provenance(bundle, selected, "Run", reader=reader),
+        "selection_id": selection_id,
+        "run": run.model_dump(mode="json"),
+        "limits": [
+            "This report covers the selected source capture and run only.",
+            "Scheduled times describe the timetable. Observed times are shown only where supplied.",
+            "Published times are provider changes or estimates. Archived reports can include carried-forward values.",
+        ],
+    }
+    if selected["capture"].dataset == "db_timetables":
+        statuses = {"c": "Cancelled", "a": "Added", "p": "Planned"}
+        report["timetable_status"] = []
+        for point in run.points:
+            messages = point.extra.get("db_change_messages")
+            status = {"source_row": point.source.record_id, "change_messages": len(messages) if isinstance(messages, list) else 0}
+            for side in ("arrival", "departure"):
+                changed = point.extra.get("db_changed_" + side)
+                planned = point.extra.get("db_planned_" + side)
+                code = (changed.get("cs") if isinstance(changed, dict) else None) or (planned.get("ps") if isinstance(planned, dict) else None)
+                status[side] = statuses.get(code, code) if isinstance(code, str) else None
+            status["feeds"] = [label for field, label in (("db_in_plan", "Requested plan hour"),
+                                ("db_in_full_changes", "Station changes")) if point.extra.get(field) is True]
+            report["timetable_status"].append(status)
+    return report
+
+
+def works_evidence(bundle, capture_id, before_id=None, *, reader=None):
+    """Inspect works without requiring train/path data."""
+    from nightdesk.model import WorkNotice
+    reader = reader or ReadSession(bundle)
+    current = snapshot(bundle, capture_id, reader=reader)
+    def is_works(selected):
+        metadata = selected["metadata"]
+        return metadata.get("record_type") == "WorkNotice" or "WorkNotice" in metadata.get("record_types", [])
+
+    if not is_works(current):
+        raise ValueError("select_works_capture")
+    children = [snapshot(bundle, identifier, reader=reader) for identifier in current["children"].values()] if "children" in current else [current]
+    rows = [(row.source, payload) for child in children if child["metadata"].get("record_type") == "WorkNotice"
+            for row, payload in zip(child["rows"], child["typed_rows"], strict=True) if isinstance(payload, WorkNotice)]
+    result = {"kind": "works_evidence", "bundle": bundle.name,
+              "capture": current["capture"].model_dump(mode="json"),
+              "capture_origin": current["metadata"].get("capture_origin"),
+              "provenance": capture_provenance(bundle, current, "Works", reader=reader),
+              "records": [{"source": source.model_dump(mode="json"), "work": row.model_dump(mode="json")}
+                          for source, row in rows],
+              "comparison": None}
+    if before_id:
+        previous = snapshot(bundle, before_id, reader=reader)
+        if not is_works(previous):
+            raise ValueError("select_works_capture")
+        result["before_capture"] = previous["capture"].model_dump(mode="json")
+        result["before_capture_origin"] = previous["metadata"].get("capture_origin")
+        result["provenance"] += capture_provenance(bundle, previous, "Earlier works", reader=reader)
+        result["comparison"] = compare_captures(bundle, previous["capture"], current["capture"], reader=reader).model_dump(mode="json")
+    return result
 
 
 def _checks(revision, day, context, link, reviewed_points, *, run_train=None):
@@ -429,6 +512,12 @@ def dossier(bundle, old_capture_id, new_capture_id, new_revision_id, service_dat
     works, findings, run = context["works"], checked["findings"], checked["run"]
     report = build_dossier(bundle, old, new, service_date, run=run,
                            works=works, findings=findings, capture_comparison=compare_captures(bundle, old_capture, new_capture, reader=reader, rolling_window_hours=rolling_window_hours), reader=reader, resolver=context["resolver"])
+    selected_sources = [("Before", old_capture_id), ("After", new_capture_id),
+                        ("Selected works", works_capture_id), ("Selected run", run_capture_id)]
+    report["provenance"] = [
+        entry for role, identifier in selected_sources if identifier
+        for entry in capture_provenance(bundle, snapshot(bundle, identifier, reader=reader), role, reader=reader)
+    ]
     work_before, work_after = old_context["works_capture"], context["works_capture"]
     membership = None
     if work_before is not None and work_after is not None:

@@ -18,7 +18,7 @@ from typing import Any, Literal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from nightdesk.audit import append_event, append_events, canonical_json, read_events
 from nightdesk.config import Bundle, BundleError, OUT_ROOT, ES_INPUT_ROOT, is_within, MAX_NUMBER_TEXT, MAX_NUMBER_EXPONENT
@@ -53,6 +53,13 @@ class FieldSpec(_Config):
     time_format: str | None = None
 
 
+class CaptureOrigin(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+    captured_at: AwareDatetime
+    filter: dict[str, JSONValue] | None = None
+    evidence: dict[str, JSONValue]
+
+
 class Mapping(_Config):
     version: Literal[1]
     dataset: str = Field(min_length=1)
@@ -66,6 +73,7 @@ class Mapping(_Config):
     null_tokens: list[JSONValue] = Field(default_factory=lambda: ["", "NULL"])
     filter: dict[str, JSONValue] = Field(default_factory=dict)
     complete: bool = False
+    captured_envelope: bool = False
     fields: dict[str, FieldSpec] = Field(min_length=1)
 
     @model_validator(mode="before")
@@ -77,6 +85,8 @@ class Mapping(_Config):
 
     @model_validator(mode="after")
     def check_contract(self):
+        if self.captured_envelope and (self.file.type != "json" or self.complete):
+            raise ValueError("captured envelopes require JSON and partial coverage")
         if self.timezone:
             ZoneInfo(self.timezone)
         if any(n not in self.fields for n in self.required):
@@ -304,8 +314,13 @@ def parse_value(value, spec: FieldSpec, zone: str | None):
 
 
 def confirm_mapping(path: str | Path, bundle: Bundle, actor: str | None = None) -> str:
+    from nightdesk.demo import demo_input
+
     check_input(path, bundle)
-    _, sha = load_mapping(path)
+    approved = demo_input(bundle, path, kind={"mapping", "text_mapping"})
+    spec, sha = load_mapping(path)
+    if approved and (sha != approved.sha256 or spec.licence != approved.licence):
+        raise MappingError("demo_mapping_hash_or_licence_mismatch")
     actor = actor or getpass.getuser()
     if not actor.strip():
         raise MappingError("confirmation requires an actor")
@@ -331,6 +346,23 @@ def _confirmed(bundle: Bundle, sha: str) -> bool:
 def read_mapped_table(path, mapping: Mapping) -> Table:
     options = mapping.file.model_dump()
     return read_table(path, options.pop("type"), **options, header_row=mapping.header_row)
+
+
+def _capture_origin(raw):
+    if not isinstance(raw, dict) or not isinstance(raw.get("captured_at"), str):
+        raise MappingError("capture_origin_invalid")
+    try:
+        return CaptureOrigin.model_validate(raw)
+    except ValidationError:
+        raise MappingError("capture_origin_invalid") from None
+
+
+def _capture_filter(mapping, origin):
+    if origin is None:
+        return mapping.filter
+    if mapping.filter and canonical_json(mapping.filter) != canonical_json(origin.filter):
+        return {"provider_query": origin.filter, "row_filter": mapping.filter}
+    return origin.filter
 
 
 def map_table(table: Table, mapping: Mapping, bundle: Bundle, capture_id: str, captured_at: datetime):
@@ -445,14 +477,21 @@ def ingest(path: str | Path, mapping_path: str | Path, bundle: Bundle) -> dict:
 
 
 def _ingest(path: str | Path, mapping_path: str | Path, bundle: Bundle) -> dict:
+    from nightdesk.demo import demo_input
+
     check_input(path, bundle)
     check_input(mapping_path, bundle)
+    approved_mapping = demo_input(bundle, mapping_path, kind={"mapping"})
     mapping, sha = load_mapping(mapping_path)
+    approved_source = demo_input(bundle, path, kind={"file"}, licence=mapping.licence)
     if not _confirmed(bundle, sha):
         append_event(bundle, "ingest_refused", {"reason": "mapping_not_confirmed", "mapping_sha256": sha})
         raise MappingError("mapping_not_confirmed: confirm this mapping's current hash in this bundle first")
     path = Path(path)
     file_sha = digest(path.read_bytes())
+    if approved_mapping and (sha != approved_mapping.sha256 or mapping.licence != approved_mapping.licence
+                             or file_sha != approved_source.sha256):
+        raise MappingError("demo_ingest_hash_or_licence_mismatch")
     capture_id = digest(canonical_json([bundle.name, str(path.resolve()), file_sha, sha]).encode())
     folder = bundle.resolve(bundle.root / "captures" / capture_id)
     if folder.exists():
@@ -460,7 +499,11 @@ def _ingest(path: str | Path, mapping_path: str | Path, bundle: Bundle) -> dict:
     table = read_mapped_table(path, mapping)
     if digest(path.read_bytes()) != file_sha:
         raise MappingError("input changed while reading; retry")
-    now = datetime.now(timezone.utc)
+    imported_at = datetime.now(timezone.utc)
+    origin = _capture_origin(table.capture_origin) if mapping.captured_envelope else None
+    if origin and origin.captured_at > imported_at:
+        raise MappingError("capture_time_after_import")
+    now = origin.captured_at if origin else imported_at
     rows, rejects, filtered = map_table(table, mapping, bundle, capture_id, now)
     from nightdesk.store import ReadSession
     reader = ReadSession(bundle)
@@ -492,14 +535,19 @@ def _ingest(path: str | Path, mapping_path: str | Path, bundle: Bundle) -> dict:
         if created:
             new_revisions.append(kept.revision_id)
     capture = Capture(capture_id=capture_id, bundle=bundle.name, dataset=mapping.dataset, captured_at=now,
+                      imported_at=imported_at if origin else None,
                       declared_complete=mapping.complete, complete=not incomplete, incomplete_reasons=incomplete,
-                      filter=mapping.filter, files=[file_sha], revision_ids=list(dict.fromkeys(r.revision_id for r in saved)))
+                      filter=_capture_filter(mapping, origin),
+                      files=[file_sha], revision_ids=list(dict.fromkeys(r.revision_id for r in saved)))
     metadata = {"format_version": 2, "capture_id": capture_id, "bundle": bundle.name, "dataset": mapping.dataset,
                 "path": str(path.resolve()), "file_sha256": file_sha, "mapping_sha256": sha,
                 "accepted": len(rows), "rejected": len({r["row"] for r in rejects}), "filtered": len(filtered),
                 "skipped_blank_rows": table.skipped_blank_rows, "licence": mapping.licence,
                 "timezone": mapping.timezone, "external_processing_allowed": mapping.external_processing_allowed,
                 "record_type": mapping.record, "new_revision_ids": new_revisions}
+    if origin:
+        metadata["capture_origin"] = origin.model_dump(mode="json")
+        metadata["row_filter"] = mapping.filter
     import os
     import shutil
     import tempfile
@@ -512,7 +560,8 @@ def _ingest(path: str | Path, mapping_path: str | Path, bundle: Bundle) -> dict:
         write_private(staging / "mapping.yaml", mapping_raw.decode("utf-8"))
         write_private(staging / "rows.jsonl", "".join(canonical_json(r.model_dump(mode="json")) + "\n" for r in rows))
         write_private(staging / "rejects.jsonl", "".join(canonical_json(r) + "\n" for r in rejects))
-        write_private(staging / "capture.json", capture.model_dump_json(indent=2) + "\n")
+        write_private(staging / "capture.json", capture.model_dump_json(
+            indent=2, exclude={"imported_at"} if not origin else None) + "\n")
         write_private(staging / "metadata.json", canonical_json(metadata) + "\n")
         if mapping.record != "GenericRow":
             write_private(staging / "typed_rows.jsonl", "".join(canonical_json(r.model_dump(mode="json")) + "\n" for r in typed_rows))
@@ -597,9 +646,21 @@ def load_capture(folder: Path, bundle: Bundle, *, reader=None) -> dict:
             break
     if metadata.get("format_version") == 2 and mapping is None:
         raise MappingError("capture_mapping_evidence_missing")
+    origin = _capture_origin(metadata.get("capture_origin")) if mapping and mapping.captured_envelope else None
+    if origin and (origin.captured_at != capture.captured_at or any(ref.captured_at != origin.captured_at for ref in refs)):
+        raise MappingError("capture_origin_time_mismatch")
+    if origin:
+        audit_time = reader.import_times.get(capture.capture_id)
+        bound = capture.imported_at or audit_time
+        if bound is None or origin.captured_at > bound:
+            raise MappingError("capture_time_after_import")
+        if capture.imported_at and (audit_time is None or capture.imported_at > audit_time):
+            raise MappingError("capture_import_time_mismatch")
+        if capture.imported_at and metadata.get("row_filter") != mapping.filter:
+            raise MappingError("capture_row_filter_mismatch")
     if mapping and (metadata["dataset"] != mapping.dataset or metadata["licence"] != mapping.licence
                     or metadata.get("record_type", "GenericRow") != mapping.record or metadata.get("timezone") != mapping.timezone
-                    or capture.filter != mapping.filter
+                    or capture.filter != _capture_filter(mapping, origin)
                     or metadata.get("external_processing_allowed", False) != mapping.external_processing_allowed):
         raise MappingError("capture_mapping_metadata_mismatch")
     result = {"metadata": metadata, "capture": capture, "rows": rows, "rejects": rejects}
@@ -643,10 +704,10 @@ def load_capture(folder: Path, bundle: Bundle, *, reader=None) -> dict:
     return result
 
 
-def captures(bundle: Bundle) -> list[dict]:
+def captures(bundle: Bundle, *, reader=None) -> list[dict]:
     folder = bundle.resolve(bundle.root / "captures")
     if not folder.exists():
         return []
     from nightdesk.store import ReadSession
-    reader = ReadSession(bundle)
+    reader = reader or ReadSession(bundle)
     return [load_capture(p, bundle, reader=reader) for p in sorted(folder.iterdir()) if p.is_dir() and not p.name.startswith(".pending-")]

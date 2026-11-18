@@ -22,9 +22,13 @@ def source_table(path: str | Path, bundle: Bundle, capture_id: str | None = None
 
     Never silently choose a newest mapping when several captures describe a file.
     """
+    from nightdesk.demo import demo_input
     check_input(path, bundle)
+    approved = demo_input(bundle, path, kind={"file"})
     path = Path(path)
     sha = digest(path.read_bytes())
+    if approved and sha != approved.sha256:
+        raise ValueError("demo_asset_hash_mismatch")
     matches = [c for c in captures(bundle) if c["metadata"]["path"] == str(path.resolve())
                and c["metadata"]["file_sha256"] == sha]
     if capture_id:
@@ -36,7 +40,10 @@ def source_table(path: str | Path, bundle: Bundle, capture_id: str | None = None
     if matches:
         c = matches[0]
         return {"rows": c["rows"], "rejects": c["rejects"], "mode": "confirmed_mapping",
+                "source": c["metadata"]["path"], "licence": c["metadata"]["licence"],
                 "capture": c["capture"].model_dump(mode="json"), "file_sha256": sha}
+    if approved:
+        raise ValueError("demo_compare_requires_manifested_capture")
     table = read_table(path)
     if digest(path.read_bytes()) != sha:
         raise ValueError("input changed while reading; retry")
@@ -49,7 +56,10 @@ def source_table(path: str | Path, bundle: Bundle, capture_id: str | None = None
                         captured_at=now, url_or_path=str(path.resolve()), licence="UNKNOWN - not checked")
         rows.append(GenericRow(source=ref, fields=json_value(raw)))
     return {"rows": rows, "rejects": [], "mode": "unmapped_columns_unvalidated", "file_sha256": sha,
-            "capture": {"capture_id": capture, "bundle": bundle.name, "dataset": "unmapped", "complete": False}}
+            "source": str(path.resolve()), "licence": "UNKNOWN",
+            "capture": {"capture_id": capture, "bundle": bundle.name, "dataset": "unmapped",
+                        "captured_at": now.isoformat(), "complete": False,
+                        "incomplete_reasons": ["unvalidated_input"]}}
 
 
 def _key(row: GenericRow, field: str):
@@ -124,6 +134,8 @@ def compare_rows(old: list[GenericRow], new: list[GenericRow], key: str | None =
 
 
 def compare_files(old, new, bundle: Bundle, key=None, *, old_capture=None, new_capture=None) -> dict:
+    from nightdesk.export import provenance_entry
+
     a = source_table(old, bundle, old_capture)
     b = source_table(new, bundle, new_capture)
     if a["mode"] != b["mode"]:
@@ -133,7 +145,9 @@ def compare_files(old, new, bundle: Bundle, key=None, *, old_capture=None, new_c
     report = compare_rows(a["rows"], b["rows"], key)
     report.update(bundle=bundle.name,
                   inputs={"old": {k: v for k, v in a.items() if k != "rows"},
-                          "new": {k: v for k, v in b.items() if k != "rows"}})
+                          "new": {k: v for k, v in b.items() if k != "rows"}},
+                  provenance=[provenance_entry(side, item["capture"], item["source"], item["licence"])
+                              for side, item in (("Before", a), ("After", b))])
     licences = {r.source.licence for r in a["rows"] + b["rows"]}
     report["data_label"] = "synthetic" if licences == {"synthetic"} else "see_each_source_licence"
     return report

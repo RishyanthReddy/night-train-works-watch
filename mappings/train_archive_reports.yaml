@@ -1,0 +1,21 @@
+version: 1
+dataset: train_archive_reports
+licence: UNKNOWN
+file: {type: json, records_path: results}
+captured_envelope: true
+# The adapter resolves source-local clocks and writes explicit offsets.
+timezone: UTC
+record: RunRow
+complete: false
+required: [service_date, train_no, trip_id, point_id]
+fields:
+  service_date: {column: service_date, parse: "date:%Y-%m-%d"}
+  train_no: {column: nd_train, parse: str}
+  trip_id: {column: nd_trip, parse: str}
+  point_id: {column: nd_point, parse: str}
+  name: {column: stop_name, parse: str, default: ""}
+  kind: {column: nd_kind, parse: str}
+  planned_arr: {column: nd_scheduled_arrival, parse: "datetime:%Y-%m-%dT%H:%M:%S%z"}
+  planned_dep: {column: nd_scheduled_departure, parse: "datetime:%Y-%m-%dT%H:%M:%S%z"}
+  published_arr: {column: nd_predicted_arrival, parse: "datetime:%Y-%m-%dT%H:%M:%S%z"}
+  published_dep: {column: nd_predicted_departure, parse: "datetime:%Y-%m-%dT%H:%M:%S%z"}

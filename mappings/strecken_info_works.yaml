@@ -1,0 +1,21 @@
+version: 1
+dataset: strecken_info_works
+licence: UNKNOWN
+file: {type: json, records_path: results}
+captured_envelope: true
+timezone: Europe/Berlin
+record: WorkNotice
+complete: false
+required: [work_id, country, date_start, date_end]
+fields:
+  work_id: {column: baustellenID, parse: str}
+  country: {column: nd_country, parse: str}
+  date_start: {column: nd_start, parse: "date:%Y-%m-%d"}
+  date_end: {column: nd_end, parse: "date:%Y-%m-%d"}
+  line: {column: nd_line, parse: str, prefix: "de:"}
+  from_point_id: {column: nd_from, parse: str, prefix: "de-ril100:"}
+  to_point_id: {column: nd_to, parse: str, prefix: "de-ril100:"}
+  from_place: {column: langnameVon, parse: str}
+  to_place: {column: langnameBis, parse: str}
+  effect: {column: wirkung, parse: str}
+  description: {column: arbeiten, parse: str}

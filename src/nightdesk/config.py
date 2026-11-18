@@ -17,6 +17,9 @@ ES_INPUT_ROOT = Path("data") / "es"
 
 BUNDLE_ENV = "NIGHTDESK_BUNDLE"
 DEFAULT_BUNDLE = "practice"
+PUBLIC_DEMO_BUNDLE = "demo"
+PUBLIC_DEMO_MANIFEST = Path("mappings/demo.yaml")
+PUBLIC_DEMO_ENV = "NIGHTDESK_PUBLIC_DEMO"
 
 # Service credential variable names (values are never read or stored here).
 CREDENTIAL_ENV_VARS = (
@@ -32,6 +35,7 @@ CREDENTIAL_ENV_VARS = (
 FIXED_BUNDLES: dict[str, bool] = {
     "practice": False,
     "es": True,
+    PUBLIC_DEMO_BUNDLE: False,
 }
 
 TEST_BUNDLE_RE = re.compile(r"test-[a-z0-9][a-z0-9-]{0,47}")
@@ -51,8 +55,20 @@ WORK_YEAR_BEFORE_CAPTURE = 5
 WORK_YEAR_AFTER_CAPTURE = 10
 
 STATION_AREA_LINE_PREFIXES = ("0/",)
+# September 2026 Infrabel monthly data also identifies 454/455 as EURSLEEPER.
+# An actual dated schedule and a reviewed station match are still required.
+ES_ROUTE = re.compile(r"ES[- ]?(400|401|452|453|454|455|474|475)")
+# Byte hashes of the reviewed mappings. Keep older reviewed versions here when replacing a mapping.
+INFRABEL_MAPPING_HASHES = {
+    "infrabel_d1": "f8bb79a17cf5e1215c3f4190d7ea4b13bc4807eca934eea84341cd1ecb0abbb8",
+    "infrabel_punctuality": "c0fb042027fa32df52532cdee9e0980456f86c7ea3c3313f6216c5ce235599ce",
+}
 DATASET_ASSUMPTIONS = {
     "infrabel_punctuality": ["Times assumed Europe/Brussels; upstream timezone on clock-change nights is not verified."],
+    "infrabel_d1": [
+        "Times assumed Europe/Brussels; upstream timezone on clock-change nights is not verified.",
+        "D-1 point labels are feed-local station names. PTCAR identity is unverified.",
+    ],
 }
 
 
@@ -108,14 +124,14 @@ class Bundle:
 
 
 def get_bundle(name: str, out_root: Path = OUT_ROOT) -> Bundle:
-    """Return the named bundle: practice, es, or a safe test-<slug> bundle."""
+    """Return the named practice, demo, NDA or test bundle."""
     if name in FIXED_BUNDLES:
         nda = FIXED_BUNDLES[name]
     elif TEST_BUNDLE_RE.fullmatch(name):
         nda = False
     else:
         raise BundleError(
-            f"unknown bundle {name!r}: use practice, es or test-<slug> "
+            f"unknown bundle {name!r}: use practice, demo, es or test-<slug> "
             f"matching {TEST_BUNDLE_RE.pattern}"
         )
     return Bundle(name=name, nda=nda, root=Path(out_root) / name)

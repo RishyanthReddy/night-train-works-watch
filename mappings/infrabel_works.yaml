@@ -1,0 +1,23 @@
+version: 1
+dataset: infrabel_works
+licence: CC0
+file: {type: json, records_path: results}
+captured_envelope: true
+timezone: Europe/Brussels
+record: WorkNotice
+complete: false
+filter: {logically_deleted: "No"}
+required: [work_id, country, date_start, date_end]
+fields:
+  work_id: {column: id, parse: str}
+  country: {column: nd_country, parse: str}
+  line: {column: line, parse: str, prefix: "be:"}
+  from_point_id: {column: ptcar_from, parse: str, prefix: "be-ptcar:"}
+  to_point_id: {column: ptcar_to, parse: str, prefix: "be-ptcar:"}
+  from_place: {column: start_commercialname_dutch, parse: str, default: ""}
+  to_place: {column: end_commercialname_dutch, parse: str, default: ""}
+  date_start: {column: date_begin, parse: "date:%Y-%m-%d"}
+  date_end: {column: date_end, parse: "date:%Y-%m-%d"}
+  clock_from: {column: time_begin, parse: "time:%H:%M:%S"}
+  clock_to: {column: time_end, parse: "time:%H:%M:%S"}
+  description: {column: impact_description, parse: str, default: ""}

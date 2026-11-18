@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field
+from nightdesk.config import PUBLIC_DEMO_BUNDLE, PUBLIC_DEMO_MANIFEST
 from nightdesk.intake.mapping import safe_yaml, check_input
 
 
@@ -110,5 +111,18 @@ class DemoRegistry:
 
 
 def check_demo(path,bundle=None):
+    if bundle and bundle.name == PUBLIC_DEMO_BUNDLE:
+        if Path(path).resolve() != PUBLIC_DEMO_MANIFEST.resolve():
+            raise ValueError('demo_bundle_requires_project_manifest')
     registry=DemoRegistry(path,bundle);registry.check_bundle()
     return registry
+
+
+def demo_input(bundle, path, *, kind, licence=None):
+    """Require an approved asset before any application writer uses the public bundle."""
+    if bundle.name != PUBLIC_DEMO_BUNDLE:
+        return None
+    asset = DemoRegistry(PUBLIC_DEMO_MANIFEST, bundle).require(path, licence)
+    if asset.kind not in kind:
+        raise ValueError('demo_asset_kind_mismatch')
+    return asset

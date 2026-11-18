@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 from datetime import datetime, timezone
+import re
 
 from nightdesk.config import STATION_AREA_LINE_PREFIXES, DATASET_ASSUMPTIONS
 from nightdesk.model import RunPoint, RunRow, TrainRun, Segment
@@ -23,17 +24,34 @@ def build_runs(rows: list[RunRow], *, kind: str | None = None) -> list[TrainRun]
         # Different captures/sources are different observations, never merged.
         groups[(row.source.bundle, row.source.dataset, row.source.capture_id, row.service_date, row.train_no, row.kind, row.trip_id or "")].append(row)
     runs = []
-    for (_, dataset, _, service_date, train_no, _, _), points in sorted(groups.items()):
+    for (_, dataset, _, service_date, train_no, source_kind, _), points in sorted(groups.items()):
         point_order = lambda p: (utc(p.planned_dep or p.planned_arr)
                                   if p.planned_dep or p.planned_arr else datetime.max.replace(tzinfo=timezone.utc))
-        ordered = sorted(points, key=point_order)
+        ordered = points if dataset == "rijden_archive" else sorted(points, key=point_order)
         unresolved = {}
         missing = [p.point_id for p in ordered if p.planned_dep is None and p.planned_arr is None]
         if missing:
             unresolved["point_order"] = {"reason": "missing_planned_time", "points": missing}
+        sequence_field = ("stop_sequence" if source_kind == "archived_report" and dataset != "rijden_archive" else
+                          "db_stop_sequence" if dataset == "db_timetables" else None)
+        if sequence_field:
+            sequence = [point.extra.get(sequence_field) for point in points]
+            if all(isinstance(i, str) and re.fullmatch(r"[0-9]{1,10}", i) for i in sequence):
+                numeric = list(map(int, sequence))
+                if len(set(numeric)) == len(numeric):
+                    ordered = [point for _, point in sorted(zip(numeric, points), key=lambda pair: pair[0])]
+                    unresolved.pop("point_order", None)
+                else:
+                    unresolved["point_order"] = {"reason": "duplicate_source_stop_sequence"}
+            else:
+                unresolved["point_order"] = {"reason": "source_stop_sequence_unresolved"}
         if len({p.kind for p in ordered}) != 1 or len({p.trip_id for p in ordered}) != 1:
             raise ValueError("mixed_run_kinds_or_trip_ids")
         canonical = [RunPoint.model_validate(p.model_dump(exclude={"service_date", "train_no", "kind", "trip_id"})) for p in ordered]
+        if dataset == "db_timetables":
+            unresolved["pass_window"] = {"reason": "station_capture_has_no_interstation_path"}
+        if dataset == "rijden_archive":
+            unresolved["pass_window"] = {"reason": "rijden_archive_source_order_only"}
         runs.append(TrainRun(service_date=service_date, train_no=train_no, kind=kind or ordered[0].kind,
                              trip_id=ordered[0].trip_id, points=canonical,
                              input_refs=[p.source for p in ordered],

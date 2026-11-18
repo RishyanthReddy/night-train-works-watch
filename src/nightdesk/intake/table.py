@@ -34,6 +34,7 @@ class Table:
     rows: list[dict[str, Any]]
     row_numbers: list[int]  # CSV/XLSX: 1-based row in the file; JSON: 0-based record index
     skipped_blank_rows: list[int] = field(default_factory=list)
+    capture_origin: Any = None
 
 
 def detect_type(path: Path, file_type: str | None = None) -> str:
@@ -221,4 +222,5 @@ def _read_json(path: Path, encoding: str, records_path: str | None) -> Table:
             raise TableError(f"{path}: record {i} is a {type(rec).__name__}, expected an object")
         columns += [k for k in rec if k not in columns]
     # Keep original keys: absence and explicit null are distinct source facts.
-    return Table(path, "json", columns, records, list(range(len(records))))
+    origin = data.get("_capture") if isinstance(data, dict) else None
+    return Table(path, "json", columns, records, list(range(len(records))), capture_origin=origin)

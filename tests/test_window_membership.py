@@ -91,6 +91,14 @@ def test_window_edge_requires_all_period_starts_and_exact_clock(tmp_path,monkeyp
     assert {records[x].payload.work_id for x in result.added}=={'before','period-before'}
 
 
+def test_declared_rolling_window_cannot_explain_far_future_start(tmp_path, monkeypatch):
+    item = row("far-future", "2030-01-01T10:00:00", "2030-01-02T10:00:00")
+    result, _, records = comparison(tmp_path, monkeypatch, [], [item],
+                                    window={"zeitraum": {"type": "ROLLIEREND", "stunden": 24}})
+    assert classes(result)["far-future"] == ("membership_unknown", "starts_beyond_current_window")
+    assert [records[key].payload.work_id for key in result.added] == ["far-future"]
+
+
 def test_no_rolling_filter_never_infers_entering_window(tmp_path,monkeypatch):
     result,_,_=comparison(tmp_path,monkeypatch,[],[row('future','2027-02-10T22:00:00','2027-02-11T05:00:00')],window={})
     assert len(result.added)==1 and classes(result)['future'][0]=='only_in_selected_new'

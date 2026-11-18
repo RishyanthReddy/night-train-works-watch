@@ -48,6 +48,8 @@ def match_work(revision: Revision, run: TrainRun, *, resolver=None) -> Exposure 
         return unknown("identity_uncertain")
     if work.recurrence == "unknown":
         return unknown("recurrence_unknown")
+    if run.unresolved.get("pass_window"):
+        return unknown(run.unresolved["pass_window"]["reason"])
     if run.unresolved.get("point_order"):
         return unknown("no_pass_window")
     if len(run.points) < 2:

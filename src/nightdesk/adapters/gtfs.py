@@ -10,12 +10,13 @@ import lzma
 from zipfile import ZipFile, BadZipFile
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from nightdesk.audit import append_event, canonical_json
-from nightdesk.config import MAX_GTFS_BYTES, MAX_GTFS_HOURS, MAX_GTFS_SERVICE_DAYS, MAX_GTFS_ROWS
+from nightdesk.audit import append_event, append_once, canonical_json
+from nightdesk.config import MAX_GTFS_BYTES, MAX_GTFS_HOURS, MAX_GTFS_SERVICE_DAYS, MAX_GTFS_ROWS, PUBLIC_DEMO_BUNDLE
 from nightdesk.intake.mapping import check_input, write_private, confirm_mapping, ingest
 from nightdesk.timeutil import utc, localize
 
 RULE_VERSION = 'gtfs-scheduled-v1'
+ENCODED_POINT_RULE_VERSION = 'gtfs-scheduled-v2'
 SPEC_URL = 'https://gtfs.org/documentation/schedule/reference/'
 
 
@@ -181,11 +182,14 @@ def normalized_rows(path, bundle, *, namespace, licence, dates=None, trip_ids=No
                 if (arrival and departure and departure < arrival) or (prior and (arrival or departure) and (arrival or departure) < prior):
                     raise ValueError('gtfs_reversed_stop_times')
                 prior = departure or arrival or prior
+                stop_key = re.sub(r"[%:\s]", lambda match: "".join(f"%{byte:02X}" for byte in match[0].encode()),
+                                  stop_time['stop_id'])
                 output.append(dict(service_date=day.isoformat(), train_no=namespace + ':' + trip['route_id'],
-                    point_id=namespace + ':' + stop_time['stop_id'], name=stop.get('stop_name', ''), trip_id=trip_id,
+                    point_id=namespace + ':' + stop_key, name=stop.get('stop_name', ''), trip_id=trip_id,
                     kind='scheduled', planned_arr=arrival.isoformat() if arrival else None,
                     planned_dep=departure.isoformat() if departure else None,
-                    gtfs_evidence=dict(rule_version=RULE_VERSION, spec=SPEC_URL, source_path=str(Path(path).resolve()),
+                    gtfs_evidence=dict(rule_version=ENCODED_POINT_RULE_VERSION if stop_key != stop_time['stop_id'] else RULE_VERSION,
+                        spec=SPEC_URL, source_path=str(Path(path).resolve()),
                         source_sha256=source_sha, licence=licence, service_date=day.isoformat(),
                         agency=agency, calendar=calendar_by_service.get(trip['service_id'], []),
                         calendar_exception=exceptions_by_day.get((trip['service_id'],day), []),
@@ -196,6 +200,8 @@ def normalized_rows(path, bundle, *, namespace, licence, dates=None, trip_ids=No
 
 
 def import_gtfs(path, bundle, *, actor, namespace, licence, dates=None, trip_ids=None):
+    if bundle.name == PUBLIC_DEMO_BUNDLE:
+        raise ValueError("demo_gtfs_import_requires_manifested_intake")
     if not actor.strip():
         raise ValueError('gtfs_actor_required')
     try:
@@ -203,9 +209,12 @@ def import_gtfs(path, bundle, *, actor, namespace, licence, dates=None, trip_ids
     except (ValueError, OSError):
         append_event(bundle, 'gtfs_import_refused', {'reason': 'invalid_or_unsupported_gtfs', 'actor': actor})
         raise
+    rule_version = (ENCODED_POINT_RULE_VERSION
+                    if any(row['gtfs_evidence']['rule_version'] == ENCODED_POINT_RULE_VERSION for row in rows)
+                    else RULE_VERSION)
     scope = dict(source_sha256=sha, source_path=str(Path(path).resolve()), namespace=namespace, licence=licence,
                  dates=sorted(d.isoformat() for d in dates) if dates is not None else None,
-                 trip_ids=sorted(trip_ids) if trip_ids is not None else None, rule_version=RULE_VERSION)
+                 trip_ids=sorted(trip_ids) if trip_ids is not None else None, rule_version=rule_version)
     selected_filter = canonical_json({'dates': scope['dates'], 'trip_ids': scope['trip_ids']})
     rows = [dict(row, adapter_selection=selected_filter) for row in rows]
     identifier = hashlib.sha256(canonical_json(scope).encode()).hexdigest()
@@ -225,4 +234,8 @@ def import_gtfs(path, bundle, *, actor, namespace, licence, dates=None, trip_ids
         else:
             write_private(target, text)
     confirm_mapping(mapping, bundle, actor)
-    return ingest(normalized, mapping, bundle)
+    result = ingest(normalized, mapping, bundle)
+    append_once(bundle, "gtfs_schedule_imported", {
+        "capture_id": result["capture_id"], "source_sha256": sha, "rule_version": rule_version,
+    })
+    return result

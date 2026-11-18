@@ -1,0 +1,15 @@
+version: 1
+dataset: swiss_siri_works
+licence: UNKNOWN
+file: {type: json, records_path: results}
+captured_envelope: true
+timezone: Europe/Zurich
+record: WorkNotice
+complete: false
+required: [work_id, country, date_start, date_end]
+fields:
+  work_id: {column: id, parse: str}
+  country: {column: country, parse: str}
+  date_start: {column: start, parse: "date:%Y-%m-%d"}
+  date_end: {column: end, parse: "date:%Y-%m-%d"}
+  description: {column: description, parse: str, default: ""}

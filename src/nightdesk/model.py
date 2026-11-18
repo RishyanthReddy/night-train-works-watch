@@ -69,6 +69,7 @@ class Capture(_Record):
     bundle: BundleName
     dataset: NonEmpty
     captured_at: AwareDatetime
+    imported_at: AwareDatetime | None = None
     declared_complete: bool = False
     complete: bool = False
     incomplete_reasons: list[str] = Field(default_factory=list)
@@ -231,6 +232,8 @@ class RunPoint(_Payload):
     planned_dep: AwareDatetime | None = None
     real_arr: AwareDatetime | None = None
     real_dep: AwareDatetime | None = None
+    published_arr: AwareDatetime | None = None
+    published_dep: AwareDatetime | None = None
     delay_arr_s: int | None = None
     delay_dep_s: int | None = None
     source: SourceRef | None = None
@@ -240,14 +243,14 @@ class RunRow(RunPoint):
     source: SourceRef
     service_date: date
     train_no: Namespaced
-    kind: Literal["observed", "scheduled"] = "observed"
+    kind: Literal["observed", "scheduled", "published", "archived_report"] = "observed"
     trip_id: str | None = None
 
 
 class TrainRun(_Payload):
     service_date: date
     train_no: Namespaced
-    kind: Literal["observed", "scheduled"]
+    kind: Literal["observed", "scheduled", "published", "archived_report"]
     trip_id: str | None = None
     points: list[RunPoint]
     input_refs: list[SourceRef] = Field(default_factory=list)

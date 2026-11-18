@@ -1,0 +1,19 @@
+version: 1
+dataset: ns_maintenance
+licence: UNKNOWN
+file: {type: json, records_path: results}
+captured_envelope: true
+timezone: Europe/Amsterdam
+record: WorkNotice
+complete: false
+required: [work_id, country, date_start, date_end]
+fields:
+  work_id: {column: id, parse: str}
+  country: {column: nd_country, parse: str}
+  date_start: {column: nd_start, parse: "date:%Y-%m-%d"}
+  date_end: {column: nd_end, parse: "date:%Y-%m-%d"}
+  from_point_id: {column: nd_from, parse: str, prefix: "nl-ns:"}
+  to_point_id: {column: nd_to, parse: str, prefix: "nl-ns:"}
+  from_place: {column: nd_from_name, parse: str, default: ""}
+  to_place: {column: nd_to_name, parse: str, default: ""}
+  description: {column: title, parse: str, default: ""}

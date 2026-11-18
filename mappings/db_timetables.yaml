@@ -1,0 +1,20 @@
+version: 1
+dataset: db_timetables
+licence: UNKNOWN
+file: {type: json, records_path: results}
+captured_envelope: true
+timezone: Europe/Berlin
+record: RunRow
+complete: false
+required: [train_no, trip_id, point_id, service_date]
+fields:
+  train_no: {column: train_no, parse: str}
+  trip_id: {column: trip_id, parse: str}
+  point_id: {column: point_id, parse: str, prefix: "de-db-eva:"}
+  name: {column: name, parse: str, default: ""}
+  service_date: {column: service_date, parse: "date:%Y-%m-%d"}
+  kind: {column: kind, parse: str}
+  planned_arr: {column: planned_arr, parse: "datetime:%y%m%d%H%M"}
+  planned_dep: {column: planned_dep, parse: "datetime:%y%m%d%H%M"}
+  published_arr: {column: published_arr, parse: "datetime:%y%m%d%H%M"}
+  published_dep: {column: published_dep, parse: "datetime:%y%m%d%H%M"}

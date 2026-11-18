@@ -1,13 +1,14 @@
 """Plain Phase 1 queue and dossier. Styling/design research belongs to Phase 4."""
 
-from datetime import date
+from datetime import date, datetime, time, timedelta
 import getpass
+import os
 from pathlib import Path
 
 import streamlit as st
 
 from nightdesk.audit import read_events
-from nightdesk.config import get_bundle, selected_bundle_name
+from nightdesk.config import PUBLIC_DEMO_BUNDLE, PUBLIC_DEMO_ENV, PUBLIC_DEMO_MANIFEST, get_bundle, selected_bundle_name
 from nightdesk.desk import dossier, queue, snapshot_revisions
 from nightdesk.model import PathLeg
 from nightdesk.store import ReadSession
@@ -22,7 +23,12 @@ def main():
     st.set_page_config(page_title="nightdesk")
     st.title("nightdesk")
     st.caption("Compare selected revisions, inspect sourced checks, record a local decision.")
-    name = st.sidebar.text_input("Bundle", value=selected_bundle_name())
+    locked_demo = os.environ.get(PUBLIC_DEMO_ENV) == "1"
+    if locked_demo:
+        name = PUBLIC_DEMO_BUNDLE
+        st.sidebar.text("Bundle: demo")
+    else:
+        name = st.sidebar.text_input("Bundle", value=selected_bundle_name())
     try:
         bundle = get_bundle(name)
         bundle.real_root()
@@ -30,13 +36,14 @@ def main():
         st.error(str(exc))
         st.stop()
     key = lambda text: bundle.name + ":" + text
-    st.sidebar.caption("NDA: data stays local" if bundle.nda else "Local practice / test bundle")
+    if bundle.name != PUBLIC_DEMO_BUNDLE:
+        st.sidebar.caption("NDA: data stays local" if bundle.nda else "Local practice / test bundle")
     actor = st.sidebar.text_input("Local actor", value=getpass.getuser(), key=key("actor"))
     demo_registry = None
-    if st.sidebar.checkbox("Public demo mode", key=key("demo_mode")):
+    if bundle.name == PUBLIC_DEMO_BUNDLE or st.sidebar.checkbox("Public demo mode", key=key("demo_mode")):
         try:
             from nightdesk.demo import check_demo
-            demo_registry = check_demo("mappings/demo.yaml", bundle)
+            demo_registry = check_demo(PUBLIC_DEMO_MANIFEST, bundle)
             st.sidebar.caption("Public demo: hashed manifest assets only; text proposals use local replay.")
         except (ValueError, OSError) as exc:
             st.error("Public demo refused: " + str(exc))
@@ -87,15 +94,20 @@ def main():
                 st.error(str(exc))
     render_text_intake(bundle, actor, key, demo_registry=demo_registry)
     try:
-        imported = captures(bundle) + batches(bundle)
+        reader = ReadSession(bundle)
+        imported = captures(bundle, reader=reader) + batches(bundle, reader=reader)
     except (ValueError, OSError) as exc:
         st.error("Cannot read this bundle: " + str(exc))
         st.stop()
     by_id = {c["capture"].capture_id: c for c in imported}
     def caption(identifier):
         c = by_id[identifier]
-        state = "complete" if c["capture"].complete else "incomplete"
-        return f"{c['metadata'].get('label', Path(c['metadata']['path']).name)} · {identifier[:10]} · {state}"
+        capture = c["capture"]
+        state = "complete" if capture.complete else "incomplete"
+        label = c["metadata"].get("label", Path(c["metadata"]["path"]).name)
+        if label == "capture.json":
+            label = f"{capture.dataset} · {capture.captured_at.isoformat(timespec='minutes')}"
+        return f"{label} · {identifier[:10]} · {state}"
     def contains(c, record):
         return c["metadata"].get("record_type") == record or record in c["metadata"].get("record_types", [])
     path_ids = [i for i, c in by_id.items() if contains(c, "PathLeg") or c["metadata"].get("record_type") == "Batch"]
@@ -119,7 +131,6 @@ def main():
     boundary_options = {}
     if old_id and new_id:
         try:
-            reader = ReadSession(bundle)
             for side, identifier in (("before", old_id), ("after", new_id)):
                 for revision in snapshot_revisions(bundle, identifier, reader=reader):
                     if isinstance(revision.payload, PathLeg):
@@ -136,13 +147,14 @@ def main():
         help="If several source records fit the linked train or leg number, choose the intended records for each selected capture. Multiple legs of a re-entering train need explicit choices with distinct leg numbers. Otherwise the boundary stays unknown. Choices never create a journey link.")
     from nightdesk.desk import run_options
     try:
-        dated_runs = run_options(bundle, [old_id, new_id, runs_id])
+        dated_runs = run_options(bundle, [old_id, new_id, runs_id], reader=reader) if old_id and new_id else {}
     except (ValueError, OSError) as exc:
         st.error(str(exc)); dated_runs = {}
     run_selection_ids = st.sidebar.multiselect("Run observations (optional)", list(dated_runs),
         format_func=dated_runs.get, key=key(f"run_choices:{old_id}:{new_id}:{runs_id}"),
-        help="Choose one source trip per train and service date when several fit. Until then works checks stay unknown; no trip is chosen automatically.")
-    queue_tab, dossier_tab, audit_tab = st.tabs(["Queue", "Dossier", "Rejects and audit"], key=key("active_tab"), on_change="rerun")
+        help="Choose a source run if several trips fit a train and date. Works checks use planned times. The Run evidence tab shows scheduled, published and observed times separately.")
+    queue_tab, dossier_tab, audit_tab, evidence_tab, work_tab = st.tabs(
+        ["Queue", "Dossier", "Rejects and audit", "Run evidence", "Works evidence"], key=key("active_tab"), on_change="rerun")
     rows = []
     if old_id and new_id:
         try:
@@ -213,6 +225,210 @@ def main():
             except (ValueError, OSError) as exc:
                 st.error(str(exc))
         st.json([event.model_dump(mode="json") for event in read_events(bundle)[-50:]])
+    with evidence_tab:
+        if evidence_tab.open:
+            render_run_evidence(bundle, runs_id, key, reader)
+            if not demo_registry and not bundle.nda:
+                render_es_run_comparison(bundle, key, reader)
+    with work_tab:
+        if work_tab.open:
+            render_works_evidence(bundle, works_id, by_id, caption, key, reader)
+
+
+def render_provenance(report):
+    with st.expander("Capture provenance", expanded=True):
+        for row in report["provenance"]:
+            coverage = "Complete" if row["complete"] else "Partial · " + ", ".join(row["incomplete_reasons"])
+            st.text(f"{row['role']} · {row['dataset']} · {row['licence']} · {row['captured_at']} · {coverage}\n"
+                    f"Capture {row['capture_id']}\n{row['source']}")
+
+
+def render_run_evidence(bundle, capture_id, key, reader):
+    from nightdesk.desk import run_evidence, run_options
+    from nightdesk.export import export_run_evidence
+    st.subheader("Run evidence")
+    if not capture_id:
+        st.info("Choose a run capture in the sidebar.")
+        return
+    try:
+        options = run_options(bundle, [capture_id], reader=reader)
+        selection = st.selectbox("Source run", list(options), index=None, format_func=options.get,
+                                 key=key(f"source_run:{capture_id}"))
+        if selection is None:
+            return
+        report = run_evidence(bundle, capture_id, selection, reader=reader)
+        render_provenance(report)
+        st.caption(" · ".join(report["limits"]))
+        origin = report["capture_origin"]
+        if origin and origin["evidence"].get("coverage"):
+            st.text(origin["evidence"]["coverage"])
+        if origin and origin["evidence"].get("attribution"):
+            st.text(origin["evidence"]["attribution"])
+        if not report["capture"]["complete"]:
+            st.warning("Partial capture: " + ", ".join(report["capture"]["incomplete_reasons"]))
+        run = report["run"]
+        st.text(f"{run['train_no']} · {run['service_date']} · {run['kind']}")
+        labels = {"point_id": "Source point", "name": "Name", "planned_arr": "Scheduled arrival",
+                  "planned_dep": "Scheduled departure", "real_arr": "Observed arrival", "real_dep": "Observed departure",
+                  "published_arr": "Published arrival", "published_dep": "Published departure",
+                  "delay_arr_s": "Arrival delay (s)", "delay_dep_s": "Departure delay (s)",
+                  "line_arr": "Arrival line", "line_dep": "Departure line"}
+        fields = [field for field in labels if field == "point_id" or any(point[field] is not None for point in run["points"])]
+        display = [{labels[field]: point[field] for field in fields} for point in run["points"]]
+        if "timetable_status" in report:
+            for shown, status in zip(display, report["timetable_status"], strict=True):
+                shown.update({"Arrival status": status["arrival"], "Departure status": status["departure"],
+                              "Source feed": " + ".join(status["feeds"]), "Change messages": status["change_messages"]})
+        if report["capture"]["dataset"] == "rijden_archive":
+            for shown, point in zip(display, run["points"], strict=True):
+                extra = point["extra"]
+                shown.update({"Reported arrival delay (min)": extra.get("rdt_arrival_delay_min"),
+                              "Reported departure delay (min)": extra.get("rdt_departure_delay_min"),
+                              "Arrival cancelled": extra.get("Stop:Arrival cancelled"),
+                              "Departure cancelled": extra.get("Stop:Departure cancelled"),
+                              "Service partly cancelled": extra.get("Service:Partly cancelled"),
+                              "Service completely cancelled": extra.get("Service:Completely cancelled"),
+                              "Delay evidence": "; ".join(
+                                  f"{side}: {reason}" for side, reason in extra.get("rdt_delay_warnings", {}).items()
+                              ) if isinstance(extra.get("rdt_delay_warnings"), dict) else ""})
+        elif run["kind"] == "archived_report":
+            for shown, point in zip(display, run["points"], strict=True):
+                warnings = point["extra"].get("archive_time_warnings")
+                shown.update({"Reported arrival delay (min)": point["extra"].get("arrival_delay_min"),
+                              "Reported departure delay (min)": point["extra"].get("departure_delay_min"),
+                              "Delay source": point["extra"].get("delay_source"),
+                              "Time evidence": ", ".join(f"{field} ({reason})" for field, reason
+                                                        in warnings.items()) if isinstance(warnings, dict) else ""})
+        if run["unresolved"].get("point_order"):
+            st.text("Point order unresolved · " + run["unresolved"]["point_order"]["reason"])
+        if report["capture"]["dataset"] == "rijden_archive":
+            st.text("Stops are shown in archive file order. Interstation timing is unverified.")
+        st.dataframe(display, hide_index=True)
+        with st.expander("Source records and capture"):
+            st.json(report)
+        if st.button("Export run evidence", key=key("export_run_evidence")):
+            paths = export_run_evidence(bundle, capture_id, selection)
+            st.success("Saved locally: " + ", ".join(p.name for p in paths))
+    except (ValueError, OSError) as exc:
+        st.error("Could not open run evidence.")
+        st.text(str(exc))
+
+
+def render_es_run_comparison(bundle, key, reader):
+    from nightdesk.es_runs import compare_runs
+    from nightdesk.export import export_es_run_comparison
+
+    with st.expander("Reviewed European Sleeper comparison"):
+        path = st.text_input("Review JSON path inside this bundle", key=key("es_run_review"))
+        if not path:
+            return
+        try:
+            report = compare_runs(bundle, path, reader=reader)
+            st.text(f"ES {report['train']} · reviewed by {report['review']['reviewed_by']}")
+            st.text(" · ".join(report["limits"]))
+            render_provenance(report)
+            counts = report["unreviewed_points"]
+            st.text(f"Outside the review · scheduled points {counts['scheduled']} · observed points {counts['observed']}")
+            st.dataframe([
+                {"Scheduled station": station["scheduled_name"], "Native stop ID": station["scheduled_native_stop_id"],
+                 "Infrabel point": station["observed_name"],
+                 **{f"{label} {side}": event[field]
+                    for side in ("arrival", "departure")
+                    for event in (station[side],)
+                    for label, field in (("Scheduled", "scheduled"), ("Infrabel planned", "infrabel_planned"),
+                                         ("Observed", "observed"), ("Same planned instant for", "schedule_agrees"))}}
+                for station in report["stations"]
+            ], hide_index=True)
+            with st.expander("Comparison source records"):
+                st.json(report)
+            if st.button("Export ES comparison", key=key("export_es_run_comparison")):
+                paths = export_es_run_comparison(bundle, path)
+                st.success("Saved locally: " + ", ".join(p.name for p in paths))
+        except (ValueError, OSError) as exc:
+            st.error("Could not open reviewed ES comparison.")
+            st.text(str(exc))
+
+
+def render_works_evidence(bundle, capture_id, available, caption, key, reader):
+    from collections import Counter
+    from nightdesk.desk import works_evidence
+    from nightdesk.export import export_works_evidence
+    st.subheader("Works evidence")
+    if not capture_id:
+        st.info("Choose a works capture in the sidebar.")
+        return
+    capture = available[capture_id]["capture"]
+    before = st.selectbox("Earlier works capture (optional)", [
+        identifier for identifier, selected in available.items()
+        if identifier != capture_id and selected["capture"].dataset == capture.dataset
+        and selected["capture"].captured_at < capture.captured_at
+    ], index=None, format_func=caption, key=key(f"works_before:{capture_id}"))
+    try:
+        report = works_evidence(bundle, capture_id, before, reader=reader)
+        render_provenance(report)
+        if not capture.complete:
+            st.warning("Partial capture: " + ", ".join(capture.incomplete_reasons))
+        origin = report["capture_origin"]
+        if origin:
+            with st.expander("Capture origin"):
+                st.json(origin)
+        result = report["comparison"]
+        if result is not None:
+            if result["reason"]:
+                st.info("Comparison limit: " + result["reason"])
+            groups = Counter(item["classification"] for item in result["membership_changes"])
+            if groups:
+                st.caption("Source window and membership findings")
+                st.dataframe([{"classification": name, "records": count} for name, count in sorted(groups.items())], hide_index=True)
+                classification = st.selectbox("Membership finding", sorted(groups), key=key("membership_classification"))
+                selected = [row for row in result["membership_changes"] if row["classification"] == classification]
+                page = evidence_page(selected, "Membership findings page", key(f"membership_page:{capture_id}:{before}:{classification}"))
+                st.dataframe([{"revision": item["revision_id"], "reason": item["reason"],
+                               "source row": item["source"]["record_id"]} for item in page], hide_index=True)
+        query = st.text_input("Filter by work ID, line or place", key=key("work_search")).strip().casefold()
+        validity = st.date_input("Validity date (optional)", value=None, key=key("work_validity"))
+        keys = ("work_id", "line", "from_place", "to_place")
+        records = [item for item in report["records"]
+                   if (not validity or _has_validity_date(item["work"], validity))
+                   and (not query or any(query in str(item["work"][field] or "").casefold() for field in keys))]
+        st.caption(f"{len(records)} matching source works")
+        page = evidence_page(records, "Works page", key(f"work_page:{capture_id}:{query}:{validity}"))
+        st.dataframe([{field: item["work"][field] for field in (*keys, "date_start", "date_end", "effect", "description")}
+                      | {"source row": item["source"]["record_id"]} for item in page], hide_index=True)
+        items = {f"{item['source']['capture_id']}:{item['source']['record_id']}": item for item in page}
+        chosen = st.selectbox("Inspect source work", list(items), index=None, key=key("source_work"),
+                              format_func=lambda row: f"{items[row]['work']['work_id'] or 'Unknown ID'} · {row}")
+        if chosen:
+            st.json(items[chosen])
+        if st.button("Export works evidence", key=key("export_works_evidence")):
+            paths = export_works_evidence(bundle, capture_id, before)
+            st.success("Saved locally: " + ", ".join(p.name for p in paths))
+    except (ValueError, OSError) as exc:
+        st.error("Could not open works evidence.")
+        st.text(str(exc))
+
+
+def evidence_page(items, label, key):
+    size = 100
+    pages = (len(items) + size - 1) // size
+    if pages <= 1:
+        return items
+    page = st.number_input(label, min_value=1, max_value=pages, value=1, step=1, key=key)
+    return items[(page - 1) * size:page * size]
+
+
+def _has_validity_date(work, day):
+    if "siri_validity_periods" in work["extra"]:
+        from zoneinfo import ZoneInfo
+        from nightdesk.timeutil import explicit_validity_periods, overlap
+        try:
+            tz = ZoneInfo(work["timezone"])
+            day_window = (datetime.combine(day, time.min, tz), datetime.combine(day + timedelta(days=1), time.min, tz))
+            return any(overlap(period, day_window) is not None
+                       for period in explicit_validity_periods(work["extra"]["siri_validity_periods"]))
+        except (ValueError, OverflowError, TypeError, KeyError):
+            return False
+    return work["date_start"] <= day.isoformat() <= work["date_end"]
 
 
 def render_text_intake(bundle, actor, key, demo_registry=None):
@@ -265,6 +481,7 @@ def render_text_intake(bundle, actor, key, demo_registry=None):
 
 def render_dossier(bundle, report, actor, key):
     st.text(report["train_no"] + " / " + report["service_date"] + " — " + report["data_label"])
+    render_provenance(report)
     left, right = st.columns(2)
     with left:
         st.write("Before")

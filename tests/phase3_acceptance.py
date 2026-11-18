@@ -15,7 +15,7 @@ from nightdesk.intake.mapping import captures
 def build(root):
     prepare(root);os.chdir(root);swap=execute(root)
     # Committed public demo inputs, copied without modification for an asset check.
-    for name in ('syn','text'):shutil.copytree(REPO/'tests/fixtures'/name,root/'tests/fixtures'/name)
+    for name in ('syn','text','runs'):shutil.copytree(REPO/'tests/fixtures'/name,root/'tests/fixtures'/name)
     pair=build_pair()
     nda=seed(get_bundle('es'),'SYNTHETIC_NDA_EXERCISE_ONLY','2026-11-17 23:03')
     b=get_bundle(pair[0]['bundle']);sealed=verify(b);copy=b.root/'audit-copies'/'tail-cut.jsonl';copy.parent.mkdir()

@@ -1,0 +1,37 @@
+{
+  "round": 1,
+  "snapshot": "/var/folders/61/ynsfcdvj2493g9l_5tkw1mj40000gn/T/nightdesk-es-national-council-r1-chc0fgds/snapshot.json",
+  "workspace": "/var/folders/61/ynsfcdvj2493g9l_5tkw1mj40000gn/T/nightdesk-es-national-council-r1-chc0fgds/product",
+  "files": 171,
+  "changed": [
+    "docs/REAL_DATA.md",
+    "mappings/rijden_archive.yaml",
+    "src/nightdesk/adapters/gtfs.py",
+    "src/nightdesk/adapters/rijden_archive.py",
+    "src/nightdesk/cli.py",
+    "src/nightdesk/es_runs.py",
+    "src/nightdesk/export.py",
+    "src/nightdesk/ui/app.py",
+    "tests/test_es_national.py"
+  ],
+  "reviewers": [
+    {
+      "name": "Opus",
+      "task_id": "node:delegated-task:command%3Amcp%3Ad8b8aa62-792a-4e16-8844-87bef4bd9b13%3Adelegate-task%3A8709034b-30a7-4ca6-9835-a955af6dc43a",
+      "status": "approved",
+      "score": 8.5
+    },
+    {
+      "name": "Sol",
+      "task_id": "node:delegated-task:command%3Amcp%3Ad8b8aa62-792a-4e16-8844-87bef4bd9b13%3Adelegate-task%3A8ea4a04e-5cff-4abb-9b42-b86ae88cd2a2",
+      "status": "usage_limit",
+      "score": null
+    },
+    {
+      "name": "Grok",
+      "task_id": "node:delegated-task:command%3Amcp%3A8fc6eb76-7e0a-4ccd-9710-4eea57583e82%3Adelegate-task%3Af8334b87-f84f-42c6-8b26-56e7c90f9c15",
+      "status": "changes_requested",
+      "score": 8
+    }
+  ]
+}

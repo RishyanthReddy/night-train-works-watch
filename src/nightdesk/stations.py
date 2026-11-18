@@ -78,11 +78,14 @@ class StationResolver:
 
 
 def import_aliases(path, bundle: Bundle, actor: str):
+    from nightdesk.demo import demo_input
+
     if not actor.strip():
         raise ValueError('alias_reviewer_required')
     check_input(path, bundle)
     from pathlib import Path
     path = Path(path)
+    approved = demo_input(bundle, path, kind={"aliases"})
     raw = path.read_bytes()
     body = safe_yaml(raw.decode("utf-8"))
     if not isinstance(body, dict) or set(body) != {'version', 'aliases'} or type(body['version']) is not int or body['version'] != 1:
@@ -91,6 +94,8 @@ def import_aliases(path, bundle: Bundle, actor: str):
         raise ValueError('alias_rows_required')
     rows = [AliasRow.model_validate(row) for row in body['aliases']]
     identifier = hashlib.sha256(raw).hexdigest()
+    if approved and identifier != approved.sha256:
+        raise ValueError("demo_asset_hash_mismatch")
     target = bundle.resolve(bundle.root / 'aliases' / (identifier + '.json'))
     if target.exists():
         load_aliases(bundle, identifier)

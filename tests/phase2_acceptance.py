@@ -22,6 +22,7 @@ def build(root):
     shutil.copytree(REPO/'mappings',root/'mappings')
     shutil.copytree(REPO/'tests/fixtures/syn',root/'tests/fixtures/syn')
     shutil.copytree(REPO/'tests/fixtures/text',root/'tests/fixtures/text')
+    shutil.copytree(REPO/'tests/fixtures/runs',root/'tests/fixtures/runs')
     os.chdir(root)
     results={}
     for name,reason in [('different','different_boundary_points'),('clock','ambiguous_local_time'),('partial','incomplete_capture')]:

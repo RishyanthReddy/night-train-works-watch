@@ -6,16 +6,18 @@ import os
 import re
 from pathlib import Path
 from nightdesk.audit import append_event, read_events, canonical_json
-from nightdesk.config import (MISTRAL_HOST, MISTRAL_MODEL, MISTRAL_TIMEOUT_SECONDS,
+from nightdesk.config import (PUBLIC_DEMO_BUNDLE, MISTRAL_HOST, MISTRAL_MODEL, MISTRAL_TIMEOUT_SECONDS,
                               MISTRAL_MAX_TOKENS, MAX_MODEL_RESPONSE_BYTES)
 from nightdesk.intake.mapping import load_mapping, check_input
 from nightdesk.intake.text import text_guard, validate_proposal, Proposal
 from nightdesk.llm import cache
 
-PROMPT_VERSION = 'quoted-work-v1'
+PROMPT_VERSION = 'quoted-work-v2'
 
 
 def consent(bundle, actor, *, allow):
+    if bundle.name == PUBLIC_DEMO_BUNDLE and allow:
+        raise ValueError('demo_live_model_disabled')
     if not actor.strip(): raise ValueError('consent_actor_required')
     append_event(bundle,'model_consent',{'actor':actor,'provider':'mistral','allowed':bool(allow)})
 
@@ -32,7 +34,10 @@ def _send(text):
     from nightdesk.model import WorkNotice
     instruction=('Return JSON only: {"fields": {...}, "quotes": {"field": "exact source quote"}}. '
         'Propose only WorkNotice fields supported by the source. Every nonempty field needs a quote '
-        'containing its literal value. ISO dates may quote DD.MM.YYYY. Null means unknown. '
+        'containing its literal value. Every value in "quotes" must be a JSON string, including quotes '
+        'for arrays or numbers. For example, {"fields":{"weekdays":[1,2]},"quotes":{"weekdays":"[1,2]"}} '
+        'uses the string "[1,2]" only if those exact characters appear in the notice. ISO dates may '
+        'quote DD.MM.YYYY. Omit quotes for unknown (null) or empty field values. '
         'No extra/unresolved/proposed_by fields, actions, commands or decisions. Use ISO dates and HH:MM clocks. '
         'Allowed schema: '+canonical_json(WorkNotice.model_json_schema()))
     payload=dict(model=MISTRAL_MODEL,temperature=0,response_format={'type':'json_object'},max_tokens=MISTRAL_MAX_TOKENS,
@@ -64,6 +69,14 @@ def _send(text):
 def propose(bundle, text, mapping_path, *, provider='off', replay_path=None):
     """No import or local review occurs here, even on a valid proposal."""
     try:
+        if bundle.name == PUBLIC_DEMO_BUNDLE:
+            from nightdesk.demo import demo_input
+            if provider != 'replay':
+                raise ValueError('demo_replay_only')
+            if replay_path is None:
+                raise ValueError('replay_path_required')
+            demo_input(bundle, mapping_path, kind={"text_mapping"})
+            demo_input(bundle, replay_path, kind={"replay"})
         check_input(mapping_path,bundle)
         mapping,sha=load_mapping(mapping_path)
         if mapping.record!='WorkNotice': raise ValueError('text_requires_work_mapping')
@@ -93,7 +106,8 @@ def propose(bundle, text, mapping_path, *, provider='off', replay_path=None):
             'bundle_external_processing_disabled','mapping_confirmation_required','unknown_model_provider',
             'notice_empty_or_exceeds_technical_limit','text_addresses_model','nda_replay_requires_own_bundle_cache',
             'replay_input_mismatch','cache_bundle_or_hash_mismatch','cache_audit_evidence_missing',
-            'replay_requires_public_or_synthetic_inputs','replay_dataset_mismatch','replay_proposal_invalid'}
+            'replay_requires_public_or_synthetic_inputs','replay_dataset_mismatch','replay_proposal_invalid',
+            'demo_replay_only','demo_input_not_manifest_listed','demo_asset_hash_mismatch','demo_asset_kind_mismatch'}
         reason=str(exc) if type(exc) is ValueError and str(exc) in known else 'text_input_or_response_invalid'
         append_event(bundle,'text_request_refused',{'provider':provider,'reason':reason})
         return {'proposal':None,'accepted':False,'reasons':[reason]}

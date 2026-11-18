@@ -108,3 +108,11 @@ assets:
   sha256: 6e0fdf6fb634ced46c41738fc1db604cdfa15d57a2308198744c14597f93d86f
   licence: synthetic
   kind: aliases
+- path: ../tests/fixtures/runs/cc0_2026.csv
+  sha256: b58897c9a97737c8e6395fe74da3df63b9327de2f3de3d6ab91834932067f7cd
+  licence: CC0
+  kind: file
+- path: infrabel_punctuality.yaml
+  sha256: c0fb042027fa32df52532cdee9e0980456f86c7ea3c3313f6216c5ce235599ce
+  licence: CC0
+  kind: mapping

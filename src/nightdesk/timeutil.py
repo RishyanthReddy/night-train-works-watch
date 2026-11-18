@@ -78,6 +78,21 @@ def overlap(a: tuple[datetime, datetime], b: tuple[datetime, datetime]):
     return (start, end) if start < end else None
 
 
+def explicit_validity_periods(raw):
+    """Read retained absolute intervals without flattening gaps into coverage."""
+    if not isinstance(raw, list) or not raw:
+        raise ValueError("validity_bounds_unresolved")
+    result = []
+    for period in raw:
+        if not isinstance(period, dict) or not all(isinstance(period.get(k), str) for k in ("start", "end")):
+            raise ValueError("validity_bounds_unresolved")
+        start, end = (datetime.fromisoformat(period[key]) for key in ("start", "end"))
+        if utc(start) >= utc(end):
+            raise ValueError("validity_bounds_unresolved")
+        result.append((start, end))
+    return result
+
+
 def pass_window(a, b) -> Windows:
     """Objects supply planned_dep/planned_arr. Missing or reversed spans stay unknown."""
     start = a.planned_dep or a.planned_arr

@@ -50,7 +50,7 @@ def compare_revisions(old: Revision, new: Revision) -> ChangeSet:
 def _validity_bounds(work):
     """All stated ranges matter. Never hide a later validity behind an envelope.
 
-    The German raw fields are retained in extra, not imported as a new adapter.
+    The German raw fields are retained in extra alongside canonical dates.
     Missing or malformed individual bounds prevent a window exclusion.
     Canonical dates are inclusive, so their end is the following midnight.
     """
@@ -74,6 +74,9 @@ def _validity_bounds(work):
                 raise ValueError("validity_time_unresolved")
         return parsed
     extra = work.extra
+    if "siri_validity_periods" in extra:
+        from nightdesk.timeutil import explicit_validity_periods
+        return explicit_validity_periods(extra["siri_validity_periods"])
     if "zeitraum" not in extra and "gueltigkeiten" not in extra:
         return [(bound(work.date_start.isoformat()), bound(work.date_end.isoformat(), True))]
     envelope, periods = extra.get("zeitraum"), extra.get("gueltigkeiten")
@@ -97,9 +100,13 @@ def _validity_bounds(work):
 
 def _validity_conflicts(work, bounds):
     """Raw clocks may refine canonical dates, never contradict them."""
+    zone = ZoneInfo(work.timezone) if work.timezone else None
+    if "siri_validity_periods" in work.extra:
+        local_day = lambda point: point.astimezone(zone).date() if zone else point.date()
+        return (min(local_day(start) for start, _ in bounds), max(local_day(end) for _, end in bounds)) != (
+            work.date_start, work.date_end)
     if "zeitraum" not in work.extra:
         return False
-    zone = ZoneInfo(work.timezone) if work.timezone else None
     def projected(value, instant):
         if len(value) == 10:
             return date.fromisoformat(value)  # inclusive raw date, before +1 day
@@ -116,6 +123,8 @@ def _validity_conflicts(work, bounds):
 def _window_declarations(capture):
     policy = capture.filter or {}
     found = [policy["zeitraum"]] if "zeitraum" in policy else []
+    if isinstance(policy.get("provider_query"), dict) and "zeitraum" in policy["provider_query"]:
+        found.append(policy["provider_query"]["zeitraum"])
     if isinstance(policy.get("roles"), dict):
         found.extend(f["zeitraum"] for f in policy["roles"].values()
                      if isinstance(f, dict) and "zeitraum" in f)
@@ -131,6 +140,8 @@ def window_membership(revision, old_capture, new_capture, side, *, rolling_windo
                 "source": revision.source.model_dump(mode="json"),
                 "canonical_validity": {"start": work.date_start.isoformat(), "end": work.date_end.isoformat()},
                 "evaluated_at": new_capture.captured_at.isoformat()}
+    if new_capture.captured_at < old_capture.captured_at:
+        return {**evidence, "classification": "membership_unknown", "reason": "capture_time_reversed"}
     try:
         bounds = _validity_bounds(work)
         conflict = _validity_conflicts(work, bounds)
@@ -177,10 +188,14 @@ def window_membership(revision, old_capture, new_capture, side, *, rolling_windo
             return {**evidence, "classification": "membership_unknown", "reason": "rolling_window_not_advancing"}
         try:
             edge = old_capture.captured_at.astimezone(timezone.utc) + timedelta(hours=hours)
+            new_edge = new_capture.captured_at.astimezone(timezone.utc) + timedelta(hours=hours)
         except OverflowError:
             return {**evidence, "classification": "membership_unknown", "reason": "rolling_window_unresolved"}
         evidence["previous_window_edge"] = edge.isoformat()
+        evidence["current_window_edge"] = new_edge.isoformat()
         if all(start >= edge for start, _ in bounds):
+            if old_windows and new_windows and min(start for start, _ in bounds) > new_edge:
+                return {**evidence, "classification": "membership_unknown", "reason": "starts_beyond_current_window"}
             return {**evidence, "classification": "entering_window", "reason": "all_validity_starts_at_previous_window_edge"}
     return None
 

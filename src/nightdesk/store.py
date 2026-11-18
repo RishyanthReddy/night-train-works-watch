@@ -53,6 +53,7 @@ class ReadSession:
         self.bundle = bundle
         self._events = None
         self.created, self.predecessors, self.imports, self.batch_imports = {}, {}, {}, {}
+        self.import_times = {}
         self.capture_cache, self.batch_cache, self.raw_revisions, self.source_rows = {}, {}, {}, {}
         self.confirmed = {}
         self.pending_events = None  # an importer holds both writer locks before deferring
@@ -62,6 +63,7 @@ class ReadSession:
     def set_events(self, events):
         self._events = events
         self.created, self.predecessors, self.imports, self.batch_imports = {}, {}, {}, {}
+        self.import_times = {}
         self.confirmed = {}
         for event in events:
             payload = event.payload
@@ -73,6 +75,7 @@ class ReadSession:
                 self.predecessors.setdefault(payload["revision_id"], (payload["predecessor"], payload["basis"]))
             elif event.kind == "ingested":
                 self.imports[payload["capture_id"]] = payload
+                self.import_times[payload["capture_id"]] = event.ts
             elif event.kind == "batch_imported":
                 self.batch_imports[payload["capture_id"]] = payload
 
