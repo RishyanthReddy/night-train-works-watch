@@ -206,6 +206,7 @@ def build_parser() -> argparse.ArgumentParser:
         cmd.add_argument("--bundle", default=None)
         if action == "verify":
             cmd.add_argument("--seal")
+            cmd.add_argument("--file", help="read-only audit copy inside this bundle; requires trusted seal/count")
             cmd.add_argument("--count", type=int)
         if action == "upgrade":
             cmd.add_argument("--actor", required=True)
@@ -345,7 +346,7 @@ def _cmd_audit(args):
     if args.action == "upgrade":
         result = upgrade_legacy(bundle, args.actor)
     elif args.action == "verify":
-        result = verify(bundle, seal=args.seal, count=args.count)
+        result = verify(bundle, seal=args.seal, count=args.count, copy_path=args.file)
     else:
         result = verify(bundle)
         print("Keep this hash and count outside the audit log; source truth is not proved.")

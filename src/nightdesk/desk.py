@@ -399,7 +399,7 @@ def queue(bundle, old_capture, new_capture, *, works_capture_id=None, run_captur
                          "unresolved_fields": list(anchor.payload.unresolved) + (["record_presence_unknown"] if not change and not comparable else [])})
     rows = _group_rows(rows)
     append_once(bundle, "comparison_checked", {
-        "old_capture": old_capture, "new_capture": new_capture, "rule_version": "changes-v1",
+        "old_capture": old_capture, "new_capture": new_capture, "rule_version": "changes-v2",
         "works_capture": works_capture_id, "run_capture": run_capture_id,
         "journey_link": link_identifier, "reviewed_points": sorted(reviewed_points or set()),
         "run_selection_ids": sorted(run_selection_ids or ()), "boundary_revision_ids": sorted(boundary_revision_ids or ()), "alias_table_id": new_context["resolver"].table_id,
@@ -410,7 +410,7 @@ def queue(bundle, old_capture, new_capture, *, works_capture_id=None, run_captur
 
 
 def dossier(bundle, old_capture_id, new_capture_id, new_revision_id, service_date, *,
-            works_capture_id=None, run_capture_id=None, link_identifier=None, reviewed_points=None, boundary_revision_ids=None, alias_table_id=None, run_selection_ids=None):
+            works_capture_id=None, run_capture_id=None, link_identifier=None, reviewed_points=None, boundary_revision_ids=None, alias_table_id=None, run_selection_ids=None, rolling_window_hours=None):
     reader = ReadSession(bundle)
     pair = next(((a, b) for a, b in selected_pairs(bundle, old_capture_id, new_capture_id, changed_only=False, include_one_sided=True, reader=reader)
                  if (b or a).revision_id == new_revision_id), None)
@@ -428,7 +428,14 @@ def dossier(bundle, old_capture_id, new_capture_id, new_revision_id, service_dat
     checked = _checks(new, service_date, context, link, reviewed_points, run_train=active.payload.train_no)
     works, findings, run = context["works"], checked["findings"], checked["run"]
     report = build_dossier(bundle, old, new, service_date, run=run,
-                           works=works, findings=findings, capture_comparison=compare_captures(bundle, old_capture, new_capture, reader=reader), reader=reader, resolver=context["resolver"])
+                           works=works, findings=findings, capture_comparison=compare_captures(bundle, old_capture, new_capture, reader=reader, rolling_window_hours=rolling_window_hours), reader=reader, resolver=context["resolver"])
+    work_before, work_after = old_context["works_capture"], context["works_capture"]
+    membership = None
+    if work_before is not None and work_after is not None:
+        membership = report["capture_comparison"] if (work_before.capture_id, work_after.capture_id) == (old_capture.capture_id, new_capture.capture_id) else compare_captures(
+            bundle, work_before, work_after, reader=reader, rolling_window_hours=rolling_window_hours).model_dump(mode="json")
+    report["work_membership_comparison"] = ({k: membership[k] for k in
+        ("old_capture", "new_capture", "status", "reason", "rule_version", "membership_changes", "added", "removed")} if membership else None)
     if "run_selection_required" in checked["summary"]["unresolved"]:
         report["unknowns"] = sorted(set(report["unknowns"]) | {"run_selection_required"})
     report["checks_before"], report["checks_after"] = before_checked["summary"], checked["summary"]
@@ -450,6 +457,7 @@ def dossier(bundle, old_capture_id, new_capture_id, new_revision_id, service_dat
         "before": before_checked["works"].get(k), "after": checked["works"].get(k)} for k in sorted(keys)
         if before_checked["works"].get(k) != checked["works"].get(k)]
     report["selections"] = {"old_capture": old_capture_id, "new_capture": new_capture_id,
+                            "rolling_window_hours": rolling_window_hours,
                             "works_capture": works_capture_id, "run_capture": run_capture_id,
                             "journey_link": link_identifier, "reviewed_points": sorted(reviewed_points or set()),
                             "run_selection_ids": sorted(run_selection_ids or ()), "boundary_revision_ids": sorted(boundary_revision_ids or ()), "alias_table_id": context["resolver"].table_id}
@@ -464,7 +472,8 @@ def dossier(bundle, old_capture_id, new_capture_id, new_revision_id, service_dat
                     {"rule": f.rule, "result": f.result, "reason": f.reason, "input_refs": [source_ref_payload(ref) for ref in f.input_refs]} for f in before_checked["findings"]],
                "rule_versions": {"comparison": report["changes"]["rule_version"],
                "works": MATCH_RULE_VERSION, "border": BORDER_RULE_VERSION, "boundary_presence": "border-presence-v1", "boundary_scope": BOUNDARY_SCOPE_VERSION, "time": "time-v1", "runs": "runs-v1"},
-               "capture_comparison": {k: report["capture_comparison"][k] for k in ("status", "reason")},
+               "capture_comparison": {k: report["capture_comparison"][k] for k in ("status", "reason", "rule_version", "membership_changes")},
+               "work_membership_comparison": report["work_membership_comparison"],
                "exposures": [{k: e[k] for k in ("work_revision", "outcome", "reasons")} for e in report["works_exposures"] + report["unlocated_checks_not_attached_to_train"]],
                "checked_pairs": report["checked_pairs"], "no_match_checked_pairs": report["no_match_checked_pairs"],
                "findings": [{"rule": f.rule, "rule_version": f.rule_version, "result": f.result, "reason": f.reason,

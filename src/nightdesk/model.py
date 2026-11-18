@@ -305,10 +305,13 @@ class ChangeSet(_Record):
     affected_dates: list[date] = Field(default_factory=list)
     added: list[str] = Field(default_factory=list)
     removed: list[str] = Field(default_factory=list)
+    # Descriptive window membership, also available when R2 blocks conclusions.
+    # Every item retains the revision/source and the reason for exclusion.
+    membership_changes: list[dict[str, JSONValue]] = Field(default_factory=list)
     status: Literal["compared", "identity_uncertain", "comparison_unavailable"]
     reason: str | None = None
     input_refs: list[SourceRef] = Field(default_factory=list)
-    rule_version: str = "changes-v1"
+    rule_version: str = "changes-v2"
 
 
 class Exposure(_Record):

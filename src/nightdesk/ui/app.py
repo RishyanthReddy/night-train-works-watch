@@ -198,10 +198,14 @@ def main():
         st.subheader("Audit")
         st.caption("Local append-only history; a log does not prove source truth.")
         from nightdesk.audit import verify, upgrade_legacy
+        copy_path = st.text_input("Audit copy file (optional, inside this bundle)", key=key("audit_copy"))
+        seal = st.text_input("Trusted external audit seal (optional)", key=key("audit_seal"))
+        count = st.text_input("Trusted external event count (optional)", key=key("audit_count"))
+        st.caption("Use a seal and count retained before the copy was changed. A log's own hash does not prove its history or source truth.")
         if st.button("Verify audit chain", key=key("verify_audit")):
             try:
-                st.json(verify(bundle))
-            except ValueError as exc:
+                st.json(verify(bundle, seal=seal.strip() or None, count=int(count) if count.strip() else None, copy_path=copy_path.strip() or None))
+            except (ValueError, OSError) as exc:
                 st.error(str(exc))
         if st.button("Upgrade preserved Phase 0 audit", key=key("upgrade_audit")):
             try:

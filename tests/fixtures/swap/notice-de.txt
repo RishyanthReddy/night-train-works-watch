@@ -1,0 +1,9 @@
+Synthetische Bauarbeiten für die Übung, kein betriebliches Ereignis.
+Kennung: syn-swap-work
+Land: zz
+Von: Synthetik Nord
+Bis: Synthetik Süd
+Beginn: 17.11.2026
+Ende: 18.11.2026
+Uhrzeit von 23:00 bis 04:55.
+Die Wiederholung ist nicht belegt; sie bleibt unbekannt.

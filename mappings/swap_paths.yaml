@@ -1,0 +1,23 @@
+# Authored synthetic unseen-shape rehearsal, not an operational path.
+version: 1
+dataset: synthetic_swap_paths
+licence: synthetic
+external_processing_allowed: false
+file: {type: csv, delimiter: ';'}
+record: PathLeg
+timezone: Europe/Zurich
+complete: true
+required: [request_id, network, train_no, operating_dates]
+fields:
+  request_id: {column: antrag, parse: str}
+  network: {column: gebiet, parse: str}
+  train_no: {column: zug, parse: str, prefix: 'zz:'}
+  sequence: {column: teil, parse: int}
+  operating_dates: {column: tage, parse: 'list:|:date:%d.%m.%Y'}
+  source_status: {column: stand, parse: str}
+  entry.point_id: {column: ein_ort, parse: str}
+  entry.kind: {column: ein_art, parse: 'enum:{Durchfahrt: pass}', default: unknown}
+  entry.at: {column: ein_zeit, parse: 'datetime:%d.%m.%Y %H:%M'}
+  exit.point_id: {column: aus_ort, parse: str}
+  exit.kind: {column: aus_art, parse: 'enum:{Durchfahrt: pass}', default: unknown}
+  exit.at: {column: aus_zeit, parse: 'datetime:%d.%m.%Y %H:%M'}

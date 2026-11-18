@@ -145,10 +145,19 @@ def append_events(bundle: Bundle, events: list[tuple[str, dict]], ts: datetime |
     return appended
 
 
-def verify(bundle: Bundle, *, seal: str | None = None, count: int | None = None) -> dict:
+def verify(bundle: Bundle, *, seal: str | None = None, count: int | None = None, copy_path=None) -> dict:
     if (seal is None) != (count is None):
         raise AuditError("external seal and count must be supplied together")
-    events = read_events(bundle)
+    if copy_path is None:
+        events = read_events(bundle)
+    else:
+        if seal is None:
+            raise AuditError("audit copy needs trusted external seal and count")
+        path = bundle.resolve(copy_path)
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+        with os.fdopen(fd, "rb") as handle:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_SH)
+            events = _decode_events(handle.read(), bundle, path)
     if events and any(e.hash is None for e in events):
         raise AuditError("legacy_log_needs_upgrade")
     final = events[-1].hash if events else EMPTY_HASH

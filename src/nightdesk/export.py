@@ -173,6 +173,7 @@ def dossier_markdown(report: dict) -> str:
     lines += ["- " + escaped(limit) for limit in report["limits"]]
     sections = [("Delay request", report["delay_request"]), ("Before", report["before"]), ("After", report["after"]), ("Changed fields", report["changes"]),
                 ("Capture completeness comparison", report["capture_comparison"]),
+                ("Work membership — window observations, not announcements or cancellations", report.get("work_membership_comparison")),
                 ("Source presence in selected captures", report["source_presence"]),
                 ("Checks before", report["checks_before"]), ("Checks after", report["checks_after"]),
                 ("Work check changes", report["works_state_changes"]),

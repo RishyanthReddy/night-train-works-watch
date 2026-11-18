@@ -1,0 +1,12 @@
+version: 1
+dataset: synthetic_swap_admin
+licence: synthetic
+external_processing_allowed: false
+complete: true
+file: {type: csv, delimiter: ';'}
+record: GenericRow
+required: [ticket]
+fields:
+  ticket: {column: aktenzeichen, parse: str}
+  owner: {column: zustaendig, parse: str}
+  amount: {column: betrag, parse: float}
