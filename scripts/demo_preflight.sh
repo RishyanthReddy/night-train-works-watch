@@ -1,5 +1,5 @@
 #!/bin/sh
-# Verify the exact public demo bundle and its saved audit against a separate seal.
+# Verify the public demo bundle, current audit and saved copy against a separate seal.
 set -eu
 
 if [ "$#" -ne 3 ]; then
@@ -13,11 +13,14 @@ esac
 unset MISTRAL_API_KEY NS_API_KEY SWISS_OTD_TOKEN DB_CLIENT_ID DB_API_KEY TRAIN_ARCHIVE_TOKEN
 export PYTHONDONTWRITEBYTECODE=1
 
-/usr/bin/sandbox-exec -p '(version 1)(allow default)(deny network*)' \
-    uv run --offline --no-sync nightdesk demo check --bundle demo
-/usr/bin/sandbox-exec -p '(version 1)(allow default)(deny network*)' \
-    uv run --offline --no-sync nightdesk audit verify --bundle demo --file "$1" --seal "$2" --count "$3"
-/usr/bin/sandbox-exec -p '(version 1)(allow default)(deny network*)' \
-    uv run --offline --no-sync pytest -q -p no:cacheprovider
+offline() {
+    /usr/bin/sandbox-exec -p '(version 1)(allow default)(deny network*)' uv run --offline --no-sync "$@"
+}
+
+offline nightdesk demo check --bundle demo
+offline nightdesk audit verify --bundle demo --file "$1" --seal "$2" --count "$3"
+offline nightdesk audit verify --bundle demo --seal "$2" --count "$3"
+offline pytest -q -p no:cacheprovider
 uv run --offline --no-sync python tests/phase3_acceptance.py
+offline nightdesk audit verify --bundle demo --seal "$2" --count "$3"
 echo "Public demo preflight passed for bundle demo."

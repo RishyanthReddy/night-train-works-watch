@@ -17,7 +17,7 @@ mkdir -p data/out/demo/audit-copies
 cp data/out/demo/audit.jsonl data/out/demo/audit-copies/before-demo.jsonl
 ```
 
-Record the printed hash and count separately before editing any audit copy. Run the preflight from the checkout root with the recorded values, then open the local URL printed by Streamlit.
+Record the printed hash and count separately before editing any audit copy. The preflight checks both the saved copy and the current audit against those values. Run it from the checkout root before opening the app. If you intentionally change the demo bundle during setup, verify the change and take a new copy and seal before rerunning preflight.
 
 ```sh
 sh scripts/demo_preflight.sh data/out/demo/audit-copies/before-demo.jsonl '<saved hash>' '<saved count>'

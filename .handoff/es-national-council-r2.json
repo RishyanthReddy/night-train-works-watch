@@ -1,0 +1,62 @@
+{
+  "round": 2,
+  "head": "eb7d3e2475e1e34858d65052f34ad10711d91a18",
+  "snapshot": "/var/folders/61/ynsfcdvj2493g9l_5tkw1mj40000gn/T/nightdesk-es-national-council-r2-u_b28mtd/snapshot.json",
+  "workspace": "/var/folders/61/ynsfcdvj2493g9l_5tkw1mj40000gn/T/nightdesk-es-national-council-r2-u_b28mtd/product",
+  "files": 173,
+  "changed": [
+    "docs/DEMO.md",
+    "docs/REAL_DATA.md",
+    "mappings/demo.yaml",
+    "scripts/demo_preflight.sh",
+    "src/nightdesk/adapters/gtfs.py",
+    "src/nightdesk/adapters/rijden_archive.py",
+    "src/nightdesk/adapters/staging.py",
+    "src/nightdesk/cli.py",
+    "src/nightdesk/config.py",
+    "src/nightdesk/demo.py",
+    "src/nightdesk/desk.py",
+    "src/nightdesk/es_runs.py",
+    "src/nightdesk/export.py",
+    "src/nightdesk/generic.py",
+    "src/nightdesk/intake/batch.py",
+    "src/nightdesk/intake/mapping.py",
+    "src/nightdesk/intake/text.py",
+    "src/nightdesk/llm/client.py",
+    "src/nightdesk/runs.py",
+    "src/nightdesk/stations.py",
+    "src/nightdesk/ui/app.py",
+    "tests/phase2_acceptance.py",
+    "tests/phase3_acceptance.py",
+    "tests/test_demo.py",
+    "tests/test_es_national.py"
+  ],
+  "reviewers": [
+    {
+      "name": "Opus",
+      "task_id": "node:delegated-task:command%3Amcp%3A8fc6eb76-7e0a-4ccd-9710-4eea57583e82%3Adelegate-task%3Aac353a33-e73b-4d47-a486-df3e6006d83d",
+      "status": "changes_requested",
+      "score": 7.5,
+      "tests": "495 passed and 1 expected local-data skip; frozen product and focused R1 regressions verified",
+      "findings": [
+        "Acceptance scripts assume .handoff exists",
+        "Preflight checks the sealed copy without verifying the current audit",
+        "Phase 3 synthetic setup ran outside the network sandbox"
+      ]
+    },
+    {
+      "name": "Sol",
+      "task_id": "node:delegated-task:command%3Amcp%3A8fc6eb76-7e0a-4ccd-9710-4eea57583e82%3Adelegate-task%3A80538008-9d31-4876-9d37-73fa2cc4e2cd",
+      "status": "approved",
+      "score": 9,
+      "report": "/var/folders/61/ynsfcdvj2493g9l_5tkw1mj40000gn/T/nightdesk-sol-r2-review-rhf_lymv/review.md",
+      "tests": "495 passed, 1 expected local-data skip; Phase 0/2/3 and preflight passed"
+    },
+    {
+      "name": "Grok",
+      "task_id": "node:delegated-task:command%3Amcp%3A8fc6eb76-7e0a-4ccd-9710-4eea57583e82%3Adelegate-task%3Aefc55369-7eb5-41c4-9c0d-1a5272f6a5ca",
+      "status": "started",
+      "score": null
+    }
+  ]
+}

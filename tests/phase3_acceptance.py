@@ -1,9 +1,12 @@
 """Retained authored synthetic Phase3 rehearsal; no live model/scanner requests."""
+import errno
 import json
 import os
 from pathlib import Path
 import shutil
+import socket
 import subprocess
+import sys
 import tempfile
 from test_phase3_swap import prepare,execute,german_proposal,REPO
 from test_phase3_isolation import build_pair,seed
@@ -24,10 +27,9 @@ def build(root):
 
 
 def cli(root,cases):
-    env={k:v for k,v in os.environ.items() if k not in CREDENTIAL_ENV_VARS and k!='NIGHTDESK_BUNDLE'}
     def command(args,expected=0):
-        cmd=['/usr/bin/sandbox-exec','-p','(version 1)(allow default)(deny network*)',str(REPO/'.venv/bin/nightdesk'),*args]
-        r=subprocess.run(cmd,cwd=root,env=env,text=True,capture_output=True)
+        cmd=[sys.executable,'-m','nightdesk.cli',*args]
+        r=subprocess.run(cmd,cwd=root,text=True,capture_output=True)
         print('$ [network denied] nightdesk '+' '.join(args));print(r.stdout+r.stderr,end='');print('exit '+str(r.returncode));assert r.returncode==expected
     b=cases['swap']['bundle']
     command(['sniff','swap/path_before.csv','--delimiter',';'])
@@ -45,9 +47,25 @@ def cli(root,cases):
     print('PHASE3_ACCEPTANCE_PASS: no live model/scanner/remote; consent mocked in tests')
 
 
-if __name__=='__main__':
+def main():
+    if sys.argv[1:] != ['--sandboxed']:
+        env = {key: value for key, value in os.environ.items()
+               if key not in CREDENTIAL_ENV_VARS and key not in {'NIGHTDESK_BUNDLE', 'NIGHTDESK_PUBLIC_DEMO'}}
+        return subprocess.call(
+            ['/usr/bin/sandbox-exec', '-p', '(version 1)(allow default)(deny network*)',
+             sys.executable, str(Path(__file__).resolve()), '--sandboxed'], env=env,
+        )
+    with socket.socket() as probe:
+        refusal = probe.connect_ex(('127.0.0.1', 9))
+    if refusal not in (errno.EACCES, errno.EPERM):
+        raise RuntimeError('Phase 3 acceptance requires OS network denial')
+    print('Network-denial probe: errno', refusal, flush=True)
     root=Path(tempfile.mkdtemp(prefix='nightdesk-phase3-accept-'))
     cases=build(root);cli(root,cases)
     (root/'phase3-cases.json').write_text(json.dumps(cases,indent=2))
-    (REPO/'.handoff/phase3-acceptance-workspace.txt').write_text(str(root)+'\n')
     print('Retained synthetic workspace: '+str(root))
+    return 0
+
+
+if __name__=='__main__':
+    raise SystemExit(main())

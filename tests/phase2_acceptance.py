@@ -82,5 +82,4 @@ if __name__=='__main__':
     root=Path(tempfile.mkdtemp(prefix='nightdesk-phase2-accept-'))
     cases=build(root);cli(root)
     (root/'phase2-cases.json').write_text(json.dumps(cases,indent=2))
-    (REPO/'.handoff/phase2-acceptance-workspace.txt').write_text(str(root)+'\n')
     print('Retained synthetic workspace: '+str(root))

@@ -80,3 +80,9 @@ The user authorized implementation after the architecture review. The plan is in
 - Parent advisory B2–B4 addressed by a guarded demo bundle and launcher, capture provenance headers, a runbook and sealed-copy preflight, and reviewed ES route/mapping configuration with a drift test. Grok's ES-R1-G1–G5 fixes are verified locally. The September saved Infrabel extract confirms 54 EURSLEEPER point rows for train 454 and 81 for 455. A dated matching timetable for those two numbers remains unverified.
 
 - Local checkpoint verified on 173 product files. Worktree suite 496 passed. Clean checkout equivalent passed the exact-bundle preflight and rejected a truncated audit copy. The 29-entry demo allowlist includes one CC0 Infrabel scheduled-versus-observed excerpt with 42 accepted rows. A separate real D-1 dossier retained its provenance and 27 points. See sources.md for commands and outputs.
+
+- The user requested a final parent planning review after the checkpoint council and before Phase 4. The review scope is in next.md. R2 ledger records 173 product files at eb7d3e2. The parent request is pending council verdicts.
+
+- ES and demo checkpoint R2 Sol approved 9/10. Parent verified that all 173 product hashes still match both the worktree and freeze. Opus and Grok remain pending before the parent go/no-go review.
+
+- ES and demo R2 Opus requested changes 7.5/10. Fixed the acceptance output path dependency and sealed-copy-only preflight, and applied OS network denial to Phase 3 setup. Clean product-only replay passed without .handoff, including refusal of both a truncated copy and live audit drift. Grok is the remaining R2 verdict.
