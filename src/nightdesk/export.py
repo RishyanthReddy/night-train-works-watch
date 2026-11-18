@@ -88,12 +88,13 @@ def export_comparison(report: dict, bundle: Bundle, out: str | Path) -> tuple[Pa
     return paths
 
 
-def build_dossier(bundle: Bundle, old, new, service_date, *, run=None, works=(), findings=(), capture_comparison=None, reader=None):
+def build_dossier(bundle: Bundle, old, new, service_date, *, run=None, works=(), findings=(), capture_comparison=None, reader=None, resolver=None):
     """One selected train/date, with before/after, sourced checks and local review.
 
     All selection is explicit. This function never chooses a latest revision or
     invents a cross-border link. Unlocated works are shown separately.
     """
+    from nightdesk.estimate import estimate_delay
     from nightdesk.changes import compare_revisions
     from nightdesk.match import check_works
     from nightdesk.model import PathLeg, ChangeSet
@@ -131,12 +132,12 @@ def build_dossier(bundle: Bundle, old, new, service_date, *, run=None, works=(),
         refs += finding.input_refs
     if any(ref.bundle != bundle.name for ref in refs):
         raise ValueError("cross_bundle_dossier")
-    checks = check_works(list(works), run) if run is not None else {"exposures": [], "checked_pairs": 0, "no_match_checked_pairs": 0}
+    checks = check_works(list(works), run, resolver=resolver) if run is not None else {"exposures": [], "checked_pairs": 0, "no_match_checked_pairs": 0}
     selected = {r.revision_id for r in present}
     review = [d.model_dump(mode="json") for d in decisions(bundle, reader=reader) if d.revision_id in selected]
     questions = [f.model_dump(mode="json") for f in follow_ups(bundle, reader=reader) if f.revision_id in selected]
     labels = {ref.licence for ref in refs + [r.source for r in works]}
-    return {"kind": "train_date_dossier", "rule_version": "dossier-v1", "bundle": bundle.name,
+    return {"delay_request": estimate_delay().model_dump(mode="json"), "kind": "train_date_dossier", "rule_version": "dossier-v1", "bundle": bundle.name,
             "train_no": active.payload.train_no, "service_date": service_date.isoformat(),
             "selection_revision": selected_revision.revision_id, "source_presence": presence,
             "operating_date_presence": {"before": service_date in old.payload.operating_dates if old else presence["before"],
@@ -170,7 +171,7 @@ def dossier_markdown(report: dict) -> str:
     lines = ["# Train/date dossier", "", f"Data: {escaped(report['data_label'])}.",
              f"Train: {escaped(report['train_no'])}; service date: {escaped(report['service_date'])}.", ""]
     lines += ["- " + escaped(limit) for limit in report["limits"]]
-    sections = [("Before", report["before"]), ("After", report["after"]), ("Changed fields", report["changes"]),
+    sections = [("Delay request", report["delay_request"]), ("Before", report["before"]), ("After", report["after"]), ("Changed fields", report["changes"]),
                 ("Capture completeness comparison", report["capture_comparison"]),
                 ("Source presence in selected captures", report["source_presence"]),
                 ("Checks before", report["checks_before"]), ("Checks after", report["checks_after"]),

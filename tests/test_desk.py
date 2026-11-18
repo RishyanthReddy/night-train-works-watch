@@ -37,8 +37,8 @@ def test_explicit_capture_selection_produces_train_date_queue_then_dossier(tmp_p
     crosswalk = ingest("paths/crosswalk.csv", "mappings/synthetic_links.yaml", bundle)
     link = import_links(bundle, crosswalk["capture_id"])[0]
     report = dossier(*args, link_identifier=link, reviewed_points={"syn:border"})
-    assert report["findings"][0]["result"] == "mismatch"
-    assert report["findings"][0]["reason"] == "boundary_instants_differ"
+    assert report["findings"][0]["result"] == "unknown"
+    assert report["findings"][0]["reason"] == "boundary_service_date_binding_unknown"
     assert report["capture_comparison"]["status"] == "compared"
     with pytest.raises((ValueError, OSError)):
         snapshot(get_bundle("es"), new["capture_id"])

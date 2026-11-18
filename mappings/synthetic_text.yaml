@@ -1,0 +1,13 @@
+version: 1
+dataset: synthetic_text
+licence: synthetic
+external_processing_allowed: true
+complete: false
+file: {type: json}
+timezone: Europe/Brussels
+record: WorkNotice
+required: [country, date_start, date_end]
+fields:
+  country: {column: country, parse: str}
+  date_start: {column: date_start, parse: 'date:%Y-%m-%d'}
+  date_end: {column: date_end, parse: 'date:%Y-%m-%d'}

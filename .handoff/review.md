@@ -135,3 +135,74 @@ Opus APPROVE9/10;337 tests,94 matching hashes. Sol APPROVE9/10 with337 tests+14 
 | P1-R6-O1 | Conservative excluded-neighbour unknown may refer to the other selected capture without distinguishing its origin in that finding. | low, nonblocking | wontfix | Record as a bounded provenance-display limit; it never yields a positive boundary. Full selected revision ids remain in report/audit. Avoid extending this completed fix into another review cycle absent material issue. |
 
 R5 follow-up scores: Opus8.5/Sol9/Grok9 APPROVE; R6 refinement scores: allthree9/10 APPROVE. P1-R4-O1 and P1-R5-O1/O2 closed; only accepted low provenance limit P1-R6-O1. No more fix cycle required for it.
+
+## Phase2 council R1 — running
+Exact skill members launched on127-file freeze; handles phase2-council-r1-tasks.json, builder evidence phase2-builder-evidence.md. No verdict or score received yet. Product stays frozen until all reviews finish.
+
+## Phase2 council R1 — all complete; changes requested
+Scores Opus7.5/Sol8/Grok7. All127 frozen hashes matched each reviewer and builder after completion. Reports phase2-council-r1-{opus,sol,grok}.md. Opus disclosed five ignored bytecode writes/deletions; no frozen source changed. No real key used in leak reproduction.
+
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| P2-R1-O1 | Malformed API key header ValueError leaks key into audit/UI/CLI. | high | fixed | Visible-ASCII key validation, transport exception normalization and allowlisted public errors; malformed keys never reach connection and fake key absent from audit/results. test_phase2_council.py; phase2-r2-final-tests.log415passed39.00s EXIT0, OSnetworkdenied/sixcredentialsunset; Phase0/Phase2actualCLI EXIT0. |
+| P2-R1-S1 | Malformed replay/proposal/envelope shapes crash UI or escape audited refusal. | medium | fixed | Replay Proposal/envelope shape checked at boundary, invalid proposal returnedNone, form population requires accepted object; scalar/array/missing/null regressions show visible audited refusal without exception. test_phase2_council.py; phase2-r2-final-tests.log415passed39.00s EXIT0, OSnetworkdenied/sixcredentialsunset; Phase0/Phase2actualCLI EXIT0. |
+| P2-R1-S2 | Per-stop calendar evidence rescans/reparses exceptions quadratically. | medium | fixed | Calendar/service-day evidence indexed once. At100/400dates date parses at most2*n with identical per-row proof. test_phase2_council.py; phase2-r2-final-tests.log415passed39.00s EXIT0, OSnetworkdenied/sixcredentialsunset; Phase0/Phase2actualCLI EXIT0. |
+| P2-R1-G1 | Multiple same-route/date trips abort queue without selector. | medium | fixed | Explicit run observation selector, unknown run_selection_required until chosen; no queue abort. Choices validated against selected captures and retained in audit/export, API and full-app test pass. test_phase2_council.py; phase2-r2-final-tests.log415passed39.00s EXIT0, OSnetworkdenied/sixcredentialsunset; Phase0/Phase2actualCLI EXIT0. |
+| P2-R1-G2 | Reviewer requests stop_timezone conversion rather than agency timezone. | medium | wontfix | Suggested stop-zone clock conversion rejected by official GTFS specification; all three R2reviewers uphold agency-time basis. Declared invalid stop-zone validation added and tested. No openclockfinding. |
+| P2-R1-O2/G3 | Whitespace/format/role-marker variants bypass injection guard. | medium/low | fixed | NFKC/casefold, Unicode-format removal and whitespace collapse; role/ignore instruction patterns include cheap variants; pretransport regressions pass. test_phase2_council.py; phase2-r2-final-tests.log415passed39.00s EXIT0, OSnetworkdenied/sixcredentialsunset; Phase0/Phase2actualCLI EXIT0. |
+| P2-R1-O3 | Output expansion lacks technical row bound. | low-medium | fixed | MAX_GTFS_ROWS50000 bounds projected expansion before row construction; clear select_dates_or_trips refusal. test_phase2_council.py; phase2-r2-final-tests.log415passed39.00s EXIT0, OSnetworkdenied/sixcredentialsunset; Phase0/Phase2actualCLI EXIT0. |
+| P2-R1-O4 | CSV/encryptedZIP parsing errors escape refusal audit. | low | fixed | CSV/encrypted/unsupported archive errors normalized to static gtfs_unreadable_archive with audit; fieldsize/encryption regressions pass. test_phase2_council.py; phase2-r2-final-tests.log415passed39.00s EXIT0, OSnetworkdenied/sixcredentialsunset; Phase0/Phase2actualCLI EXIT0. |
+| P2-R1-O5 | Model-drafted import labelled manual. | low | fixed | CLI --drafted-by and form drafting origin; proposal sets origin; canonical proposed_by plus extra drafted_by/reviewed_by preserve evidence. Real AppTest replay→review→import passes. test_phase2_council.py; phase2-r2-final-tests.log415passed39.00s EXIT0, OSnetworkdenied/sixcredentialsunset; Phase0/Phase2actualCLI EXIT0. |
+| P2-R1-O6 | Declared mapping timezone ignored when text field absent. | low | fixed | Absent text timezone defaults to declared mapping timezone; retained timezone_basis and mapping SHA name the origin. test_phase2_council.py; phase2-r2-final-tests.log415passed39.00s EXIT0, OSnetworkdenied/sixcredentialsunset; Phase0/Phase2actualCLI EXIT0. |
+| P2-R1-O7 | Month-in-range check false rejects and misses separator variants. | low | fixed | Month declaration separators handled; membership checked across complete date range including year wrap. test_phase2_council.py; phase2-r2-final-tests.log415passed39.00s EXIT0, OSnetworkdenied/sixcredentialsunset; Phase0/Phase2actualCLI EXIT0. |
+| P2-R1-G4 | Frequencies ignored while declaring complete. | low | fixed | frequencies.txt explicitly refused as unsupported rather than silently declaring complete. test_phase2_council.py; phase2-r2-final-tests.log415passed39.00s EXIT0, OSnetworkdenied/sixcredentialsunset; Phase0/Phase2actualCLI EXIT0. |
+
+G2 disputed conversion resolved by official spec evidence and regression: stop_times agency timezone retained, valid Europe/London stop zone does not shift instant; Not/AZone now refused. No false clock conversion adopted. Official reference URL in decisions.md. Fresh R2 council requested to assess objection.
+
+## Phase2 council R2 — running
+All three exact skill members launched on128-filefreeze; no score/verdict yet. phase2-council-r2-tasks.json and phase2-r2-evidence.md. Product stays frozen until every reviewer finishes.
+
+### R2 Sol received — changes requested8.5/10
+Independent415tests40.43s/Phase0+2CLIpass,128hashesmatch. Original R1 fixesstand; G2agencytimezoneobjectionupheld. Remaining malformedmetadata boundarybelow; Opus/Grokstillpending, productfrozen.
+
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| P2-R2-S1 | Replay licence list/object is unhashable in set membership; API/UI/CLI crash without refusal audit. R1-S1 remaining metadata case. | medium | fixed | Replay metadata validates integer version, string licence/dataset/source text/optionalbundle before set membership. List/object API/actualCLI/AppTest return static audited replay_input_mismatch with no capture. R1-S1 remaining class closed. tests/test_phase2_council.py; phase2-r3-final-tests.log429passed40.09s EXIT0 OSnetworkdenied/sixkeysunset, actualPhase0/2CLI EXIT0. |
+
+### R2 Opus received — APPROVE8.5/10 with four low residuals
+415tests40.06s/Phase0+2CLIpass,128hashesmatch; no checkoutbytecodewrites thisround. G2objectionupheldagain. Builder independentlyreproduced below in temporary authoredinputs with no source edits, log phase2-r2-opus-parent-repro.log EXIT0. GrokR2pending; productfrozen.
+
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| P2-R2-O1 | Deep JSON raises RecursionError without audited refusal. | low | fixed | Replay and live model nestedJSON decode/Pydantic/canonicalization errors normalize to static audited refusal; no untrusted exception text. tests/test_phase2_council.py; phase2-r3-final-tests.log429passed40.09s EXIT0 OSnetworkdenied/sixkeysunset, actualPhase0/2CLI EXIT0. |
+| P2-R2-O2 | Corrupted deflate raises zlib.error without GTFS refusal audit. | low | fixed | Corrupt deflate/zlib and truncated/lzma streams contained in GTFS parserrefusal; actual malformed compressed ZIP regression audits and no capture. tests/test_phase2_council.py; phase2-r3-final-tests.log429passed40.09s EXIT0 OSnetworkdenied/sixkeysunset, actualPhase0/2CLI EXIT0. |
+| P2-R2-O3 | timezone_basis says declared_mapping even when none is declared. | low | fixed | timezone_basis now source_field/declared_mapping/none according to actually available evidence; missing both givesNone+none. tests/test_phase2_council.py; phase2-r3-final-tests.log429passed40.09s EXIT0 OSnetworkdenied/sixkeysunset, actualPhase0/2CLI EXIT0. |
+| P2-R2-O4 | Widened month regex rejects ordinary 3monthperiod/monthofDecemberprose. | low | fixed | Unseparated unknown words aftermonth/monat treated asprose, explicitcolon/dash unknownmonth remainsrefused; knownmonth/time-range contradictions unchanged. tests/test_phase2_council.py; phase2-r3-final-tests.log429passed40.09s EXIT0 OSnetworkdenied/sixkeysunset, actualPhase0/2CLI EXIT0. |
+
+Opus note (not a finding): role-marker denylist can reject ordinary signalling-system prose. Retain conservative bounded C6 policy for this fix; no general language classification claim. Do not broaden this cycle into a new injection-detection system.
+
+R2 allfinished: Opus APPROVE8.5, Solchangesrequested8.5, GrokAPPROVE9. All128hashesmatch. Product edits permitted after completedthreadreads; bounded fivefindings fixednext. G2agencytimezone rule upheldbyallthree, contrary conversion rejected by officialspec.
+
+R2 five bounded corrections verified429tests40.09s; no otherproductdelta. R3freeze128files, fourproductionfiles+existingtest changed; freshfocusedcouncilpending.
+
+## Phase2 council R3 — running
+Allthreeexactskillmemberslaunched,128-filefreeze/five-filedelta. No verdictor scoreyet; productfrozenuntilallfinish. Handles phase2-council-r3-tasks.json; evidence phase2-r3-evidence.md.
+
+### R3 Opus received — APPROVE9/10
+429tests43.03s, actualPhase0/2CLIpass,128hashesmatch; allfiveR2fixesverified. Extra probes31pass/1reviewerassertionfailure (depth200 ordinaryauditedrejectioncorrect). No materialregression. Sol/GrokR3pending, productfrozen.
+
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| P2-R3-O1 | Corrupt bzip2 member returns raw fixed stdlib OSError wording rather than gtfs_unreadable_archive. | low, nonblocking | wontfix | Accepted error-code wording limit: import_gtfs catches OSError, auditsrefusal, no capture, CLIexit1/noTraceback. Verified code outerboundary and Opus independentmalformedbzip2probe; messageisfixedlibrarytext, no secret/source echo. Do not extend approvedboundedfixintoanothercycleforcosmeticnormalization. |
+
+### R3 Sol received — APPROVE9/10
+429tests42.97s+62independentprobes/actualPhase0+2CLIpass,128hashesmatch. S1 andallfourlowresiduals independentlyverifiedfixed; no newproductfinding. Parenthandofftrailingwhitespacefixedwithoutsourceedit. GrokR3pending; productfrozen.
+
+## Phase2 council final result — R3 unanimous approval
+Rounds3. All128R3producthashes matched eachreviewer andbuilder. No openmaterialPhase2finding. R2-S1 andR2-O1–O4verifiedfixed. AcceptedlowP2-R3-O1 onlyerrorwordinglimit; G2wrongconversionrejectedbyofficialspec. Allreviewscomplete, approvedproductreadyforlocalcommit.
+
+| Delegate | R1 | R2 | R3 |
+|---|---|---|---|
+| Opus through Kiro |7.5/10 changes|8.5/10 APPROVE|9/10 APPROVE|
+| Codex Sol |8/10 changes|8.5/10 changes|9/10 APPROVE|
+| Grok4.7 |7/10 changes|9/10 APPROVE|9/10 APPROVE|

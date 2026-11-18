@@ -71,3 +71,12 @@ Follow-up self-review also treats competing source records for the same linked n
 ## 2026-11-18 — Phase2 continuation authorised
 Decided: finish/review/commit the current Phase1 mixed-request follow-up, then start Phase2 as next phase/goal using task order, TODO, actual offline/browser checks, council and local commits.
 Why: user explicitly requested “after this start phase-2 ... resume goal ... same approach”. Earlier stop-beforePhase2 is superseded after this fix closes. No remote/push/Phase4 authorization added.
+
+## 2026-11-18 — Phase2 evidence boundaries
+Decided: GTFS uses explicit feed namespace, scheduled times and unresolved path only; time conversion follows the GTFS noon-minus12 elapsed-time definition, separately from unresolved local-time folds in ordinary source records. Text proposals require field quotes and deterministic typed gates; explicit human import remains separate. Dataset permission and audited bundle consent precede every live Mistral request. Public demo uses a hashed provenance allowlist.
+Why: KICKOFF P2.1–P2.7, official GTFS/Mistral docs and passing focused/full checks. Rejected inferred national ids, numeric delay prediction, provider selection as consent, automatic proposal approval and licence claims without a manifest/source record. No live model call is required; none made.
+
+## 2026-11-18 — Council R1 timezone objection and bounded fixes
+Decided: retain agency_timezone for GTFS stop_times, even when stops declare another valid zone. Validate stop_timezone names as input quality; never reinterpret stop_times through them. Official GTFS reference explicitly says arrival/departure use agency.agency_timezone, not stops.stop_timezone (https://gtfs.org/documentation/schedule/reference/#stop_timestxt, reopened2026-11-18). Grok G2 timing-change recommendation is disputed; a regression now fixes the intended agency-based instant and invalid-zone refusal.
+Decided: same train/date run variants require an explicit observation selection; without one the queue/dossier stays usable and works checks stay unknown. Selection identifies source observation and is audited/exported. No guessed trip or national train correspondence. Reject unsupported frequency feeds and bound output expansion before normalizing rows.
+Why: R1 concrete reproductions and Phase2 scope. Rejected automatic trip winner, unsupported frequencies declared complete, or changing the official time basis to match a reviewer expectation.

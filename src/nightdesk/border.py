@@ -8,13 +8,16 @@ from nightdesk.model import Capture, ConsistencyFinding, JourneyLink, PathLeg, R
 from nightdesk.timeutil import utc
 
 
+BORDER_RULE_VERSION = "border-v2"
+
+
 def check_boundary(left: Revision, right: Revision, service_date: date, *,
                    link: JourneyLink | None = None, reviewed_points: set[str] | None = None,
                    left_capture: Capture | None = None, right_capture: Capture | None = None) -> ConsistencyFinding:
     refs = [left.source, right.source]
     if link:
         refs.extend(member.source for member in link.members)
-    context = dict(rule="adjacent_same_boundary_event", rule_version="border-v1", input_refs=refs)
+    context = dict(rule="adjacent_same_boundary_event", rule_version=BORDER_RULE_VERSION, input_refs=refs)
     def result(outcome="unknown", reason=None, **detail):
         return ConsistencyFinding(**context, result=outcome, reason=reason, detail={"service_date": service_date.isoformat(), **detail})
     if len({ref.bundle for ref in refs}) != 1:
@@ -77,6 +80,9 @@ def check_boundary(left: Revision, right: Revision, service_date: date, *,
         return result(reason="timezone_unknown")
     if left_capture is None or right_capture is None:
         return result(reason="capture_completeness_unknown")
+    if len(set(a.operating_dates)) != 1 or len(set(b.operating_dates)) != 1:
+        return result(reason="boundary_service_date_binding_unknown",
+                      what_would_fix_it="Provide a separate dated boundary record for each service date; absolute event times are not shifted or reused.")
     detail = dict(point_id=end.point_id, kind=end.kind, left_at=utc(end.at).isoformat(), right_at=utc(start.at).isoformat(),
                   limits="Only this same event at this reviewed point was checked; not whole-journey feasibility or national approval.")
     if utc(end.at) != utc(start.at):

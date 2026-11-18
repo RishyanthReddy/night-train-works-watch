@@ -1,0 +1,2 @@
+route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_color,route_text_color
+ES453,ES,ES 453,Bruxelles-Midi → Prague hl.n. (main station),2,https://www.europeansleeper.eu/en/timetable,40002C,FFFFFF

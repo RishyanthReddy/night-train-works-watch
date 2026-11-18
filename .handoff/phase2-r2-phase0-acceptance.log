@@ -1,0 +1,108 @@
+$ nightdesk ingest tests/fixtures/admin/admin_v1.csv --mapping mappings/admin_v1.yaml --bundle test-preconfirm-130f3e37
+error: mapping_not_confirmed: confirm this mapping's current hash in this bundle first
+exit 1
+$ nightdesk sniff tests/fixtures/admin/admin_v1.csv
+tests/fixtures/admin/admin_v1.csv (csv): 4 rows, 6 columns
+- record_id: string, null 0.0% (0), samples: "syn-001", "syn-002", "syn-003", "syn-004"
+- task: string, null 0.0% (0), samples: "Synthetic file review", "Synthetic comparison", "Synthetic export", "Synthetic archive"
+- owner: string, null 0.0% (0), samples: "Person A", "Person B", "Person C", "Person D"
+- duration_s: int, null 0.0% (0), samples: "60", "120", "180", "30"
+- state: string, null 0.0% (0), samples: "pending", "needs_review", "done"
+- note: string, null 0.0% (0), samples: "Synthetic practice only"
+exit 0
+$ nightdesk mapping confirm mappings/admin_v1.yaml --bundle practice
+confirmed 495265eae0151c0794ea864c112167a64dbd97833dd9785ae637b9df2de0a34e bundle=practice
+exit 0
+$ nightdesk ingest tests/fixtures/admin/admin_v1.csv --mapping mappings/admin_v1.yaml --bundle practice
+accepted=4 rejected=0 filtered=0 licence=synthetic capture=953d0781ba5143296ea24206d570131e9a7bf8dffc690c0586cf7c43418f8d3a
+exit 0
+$ nightdesk ingest tests/fixtures/admin/admin_v2.csv --mapping mappings/admin_v1.yaml --bundle practice
+accepted=5 rejected=1 filtered=0 licence=synthetic capture=9c3ac10096551f30ada2c33a0f1d818f1b56c798b676548a3d0038dac01afba6
+exit 0
+$ nightdesk rejects --bundle practice
+/private/var/folders/61/ynsfcdvj2493g9l_5tkw1mj40000gn/T/nightdesk-p0-c4v9gbps/tests/fixtures/admin/admin_v2.csv row=7 field=duration_s reason=invalid_number capture=9c3ac10096551f30ada2c33a0f1d818f1b56c798b676548a3d0038dac01afba6
+exit 0
+$ nightdesk compare tests/fixtures/admin/admin_v1.csv tests/fixtures/admin/admin_v2.csv --key record_id --bundle practice --out data/out/practice/
+status=compared reason=None data=synthetic changed=2 added=1 unchanged=2 only_in_old=0
+Rows absent from a selected file have unknown meaning; rejected rows are excluded.
+/private/var/folders/61/ynsfcdvj2493g9l_5tkw1mj40000gn/T/nightdesk-p0-c4v9gbps/data/out/practice/comparison-3269cfac0372824080e46a05664de88a89121c46354d38e46c9187a67551afef.md
+/private/var/folders/61/ynsfcdvj2493g9l_5tkw1mj40000gn/T/nightdesk-p0-c4v9gbps/data/out/practice/comparison-3269cfac0372824080e46a05664de88a89121c46354d38e46c9187a67551afef.json
+exit 0
+$ nightdesk mapping confirm mappings/admin_alt.yaml --bundle practice
+confirmed 73e61340c547924a0b8f1c35eb7cdc5a21ddaeb1f997127a493baa030806a373 bundle=practice
+exit 0
+$ nightdesk ingest tests/fixtures/admin/admin_alt.csv --mapping mappings/admin_alt.yaml --bundle practice
+accepted=4 rejected=0 filtered=0 licence=synthetic capture=55f8737b109daac2ab82480d8f80e04faafb94d6794efea9aef1ad9b0f1927a8
+exit 0
+Network-denial probe: exit 0 errno 1
+$ [network denied] nightdesk sniff tests/fixtures/admin/admin_v1.csv
+tests/fixtures/admin/admin_v1.csv (csv): 4 rows, 6 columns
+- record_id: string, null 0.0% (0), samples: "syn-001", "syn-002", "syn-003", "syn-004"
+- task: string, null 0.0% (0), samples: "Synthetic file review", "Synthetic comparison", "Synthetic export", "Synthetic archive"
+- owner: string, null 0.0% (0), samples: "Person A", "Person B", "Person C", "Person D"
+- duration_s: int, null 0.0% (0), samples: "60", "120", "180", "30"
+- state: string, null 0.0% (0), samples: "pending", "needs_review", "done"
+- note: string, null 0.0% (0), samples: "Synthetic practice only"
+exit 0
+$ [network denied] nightdesk mapping confirm mappings/admin_v1.yaml --bundle practice
+confirmed 495265eae0151c0794ea864c112167a64dbd97833dd9785ae637b9df2de0a34e bundle=practice
+exit 0
+$ [network denied] nightdesk ingest tests/fixtures/admin/admin_v1.csv --mapping mappings/admin_v1.yaml --bundle practice
+accepted=4 rejected=0 filtered=0 licence=synthetic capture=953d0781ba5143296ea24206d570131e9a7bf8dffc690c0586cf7c43418f8d3a
+exit 0
+$ [network denied] nightdesk ingest tests/fixtures/admin/admin_v2.csv --mapping mappings/admin_v1.yaml --bundle practice
+accepted=5 rejected=1 filtered=0 licence=synthetic capture=9c3ac10096551f30ada2c33a0f1d818f1b56c798b676548a3d0038dac01afba6
+exit 0
+$ [network denied] nightdesk rejects --bundle practice
+/private/var/folders/61/ynsfcdvj2493g9l_5tkw1mj40000gn/T/nightdesk-p0-c4v9gbps/tests/fixtures/admin/admin_v2.csv row=7 field=duration_s reason=invalid_number capture=9c3ac10096551f30ada2c33a0f1d818f1b56c798b676548a3d0038dac01afba6
+exit 0
+$ [network denied] nightdesk compare tests/fixtures/admin/admin_v1.csv tests/fixtures/admin/admin_v2.csv --key record_id --bundle practice --out data/out/practice/
+status=compared reason=None data=synthetic changed=2 added=1 unchanged=2 only_in_old=0
+Rows absent from a selected file have unknown meaning; rejected rows are excluded.
+/private/var/folders/61/ynsfcdvj2493g9l_5tkw1mj40000gn/T/nightdesk-p0-c4v9gbps/data/out/practice/comparison-3269cfac0372824080e46a05664de88a89121c46354d38e46c9187a67551afef.md
+/private/var/folders/61/ynsfcdvj2493g9l_5tkw1mj40000gn/T/nightdesk-p0-c4v9gbps/data/out/practice/comparison-3269cfac0372824080e46a05664de88a89121c46354d38e46c9187a67551afef.json
+exit 0
+$ [network denied] nightdesk mapping confirm mappings/admin_alt.yaml --bundle practice
+confirmed 73e61340c547924a0b8f1c35eb7cdc5a21ddaeb1f997127a493baa030806a373 bundle=practice
+exit 0
+$ [network denied] nightdesk ingest tests/fixtures/admin/admin_alt.csv --mapping mappings/admin_alt.yaml --bundle practice
+accepted=4 rejected=0 filtered=0 licence=synthetic capture=55f8737b109daac2ab82480d8f80e04faafb94d6794efea9aef1ad9b0f1927a8
+exit 0
+PASS: alternate YAML yields identical canonical fields/extra; provenance remains distinct.
+PASS: all six acceptance steps; identical stdout with six credential variables unset and OS network denied.
+$ [network denied] nightdesk sniff data/out/test-formats-7072309a/inputs/synthetic.json --records-path items
+data/out/test-formats-7072309a/inputs/synthetic.json (json): 1 rows, 3 columns
+- id: string, null 0.0% (0), samples: "syn-j"
+- seconds: int, null 0.0% (0), samples: 90
+- nested: object, null 0.0% (0), samples: {"keep": [1, 2]}
+exit 0
+$ [network denied] nightdesk mapping confirm data/out/test-formats-7072309a/inputs/json.yaml --bundle test-formats-7072309a
+confirmed 972ecb001b753e151efb92a0f90bda80c1b133fb8aba47c3195c7fc60c1896ec bundle=test-formats-7072309a
+exit 0
+$ [network denied] nightdesk ingest data/out/test-formats-7072309a/inputs/synthetic.json --mapping data/out/test-formats-7072309a/inputs/json.yaml --bundle test-formats-7072309a
+accepted=1 rejected=0 filtered=0 licence=synthetic capture=b3efa76ebe2274ba8d922bc77beba953629548d78dab1bc785f805efcc3bae08
+exit 0
+$ [network denied] nightdesk sniff data/out/test-formats-7072309a/inputs/synthetic.xlsx
+data/out/test-formats-7072309a/inputs/synthetic.xlsx (xlsx): 1 rows, 2 columns
+- id: string, null 0.0% (0), samples: "syn-x"
+- seconds: int, null 0.0% (0), samples: 120
+exit 0
+$ [network denied] nightdesk mapping confirm data/out/test-formats-7072309a/inputs/xlsx.yaml --bundle test-formats-7072309a
+confirmed 943b55e13468bfbefa0b94e7fef2b319b0de1ea285a8c4aebc45d085201e930e bundle=test-formats-7072309a
+exit 0
+$ [network denied] nightdesk ingest data/out/test-formats-7072309a/inputs/synthetic.xlsx --mapping data/out/test-formats-7072309a/inputs/xlsx.yaml --bundle test-formats-7072309a
+accepted=1 rejected=0 filtered=0 licence=synthetic capture=2394cb7e9647c684b10228a460f63efd3af6100291d04381db4c560010409575
+exit 0
+$ [network denied] nightdesk sniff data/out/test-formats-7072309a/inputs/merged.xlsx
+error: data/out/test-formats-7072309a/inputs/merged.xlsx: header row 1 has merged cells ['A1:B1']; merged or multi-row headers are not supported; flatten first: nightdesk flatten <file> --header-rows 2
+exit 1
+$ [network denied] nightdesk flatten data/out/test-formats-7072309a/inputs/merged.xlsx --header-rows 2 --out data/out/test-formats-7072309a/inputs/flattened.csv --bundle test-formats-7072309a
+flattened to data/out/test-formats-7072309a/inputs/flattened.csv; source unchanged
+exit 0
+$ [network denied] nightdesk mapping confirm data/out/test-formats-7072309a/inputs/flattened.yaml --bundle test-formats-7072309a
+confirmed 0acc8eba5018488b8c8ca8605c230e31435ed60d37a475acb923bfd656ce1fb9 bundle=test-formats-7072309a
+exit 0
+$ [network denied] nightdesk ingest data/out/test-formats-7072309a/inputs/flattened.csv --mapping data/out/test-formats-7072309a/inputs/flattened.yaml --bundle test-formats-7072309a
+accepted=1 rejected=0 filtered=0 licence=synthetic capture=22c11076657ed52975ae9652d328c495d30fdf858b73577f0a75622d7fe26e92
+exit 0
+PASS: real JSON/XLSX sniff and ingest, plus merged-header refusal -> flatten -> ingest, with network denied.

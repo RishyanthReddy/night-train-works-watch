@@ -1,0 +1,12 @@
+stop_id,stop_name,stop_lat,stop_lon,stop_code,stop_timezone
+bruxelles_midi,Bruxelles-Midi,50.835278,4.335833,8814001,Europe/Brussels
+antwerpen_centraal,Antwerpen-Centraal,51.216944444,4.421111111,8821006,Europe/Brussels
+roosendaal,Roosendaal,51.53969,4.45875,8400526,Europe/Amsterdam
+rotterdam_centraal,Rotterdam Centraal,51.925,4.469444,8400530,Europe/Amsterdam
+den_haag_hs,Den Haag HS,52.069722,4.321667,8400280,Europe/Amsterdam
+amsterdam_centraal,Amsterdam Centraal,52.37895,4.90016,8400058,Europe/Amsterdam
+amersfoort_centraal,Amersfoort Centraal,52.153888888,5.374166666,8400055,Europe/Amsterdam
+deventer,Deventer,52.25697,6.16108,8400173,Europe/Amsterdam
+berlin_gesundbrunnen,Berlin Gesundbrunnen,52.548611111,13.389444444,8007799,Europe/Berlin
+dresden_hbf,Dresden Hbf,51.040277777,13.731666666,8006050,Europe/Berlin
+prague_hl_n_main_station,Prague hl.n. (main station),50.083055555,14.435833333,5457076,Europe/Prague

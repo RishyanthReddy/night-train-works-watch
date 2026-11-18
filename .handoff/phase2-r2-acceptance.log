@@ -1,0 +1,26 @@
+different: unknown / different_boundary_points
+clock: unknown / ambiguous_local_time
+partial: unknown / incomplete_capture
+$ nightdesk demo check
+demo check passed: 27 hashed CC0/synthetic assets; input references checked; no network
+exit 0
+$ nightdesk text propose notice.txt --mapping mappings/synthetic_text.yaml --provider replay --replay tests/fixtures/text/valid.json
+{"accepted": true, "cache_is_local": true, "proposal": {"fields": {"clock_from": "23:00", "clock_to": "04:55", "country": "zz", "date_end": "2026-11-18", "date_start": "2026-11-17", "effect": "closure", "from_place": "Synthetic Alpha", "recurrence": "periodical", "timezone": "Europe/Brussels", "to_place": "Synthetic Charlie", "weekdays": [1, 2, 3, 4, 5], "work_id": "synthetic-notice"}, "quotes": {"clock_from": "\"23:00\"", "clock_to": "\"04:55\"", "country": "\"zz\"", "date_end": "\"2026-11-18\"", "date_start": "\"2026-11-17\"", "effect": "\"closure\"", "from_place": "\"Synthetic Alpha\"", "recurrence": "\"periodical\"", "timezone": "\"Europe/Brussels\"", "to_place": "\"Synthetic Charlie\"", "weekdays": "[1, 2, 3, 4, 5]", "work_id": "\"synthetic-notice\""}}, "reasons": []}
+exit 0
+$ nightdesk text propose notice.txt --mapping mappings/synthetic_text.yaml --provider replay --replay tests/fixtures/text/valid.json
+{"accepted": true, "cache_is_local": true, "proposal": {"fields": {"clock_from": "23:00", "clock_to": "04:55", "country": "zz", "date_end": "2026-11-18", "date_start": "2026-11-17", "effect": "closure", "from_place": "Synthetic Alpha", "recurrence": "periodical", "timezone": "Europe/Brussels", "to_place": "Synthetic Charlie", "weekdays": [1, 2, 3, 4, 5], "work_id": "synthetic-notice"}, "quotes": {"clock_from": "\"23:00\"", "clock_to": "\"04:55\"", "country": "\"zz\"", "date_end": "\"2026-11-18\"", "date_start": "\"2026-11-17\"", "effect": "\"closure\"", "from_place": "\"Synthetic Alpha\"", "recurrence": "\"periodical\"", "timezone": "\"Europe/Brussels\"", "to_place": "\"Synthetic Charlie\"", "weekdays": "[1, 2, 3, 4, 5]", "work_id": "\"synthetic-notice\""}}, "reasons": []}
+exit 0
+$ nightdesk text propose notice.txt --mapping mappings/synthetic_text.yaml --provider replay --replay tests/fixtures/text/injected.json
+{"accepted": false, "proposal": null, "reasons": ["text_addresses_model"]}
+exit 1
+$ nightdesk text propose notice.txt --mapping mappings/synthetic_text.yaml --provider replay --replay tests/fixtures/text/wrong-year.json
+{"accepted": false, "cache_is_local": true, "proposal": null, "reasons": ["invalid_work_dates"]}
+exit 1
+$ nightdesk text propose notice.txt --mapping mappings/synthetic_text.yaml --provider replay --replay tests/fixtures/text/month-contradiction.json
+{"accepted": false, "cache_is_local": true, "proposal": null, "reasons": ["month_contradicts_dates"]}
+exit 1
+$ nightdesk gtfs import schedule.zip --actor Synthetic reviewer --namespace synthetic-gtfs --licence CC0 --bundle test-p2-cli
+GTFS scheduled only: accepted=22 rejected=0 capture=094dfd630f8d056170cf87d8928be434d756d496b4669ecbf2307bd15a5c466c; path_unresolved, never a booked path
+exit 0
+PHASE2_ACCEPTANCE_PASS; no live model request
+Retained synthetic workspace: /var/folders/61/ynsfcdvj2493g9l_5tkw1mj40000gn/T/nightdesk-phase2-accept-j1bboaqo

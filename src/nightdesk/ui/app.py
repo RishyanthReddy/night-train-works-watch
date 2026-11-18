@@ -32,6 +32,15 @@ def main():
     key = lambda text: bundle.name + ":" + text
     st.sidebar.caption("NDA: data stays local" if bundle.nda else "Local practice / test bundle")
     actor = st.sidebar.text_input("Local actor", value=getpass.getuser(), key=key("actor"))
+    demo_registry = None
+    if st.sidebar.checkbox("Public demo mode", key=key("demo_mode")):
+        try:
+            from nightdesk.demo import check_demo
+            demo_registry = check_demo("mappings/demo.yaml", bundle)
+            st.sidebar.caption("Public demo: hashed manifest assets only; text proposals use local replay.")
+        except (ValueError, OSError) as exc:
+            st.error("Public demo refused: " + str(exc))
+            st.stop()
     if key("flash") in st.session_state:
         st.success(st.session_state.pop(key("flash")))
     with st.sidebar.expander("Import local file"):
@@ -39,12 +48,15 @@ def main():
         mapping = st.text_input("Mapping YAML", key=key("mapping_file"))
         if st.button("Confirm mapping", key=key("confirm_mapping")):
             try:
+                if demo_registry: demo_registry.require(mapping)
                 sha = confirm_mapping(mapping, bundle, actor)
                 st.success("Confirmed " + sha)
             except (ValueError, OSError) as exc:
                 st.error(str(exc))
         if st.button("Import file", key=key("import_file")):
             try:
+                if demo_registry:
+                    demo_registry.require(file); demo_registry.require(mapping)
                 result = ingest(file, mapping, bundle)
                 if result.get("record_type") == "JourneyLinkMember":
                     import_links(bundle, result["capture_id"])
@@ -56,12 +68,14 @@ def main():
         manifest = st.text_input("Capture manifest YAML", key=key("manifest"))
         if st.button("Confirm capture mappings", key=key("confirm_batch")):
             try:
+                if demo_registry: demo_registry.require(manifest)
                 confirm_batch(manifest, bundle, actor)
                 st.success("Confirmed the declared mappings in this bundle.")
             except (ValueError, OSError) as exc:
                 st.error(str(exc))
         if st.button("Import capture", key=key("import_batch")):
             try:
+                if demo_registry: demo_registry.require(manifest)
                 result = ingest_batch(manifest, bundle)
                 for identifier in result["children"].values():
                     from nightdesk.desk import snapshot
@@ -71,6 +85,7 @@ def main():
                 st.rerun()
             except (ValueError, OSError) as exc:
                 st.error(str(exc))
+    render_text_intake(bundle, actor, key, demo_registry=demo_registry)
     try:
         imported = captures(bundle) + batches(bundle)
     except (ValueError, OSError) as exc:
@@ -97,6 +112,10 @@ def main():
     reviewed = {p.strip() for p in reviewed_text.split(",") if p.strip()}
     if not st.sidebar.checkbox("I reviewed those boundary point identities", key=key("reviewed")):
         reviewed = set()
+    from nightdesk.stations import load_aliases
+    alias_ids = sorted({e.payload["table_id"] for e in read_events(bundle) if e.kind == "aliases_confirmed"})
+    alias_table_id = st.sidebar.selectbox("Station alias table (optional)", alias_ids, index=None,
+        key=key("aliases"), help="Choose one reviewed table if this bundle contains more than one.")
     boundary_options = {}
     if old_id and new_id:
         try:
@@ -115,12 +134,20 @@ def main():
     boundary_ids = st.sidebar.multiselect("Boundary source legs (optional)", list(boundary_options),
         format_func=boundary_options.get, key=key(f"boundary_legs:{old_id}:{new_id}"),
         help="If several source records fit the linked train or leg number, choose the intended records for each selected capture. Multiple legs of a re-entering train need explicit choices with distinct leg numbers. Otherwise the boundary stays unknown. Choices never create a journey link.")
+    from nightdesk.desk import run_options
+    try:
+        dated_runs = run_options(bundle, [old_id, new_id, runs_id])
+    except (ValueError, OSError) as exc:
+        st.error(str(exc)); dated_runs = {}
+    run_selection_ids = st.sidebar.multiselect("Run observations (optional)", list(dated_runs),
+        format_func=dated_runs.get, key=key(f"run_choices:{old_id}:{new_id}:{runs_id}"),
+        help="Choose one source trip per train and service date when several fit. Until then works checks stay unknown; no trip is chosen automatically.")
     queue_tab, dossier_tab, audit_tab = st.tabs(["Queue", "Dossier", "Rejects and audit"], key=key("active_tab"), on_change="rerun")
     rows = []
     if old_id and new_id:
         try:
             rows = queue(bundle, old_id, new_id, works_capture_id=works_id, run_capture_id=runs_id,
-                         link_identifier=link_identifier, reviewed_points=reviewed, boundary_revision_ids=boundary_ids)
+                         link_identifier=link_identifier, reviewed_points=reviewed, boundary_revision_ids=boundary_ids, alias_table_id=alias_table_id, run_selection_ids=run_selection_ids)
         except (ValueError, OSError) as exc:
             st.error(str(exc))
     with queue_tab:
@@ -153,7 +180,7 @@ def main():
                 if revision is not None:
                     report = dossier(bundle, old_id, new_id, revision, date.fromisoformat(selected[1]),
                                      works_capture_id=works_id, run_capture_id=runs_id, link_identifier=link_identifier,
-                                     reviewed_points=reviewed, boundary_revision_ids=boundary_ids)
+                                     reviewed_points=reviewed, boundary_revision_ids=boundary_ids, alias_table_id=alias_table_id, run_selection_ids=run_selection_ids)
                     render_dossier(bundle, report, actor, key)
             except (ValueError, OSError) as exc:
                 st.error(str(exc))
@@ -182,6 +209,54 @@ def main():
             except (ValueError, OSError) as exc:
                 st.error(str(exc))
         st.json([event.model_dump(mode="json") for event in read_events(bundle)[-50:]])
+
+
+def render_text_intake(bundle, actor, key, demo_registry=None):
+    import json
+    from nightdesk.llm.client import propose, allowed
+    from nightdesk.intake.text import submit_text
+    with st.expander("Text notice — manual entry or optional proposal"):
+        st.caption("Proposals do not import a record or record a review. Every nonempty field needs an exact source quote. Missing facts stay missing.")
+        st.caption("Mistral consent: " + ("allowed for this bundle" if allowed(bundle) else "off for this bundle"))
+        if demo_registry:
+            replay_path = st.selectbox("Public synthetic replay", demo_registry.paths("replay"), key=key("demo_replay"))
+            if st.button("Replay checked notice", key=key("demo_replay_button")):
+                demo_registry.require(replay_path)
+                body = json.loads(replay_path.read_text())
+                result = propose(bundle, body["source_text"], demo_registry.paths("text_mapping")[0], provider="replay", replay_path=replay_path)
+                st.json(result)
+                if not result["accepted"]: st.error("Proposal refused: " + ", ".join(result["reasons"]))
+            return
+        mapping = st.text_input("Text dataset mapping", key=key("text_mapping"))
+        raw = st.text_area("Source notice text", key=key("notice_text"))
+        provider = st.selectbox("Text proposal provider", ["off", "replay", "mistral"], key=key("text_provider"))
+        replay_path = st.text_input("Replay file (local)", key=key("text_replay"))
+        if st.button("Get proposal only", key=key("text_propose")):
+            result = propose(bundle, raw, mapping, provider=provider, replay_path=replay_path or None)
+            st.session_state[key("text_proposal_result")] = result
+            if result["accepted"] and isinstance(result["proposal"], dict):
+                st.session_state[key("drafted_by")] = "llm" if provider == "mistral" else "replay"
+                st.session_state[key("text_fields")] = json.dumps(result["proposal"].get("fields", {}), ensure_ascii=False, indent=2)
+                st.session_state[key("text_quotes")] = json.dumps(result["proposal"].get("quotes", {}), ensure_ascii=False, indent=2)
+        result = st.session_state.get(key("text_proposal_result"))
+        if result:
+            if result["accepted"]: st.info("Proposal passed the checks. Inspect its fields and quotes before importing.")
+            else: st.error("Proposal refused: " + ", ".join(result["reasons"]))
+        with st.form(key("manual_text_form")):
+            drafted_by = st.selectbox("Drafting origin", ["manual", "llm", "replay"], key=key("drafted_by"))
+            fields = st.text_area("Work fields JSON (manual or proposed)", value="{}", key=key("text_fields"))
+            quotes = st.text_area("Exact source quotes JSON, keyed by field", value="{}", key=key("text_quotes"))
+            st.caption("Use canonical WorkNotice names, ISO dates, HH:MM clocks, and a declared timezone. German DD.MM.YYYY date quotes are also supported. No key is needed for manual entry.")
+            if st.form_submit_button("Check and import this work locally"):
+                try:
+                    result = submit_text(bundle, raw, {"fields": json.loads(fields), "quotes": json.loads(quotes)}, mapping, actor=actor, mode=drafted_by)
+                    if result.get("rejected"):
+                        st.error("Rejected: " + ", ".join(result.get("reasons", ["record_gate_failed"])))
+                    else:
+                        st.session_state[key("flash")] = "Imported checked work locally; no review or national approval recorded."
+                        st.rerun()
+                except (ValueError, OSError):
+                    st.error("Text import refused: check the mapping, fields and exact source quotes.")
 
 
 def render_dossier(bundle, report, actor, key):
@@ -222,6 +297,14 @@ def render_dossier(bundle, report, actor, key):
         st.json({"works": report["work_records_before"], "run": report["selected_run_before"], "findings": report["findings_before"]})
     with st.expander("Inspect selected run and source points"):
         st.json(report["selected_run"])
+    if st.button("Ask for a delay estimate", key=key("delay_request")):
+        from nightdesk.estimate import estimate_delay
+        from nightdesk.audit import append_event
+        refusal = estimate_delay()
+        append_event(bundle, "delay_request_refused", {"revision_id": report["selection_revision"], **refusal.model_dump(mode="json")})
+        st.warning(refusal.detail)
+        st.text(refusal.reason_code)
+        st.text(refusal.what_would_fix_it)
     st.write("Boundary checks")
     if any(f["reason"] == "unlinked" for f in report["findings"]):
         st.info("Journey not linked — boundary not checked.")

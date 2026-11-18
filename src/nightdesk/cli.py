@@ -36,6 +36,24 @@ def _cmd_sniff(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_gtfs(args):
+    from datetime import date
+    from nightdesk.adapters.gtfs import import_gtfs
+    result = import_gtfs(args.file, get_bundle(args.bundle or selected_bundle_name()), actor=args.actor,
+        namespace=args.namespace, licence=args.licence,
+        dates=[date.fromisoformat(d) for d in args.service_date] if args.service_date else None,
+        trip_ids=args.trip_id)
+    print(f"GTFS scheduled only: accepted={result['accepted']} rejected={result['rejected']} capture={result['capture_id']}; path_unresolved, never a booked path")
+    return 0
+
+
+def _cmd_aliases(args):
+    from nightdesk.stations import import_aliases
+    identifier = import_aliases(args.file, get_bundle(args.bundle or selected_bundle_name()), args.actor)
+    print("confirmed alias table=" + identifier)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="nightdesk",
@@ -85,6 +103,26 @@ def build_parser() -> argparse.ArgumentParser:
             cmd.add_argument("--actor", required=True)
         cmd.set_defaults(func=_cmd_capture)
 
+    gtfs = sub.add_parser("gtfs", help="import a local GTFS schedule as unresolved-path scheduled runs")
+    gtfs_sub = gtfs.add_subparsers(dest="action", required=True)
+    gtfs_import = gtfs_sub.add_parser("import")
+    gtfs_import.add_argument("file")
+    gtfs_import.add_argument("--bundle", default=None)
+    gtfs_import.add_argument("--actor", required=True)
+    gtfs_import.add_argument("--namespace", required=True)
+    gtfs_import.add_argument("--licence", required=True)
+    gtfs_import.add_argument("--service-date", action="append")
+    gtfs_import.add_argument("--trip-id", action="append")
+    gtfs_import.set_defaults(func=_cmd_gtfs)
+
+    aliases = sub.add_parser("aliases", help="import reviewed sourced station aliases into one bundle")
+    alias_sub = aliases.add_subparsers(dest="action", required=True)
+    alias_import = alias_sub.add_parser("import")
+    alias_import.add_argument("file")
+    alias_import.add_argument("--bundle", default=None)
+    alias_import.add_argument("--actor", required=True)
+    alias_import.set_defaults(func=_cmd_aliases)
+
     rejects = sub.add_parser("rejects", help="list rejected rows in this bundle")
     rejects.add_argument("--bundle", default=None)
     rejects.set_defaults(func=_cmd_rejects)
@@ -133,6 +171,34 @@ def build_parser() -> argparse.ArgumentParser:
     review.add_argument("--question")
     review.add_argument("--bundle", default=None)
     review.set_defaults(func=_cmd_review)
+    demo = sub.add_parser("demo", help="verify public demo assets and their input references")
+    actions = demo.add_subparsers(dest="action", required=True)
+    check = actions.add_parser("check")
+    check.add_argument("--manifest", default="mappings/demo.yaml")
+    check.add_argument("--bundle", default=None)
+    check.set_defaults(func=_cmd_demo)
+    consent = sub.add_parser("consent", help="record explicit bundle consent to Mistral only")
+    consent.add_argument("--bundle", default=None)
+    consent.add_argument("--actor", required=True)
+    toggle = consent.add_mutually_exclusive_group(required=True)
+    toggle.add_argument("--allow", choices=["mistral"])
+    toggle.add_argument("--revoke", choices=["mistral"])
+    consent.set_defaults(func=_cmd_consent)
+    text = sub.add_parser("text", help="quoted work proposal or local manual import")
+    actions = text.add_subparsers(dest="action", required=True)
+    for action in ("propose", "import"):
+        cmd = actions.add_parser(action)
+        cmd.add_argument("file")
+        cmd.add_argument("--mapping", required=True)
+        cmd.add_argument("--bundle", default=None)
+        if action == "propose":
+            cmd.add_argument("--provider", choices=["off", "replay", "mistral"], default="off")
+            cmd.add_argument("--replay")
+        else:
+            cmd.add_argument("--proposal", required=True)
+            cmd.add_argument("--drafted-by", choices=["manual","llm","replay"], default="manual")
+            cmd.add_argument("--actor", required=True)
+        cmd.set_defaults(func=_cmd_text)
     audit = sub.add_parser("audit", help="check a hash chain or print an external seal")
     actions = audit.add_subparsers(dest="action", required=True)
     for action in ("verify", "seal", "upgrade"):
@@ -149,6 +215,36 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _bundle(args):
     return get_bundle(args.bundle or selected_bundle_name())
+
+
+def _cmd_demo(args):
+    from nightdesk.demo import check_demo
+    registry = check_demo(args.manifest, get_bundle(args.bundle) if args.bundle else None)
+    print(f"demo check passed: {len(registry.assets)} hashed CC0/synthetic assets; input references checked; no network")
+    return 0
+
+
+def _cmd_consent(args):
+    from nightdesk.llm.client import consent
+    consent(_bundle(args), args.actor, allow=bool(args.allow))
+    print("Mistral consent recorded locally: " + ("allowed" if args.allow else "revoked"))
+    return 0
+
+
+def _cmd_text(args):
+    from pathlib import Path
+    from nightdesk.llm.client import propose
+    from nightdesk.intake.text import submit_text
+    bundle = _bundle(args)
+    check_input(args.file, bundle)
+    text = Path(args.file).read_text("utf-8")
+    if args.action == "propose":
+        result = propose(bundle, text, args.mapping, provider=args.provider, replay_path=args.replay)
+    else:
+        check_input(args.proposal, bundle)
+        result = submit_text(bundle, text, json.loads(Path(args.proposal).read_text()), args.mapping, actor=args.actor, mode=args.drafted_by)
+    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+    return 1 if result.get("rejected") or result.get("accepted") is False else 0
 
 
 def _cmd_confirm(args):

@@ -6,10 +6,10 @@ from nightdesk.runs import segments
 from nightdesk.timeutil import pass_window, work_windows, overlap
 
 
-MATCH_RULE_VERSION = "match-v3"
+MATCH_RULE_VERSION = "match-v4"
 
 
-def match_work(revision: Revision, run: TrainRun) -> Exposure | None:
+def match_work(revision: Revision, run: TrainRun, *, resolver=None) -> Exposure | None:
     """None is verified no overlap. Unknowns always carry a reason.
 
     Unlocated results are global unresolved work rows, not evidence of exposure
@@ -23,12 +23,29 @@ def match_work(revision: Revision, run: TrainRun) -> Exposure | None:
     if any(not g.passed for g in gates):
         raise ValueError("work_record_failed_gates")
     refs = [revision.source] + run.input_refs
+    resolved_places = {}
+    changes = {}
+    if resolver is not None:
+        if resolver.bundle != revision.source.bundle:
+            raise ValueError("cross_bundle_aliases")
+        for side in ("from", "to"):
+            if getattr(work, side + "_point_id") is None and getattr(work, side + "_place"):
+                result = resolver.resolve(getattr(work, side + "_place"))
+                resolved_places[side] = result.as_dict()
+                refs.extend(result.input_refs)
+                if result.point_id:
+                    changes[side + "_point_id"] = result.point_id
+        if changes:
+            work = work.model_copy(update=changes)
+
     if any(ref.bundle != revision.source.bundle for ref in refs):
         raise ValueError("cross_bundle_match")
     common = dict(service_date=run.service_date, train_no=run.train_no, work_revision=revision.revision_id,
-                  input_refs=refs, gate_results=gates, rule_version=MATCH_RULE_VERSION)
+                  input_refs=refs, gate_results=gates, rule_version=MATCH_RULE_VERSION, place_resolution=resolved_places)
     def unknown(reason):
         return Exposure(**common, outcome="time_unknown", reasons=[reason])
+    if revision.identity != "certain":
+        return unknown("identity_uncertain")
     if work.recurrence == "unknown":
         return unknown("recurrence_unknown")
     if run.unresolved.get("point_order"):
@@ -88,6 +105,9 @@ def match_work(revision: Revision, run: TrainRun) -> Exposure | None:
         return None
     overlapping.sort()
     reasons = sorted(assumptions)
+    reasons.extend(side + "_" + evidence["reason"] for side, evidence in resolved_places.items() if evidence["reason"])
+    if changes:
+        reasons.append("reviewed_alias_resolution")
     if len(overlapping) > 1:
         reasons.append("first_of_multiple_overlap_windows_shown")
     resolved = all(endpoint_ids)
@@ -115,10 +135,10 @@ def match_work(revision: Revision, run: TrainRun) -> Exposure | None:
                     overlap_window=list(overlapping[0]))
 
 
-def check_works(revisions: list[Revision], run: TrainRun):
+def check_works(revisions: list[Revision], run: TrainRun, *, resolver=None):
     exposures, no_match = [], 0
     for revision in revisions:
-        result = match_work(revision, run)
+        result = match_work(revision, run, resolver=resolver)
         if result is None:
             no_match += 1
         else:

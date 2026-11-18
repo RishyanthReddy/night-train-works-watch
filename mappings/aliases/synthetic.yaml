@@ -1,0 +1,6 @@
+version: 1
+aliases:
+  - {name: Synthetic Alpha, point_id: 'syn:a', source: 'authored synthetic point a in tests/test_match.py', licence: synthetic, reviewed: true}
+  - {name: Synthetic Charlie, point_id: 'syn:c', source: 'authored synthetic point c in tests/test_match.py', licence: synthetic, reviewed: true}
+  - {name: Synthetic Central, point_id: 'syn:a', source: 'authored ambiguous synthetic example, candidate a', licence: synthetic, reviewed: true}
+  - {name: Synthetic Central, point_id: 'syn:c', source: 'authored ambiguous synthetic example, candidate c', licence: synthetic, reviewed: true}

@@ -124,3 +124,27 @@ def get_bundle(name: str, out_root: Path = OUT_ROOT) -> Bundle:
 def selected_bundle_name() -> str:
     """Bundle chosen by NIGHTDESK_BUNDLE, defaulting to practice."""
     return os.environ.get(BUNDLE_ENV) or DEFAULT_BUNDLE
+
+# Technical bounds for a local archive, not claims about timetable duration.
+MAX_GTFS_BYTES = 128 * 1024 * 1024
+MAX_GTFS_HOURS = 240
+MAX_GTFS_SERVICE_DAYS = 10000
+MAX_GTFS_ROWS = 50000
+
+# Text parser/request resource limits; no operational or prediction thresholds.
+MAX_NOTICE_CHARS = 24000
+MAX_MODEL_RESPONSE_BYTES = 256 * 1024
+MISTRAL_HOST = 'api.mistral.ai'
+MISTRAL_MODEL = 'mistral-small-latest'
+MISTRAL_TIMEOUT_SECONDS = 30
+MISTRAL_MAX_TOKENS = 3000
+TEXT_INJECTION_MARKERS = ('ignore previous instructions', 'ignore all instructions', 'mark as safe',
+                          '<|system|>', '<|assistant|>', '[inst]', '[/inst]', 'system:',
+                          'developer:', 'assistant:', 'überschreibe die regeln', 'ignoriere vorherige anweisungen')
+TEXT_MONTHS = {'january': 1, 'januar': 1, 'february': 2, 'februar': 2, 'march': 3, 'märz': 3,
+               'april': 4, 'may': 5, 'mai': 5, 'june': 6, 'juni': 6, 'july': 7, 'juli': 7,
+               'august': 8, 'september': 9, 'october': 10, 'oktober': 10, 'november': 11,
+               'december': 12, 'dezember': 12}
+
+TEXT_INJECTION_PATTERNS = (r"\b(?:ignore|disregard) (?:the )?(?:previous|prior|all) instructions\b",
+                           r"\b(?:system|assistant|developer)\s*:", r"<\|", r"\[/?inst\]")

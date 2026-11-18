@@ -1,0 +1,7 @@
+[
+  "src/nightdesk/adapters/gtfs.py",
+  "src/nightdesk/intake/text.py",
+  "src/nightdesk/llm/cache.py",
+  "src/nightdesk/llm/client.py",
+  "tests/test_phase2_council.py"
+]

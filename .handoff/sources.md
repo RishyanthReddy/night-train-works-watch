@@ -1,101 +1,45 @@
 # Sources — verified facts only
 
+Earlier evidence retained verbatim at history/20261118-before-phase2-council/sources.md; earlier research at history/20261117-before-phase0-closure/sources.md. These archives are historical evidence, not new verification.
+
 | Fact | Verified by | When |
 |---|---|---|
-| User authorised Phase 0 only, TODO, council after completion, local commit; no remote/push or API keys. | Current chat instructions and KICKOFF.md Phase 0. | 2026-11-17 |
-| User waived unavailable DeepSeek and chose Opus/Sol. | Cursor weekly-usage failure plus explicit user reply “Finish with Opus and Sol”. | 2026-11-17 |
-| Baseline exists on phase0 at fedda2c. | git show --stat --oneline HEAD and git branch --show-current. | 2026-11-17 |
-| Initial fresh setup/test commands exited 0; pytest collected/passed 111. | Actual tool output; phase0-direct-evidence.md. Earlier zero-test history is archived, not the current result. | 2026-11-17 |
-| P0.1–P0.8 product and synthetic fixtures are present; P0.9 absent/skipped. | TODO.md, current src/tests/mappings and scope inspection. | 2026-11-17 |
-| Council round 1: Opus 6.5/10 and Sol 8/10, both changes requested. | Completed T3 task results saved as council-r1-opus.md / council-r1-sol.md. | 2026-11-17 |
-| All round 1 findings have fixes with passing targeted regressions. | review.md; tests/test_phase0_regressions.py, test_mapping.py, test_generic.py. Round 2 approved by both reviewers. | 2026-11-17 |
-| 191 tests pass with keys unset and networking denied. | phase0-tests-r2.log; sandbox-exec deny network*, six env variables unset; exit 0. | 2026-11-17 |
-| All six CLI acceptance steps pass; ordinary/denied stdout equal. | phase0-acceptance-isolated-r2.log and retained-workspace phase0-acceptance-r2.log, exit 0. | 2026-11-17 |
-| JSON/XLSX sniff+ingest and merged headers -> flatten -> ingest pass without networking. | Same acceptance log, real subprocess commands and exit codes. | 2026-11-17 |
-| Synthetic audit ingest measured 3000 rows 0.174s, 6000 rows 0.316s; no rejected rows. | phase0-performance-r2.log. This is a local synthetic measurement, not a general throughput claim. | 2026-11-17 |
-| Audit concurrent writers allocate unique sequences. | Four-process 80-event regression test passed in the 191-test run. | 2026-11-17 |
-| requests dependency removed; certifi MPL-2.0 and four other network packages removed from lock/environment. | Installed metadata inspection, uv lock output, git diff uv.lock and uv sync --frozen --offline exit 0. | 2026-11-17 |
-| KICKOFF, historical script, empty package initializer and SPEC tail remain unchanged by this work. | phase0-direct-baseline.json hashes, scope commands. AGENTS/CLAUDE hashes changed during the session; coordinator did not write/stage them. | 2026-11-17 |
-| Real operational claims are outside Phase 0; tests use synthetic inputs. | fixtures/admin/README.md, fixture/mapping contents and no fetch/model code in src. | 2026-11-17 |
-| Council round 2 approved 9/10 each with 34 matching hashes and no remaining Phase 0 blockers. | council-r2-opus.md / council-r2-sol.md, completed T3 task results. | 2026-11-17 |
-| Approved product committed locally as d220f620748737ba5709bc161ca63b2cd5750cb6; all 34 reviewed Git blobs and working files match; no tracked data or remotes. | git commit exit 0, SHA256 assertions against git show, git ls-files data/ empty, git remote -v empty. | 2026-11-17 |
+| Phase1 follow-up1ff48d320d5256e0a4b292ce1f1c64eb91b9db0e is current Phase2 baseline; R6 allthree9/10. | git rev-parse HEAD, branchphase2, saved R6 reports and94-blob assertions; state archive. |2026-11-18|
+| User authorised Phase2 continuation after the follow-up; backend full goal still paused, no resume status exposed. | User instruction, get_goal actual output and goal tool schemas. |2026-11-18|
+| P2.1 aliases isolated/hashed and evidence retained;347 tests34.29s passed. |phase2-p21-tests.log EXIT0, test_stations.py.|2026-11-18|
+| P2.2 uncertainwork and multi-date absolute event binding stay unknown;67 tests16.42s passed. |phase2-p22-tests.log EXIT0, test_phase2_dates.py.|2026-11-18|
+| Saved public GTFS ZIP sha2563709cba860addad9da44361bbeba673a9a098f2d38f21cab7bc10fa8ccfaf350; eight files; authored subset manifest preserves selected raw cells. |Isolated Python ZIP/CSV inspection from repo; tests/fixtures/gtfs/manifest.json and test_gtfs.py.|2026-11-18|
+| Upstream deryclem feed and station data declared CC0, unofficial timetable; GTFS time is service-day local noon minus12 elapsed hours plus HH:MM:SS, may exceed24. |https://github.com/deryclem/european-sleeper-gtfs#license ; https://gtfs.org/documentation/schedule/reference/#field-types , read before adapter. No official booked-path claim.|2026-11-18|
+| P2.3 initial65 tests passed0.48s; later full suite also covers actual imported GTFS B cap and audited invalid timezone. |phase2-p23-tests.log; test_gtfs.py; phase2-final-tests.log.|2026-11-18|
+| Delay request refuses without digits/numeric prediction in refusal, actual AppTest click/audit/export pass. |test_estimate.py, phase2-p25-tests.log and viewed phase2-app-refusal.png.|2026-11-18|
+| Mistral JSON mode uses response_format type json_object; API POST /v1/chat/completions documented. |https://docs.mistral.ai/inference/conversations/structured-output/json_mode ; https://docs.mistral.ai/api/endpoint/chat , opened before code.|2026-11-18|
+| Model requests fixed HTTPS api.mistral.ai, no redirect; explicit dataset/bundle/confirmation gates, consent revocation; manual works without keys, replay isolated. |test_text.py mocked transport/policy and CLI/AppTest; phase2-p25-tests.log EXIT0. No live model request/spend.|2026-11-18|
+| Three authored poison notices rejected without capture/review/mapping changes; replay equality verified networkdenied. |test_text_security.py, phase2-p26/p27-tests.log EXIT0; actual CLI phase2-acceptance.log and viewed phase2-app-poison.png.|2026-11-18|
+| Public demo checks27 hashed synthetic assets/transitive input refs; refuses NDA/unlisted/restricted/tampered/cyclic sources. |nightdesk demo check actual output, test_demo.py, phase2-p27-tests.log EXIT0.|2026-11-18|
+| Final381 tests36.09s passed under OSnetworkdenial with six credential variables absent; no dependency edits. |phase2-final-tests.log EXIT0; uv sync --frozen --offline checked45 packages exit0.|2026-11-18|
+| Six Phase0 CLI steps and JSON/XLSX/flatten remain passing; Phase2 actual CLI accepted22 scheduledGTFS rows0rejects, equal replay stdout and poison exit1. |phase2-phase0-acceptance.log and phase2-acceptance.log; subprocess exit0.|2026-11-18|
+| Actual app three synthetic unknown cases, malicious replay refusal and nonnumeric delay refusal viewed; native tab/server closed. |phase2-app-different/clock/partial/poison/refusal.png, native preview DOM/actions/snapshot images; close and server shutdown exit0. No fallback used.|2026-11-18|
+| Four protected hashes match, tracked changes only allowed Phase2 paths, no tracked data or configured remote. |Python SHA256/git diff name assertions, git ls-files data/, git remote -v empty; git diff --check exit0.|2026-11-18|
 
-Earlier research sources are preserved locally at history/20261117-before-phase0-closure/sources.md. They are not revalidated by the Phase 0 build or silently committed.
+| Phase2 R1 council launched: Kiro Opus5.5 medium, Codex Sol high, Grok4.7 high;127 frozen hashes remain unchanged. No approval/score claimed. |Current orchestrator_capabilities listed exact models/options, three delegate_task starting/working results and phase2-council-r1-tasks.json; SHA256 assertions after launch.|2026-11-18|
 
-| Phases 1–3 now authorised, current branch phase1 from d340990; baseline frozen sync and 191 tests passed. | User instruction, git switch -c phase1 exit 0, uv sync --frozen --offline exit 0 and pytest exit 0. | 2026-11-17 |
-| Streamlit UI dependency needs transitive certifi; user approved this specific exception to KICKOFF rule 6. | uv pip install --dry-run streamlit output and explicit user reply “Allow certifi for Streamlit”. | 2026-11-17 |
+| R1 allchangesrequested Opus7.5/Sol8/Grok7;127producthashes match, leak reproduction uses fakekey only. All fixes implemented after reviews complete. | Completed thread reads, copied phase2-council-r1 reports, snapshot assertion before edits.|2026-11-18|
+| R1 fix run415tests39.00s EXIT0 networkdenied/sixkeysunset; actualPhase0/Phase2CLI EXIT0; frozen sync45packages; scope/protected/token-pattern checks pass. |phase2-r2-final-tests.log, phase2-r2-acceptance.log, phase2-r2-phase0-acceptance.log; new128-file R2snapshot/delta; test_phase2_council.py.|2026-11-18|
+| GTFS stop_times uses agency timezone even when stop_timezone differs; invalid stop zone nowrefused. |Official https://gtfs.org/documentation/schedule/reference/#stop_timestxt reopened; test_stop_timezone_validated_but_stop_times_use_agency_zone passing.|2026-11-18|
 
-| Phase 1 P1.1–P1.13 implementation and synthetic browser acceptance executed; final council pending. | phase1-evidence.md, phase1-offline-tests.log (295 passed), phase1-phase0-acceptance.log, viewed phase1-accept-*.png. | 2026-11-17 |
+| Fresh R2 three exact councilmembers launched;128producthashes verified unchanged afterlaunch. Candidateproductpaths recorded, not staged/committed. |delegate_taskstarting/working responses, phase2-council-r2-tasks.json; SHA256 and gitshow assertions; phase2-commit-candidates.json.|2026-11-18|
 
-| All three Phase1 council R1 reviews completed with matching89 product hashes; changes requested. | Delivered results, saved phase1-council-r1-opus.md / sol.md / grok.md. Parent independently reproduced stale queue and A→B→A in temporary synthetic workspace. | 2026-11-17 |
-| Prepared first fixes passed302 tests under OS network denial, six credential variables unset; original89 hashes stayed unchanged during review. | /tmp preparation copy log prepared-offline-tests.log, exit0; source/test copies verified by prepared-files.json before applying. | 2026-11-17 |
+| SolR2 changesrequested8.5/10 for list/objectreplaylicence TypeError with no audit; originalR1fixes stand andagencytimezoneobjectionupheld. Builderreproduced4defect assertions in untouched reviewcopy;128mainhashesstillmatch. |Completed Solthreadread; phase2-council-r2-sol.md; bash reviewer run.sh parent-repro pytest -q -s test_independent_r2.py -k malformed_metadata/metadata_crashes =>4passed,7deselected0.44s; SHAassertions.|2026-11-18|
 
-| Phase1 council fix round1:309 tests pass with network denied and all six credential variables unset; Phase0 acceptance/format swap exit0. | phase1-r2-offline-tests.log, phase1-r2-phase0-acceptance.log; review.md maps every finding to verification. | 2026-11-17 |
-| Fixed UI visually checked with local synthetic inputs, including removed date, scoped count, work records and prominent stale warning; local audit seal verifies. | Viewed phase1-r2-queue/works/evidence/stale/removed-queue/removed-dossier.png; phase1-r2-audit-cli.log. | 2026-11-17 |
+| OpusR2 APPROVE8.5/10;415tests40.06s/128hashes/Phase0+2CLIpass; four lowresiduals. Builder independently reproduced nestedJSON/corruptdeflate/missingzonebasis/ordinarymonthprose without productedits. |Completed Opusthreadread; phase2-council-r2-opus.md, phase2-r2-opus-parent-repro.log EXIT0;128SHAassertions.|2026-11-18|
 
-| Sol Phase1 council R2 requests whole-leg presence and removed-date boundary fixes;90 hashes matched. Prepared changes in temporary copy leave original product unchanged. | phase1-council-r2-sol.md; /tmp/nightdesk-p1-r2-sol-review/edgecases.log; prepared tests/test_phase1_presence.py, focused20 tests passed exit0. next.md points to copy. | 2026-11-17 |
-| Local synthetic loading measured50=0.157s,100=0.490s,200=1.751s; no general performance guarantee inferred. | Parent read-only scaling command, temporary synthetic workspace;90 frozen hashes unchanged. | 2026-11-17 |
-| Prepared Sol R2 fixes pass315 tests with OS network denial and six credential variables unset; not applied to reviewed checkout. | phase1-r2-prepared-offline-tests.log, exit0. | 2026-11-17 |
+| GrokR2 APPROVE9,415tests39.07s/Phase0+2CLIpass/128hashes; allR2finished8.5/8.5/9, agencytimezoneobjectionupheld. |CompletedGrokthreadread and phase2-council-r2-grok.md;128SHAassertions beforeedits.|2026-11-18|
+| Five-file R2correction passes429tests40.09s EXIT0/networkdenied/sixkeysunset; actualPhase0/2CLI EXIT0; frozen sync45packages/scope/protected hashes pass. |phase2-r3-final-tests.log, phase2-r3-acceptance.log, phase2-r3-phase0-acceptance.log; test_phase2_council.py;128-fileR3snapshot and five-filedelta.|2026-11-18|
 
-| New continuation goal active; main resume sync/test baseline exit0 with309 tests; no product snapshot mismatches before presence proposal applied. All R2 reviews complete, no pending delegates. | get_goal returned null then create_goal succeeded; current command output; saved Opus/Grok R2 reports and earlier Sol report. | 2026-11-17 |
+| FocusedR3 allthreeexactmodelreviewslaunched;128producthashesremainmatching, five-filedelta only. No verdict/score yet. |Threedelegate_taskstarting/working responses, phase2-council-r3-tasks.json; SHA256assertions afterlaunch.|2026-11-18|
 
-| Phase1 R2 fixes pass325 tests with OS network denial and all six credentials unset; Phase0 acceptance and actual CLI workflow pass. | phase1-r3-offline-tests.log, phase1-r3-phase0-acceptance.log, phase1-r3-cli.log. | 2026-11-17 |
-| Synthetic2x2000 rows with explicit predecessor links import in1.715/3.097s; snapshot2000=.821s, all4000=1.578s, decision1.844s on this host. | phase1-r3-scaling-regressions.log; bounded audit/capture read counters. | 2026-11-17 |
-| Whole-leg added/removed dossiers viewed; removed-side review/question/export and partial unknown presence checked in live browser. Further screenshots/selection automation failed; removed-date/group fresh visual check UNKNOWN — not checked. | phase1-r3-removed.png / added.png viewed via view_image, live DOM and synthetic bundle audit; current AppTest covers additional flows. | 2026-11-17 |
-| Protected KICKOFF/SPEC/historical fetcher/gitignore hashes match baseline; server stopped, owned browser tab closed. | SHA256 assertions phases1-3-baseline.json and tool completion output. | 2026-11-17 |
+| OpusR3APPROVE9/10,429tests43.03s/128hashes/Phase0+2CLIpass; allfiveR2itemsfixed, no materialregression. Acceptedlowbzip2errorwordingnote failsclosed/audited. |CompletedOpusthreadread, phase2-council-r3-opus.md and import_gtfs OSErrorboundarycode; main128SHAassertions.|2026-11-18|
 
-| Council R3 launched with exact skill models; no score or approval claimed. All92 frozen product hashes remain unchanged. | orchestrator_capabilities confirmed model IDs/options; delegate_task responses and phase1-council-r3-tasks.json; local SHA256 assertions. | 2026-11-17 |
+| SolR3APPROVE9/10,429tests42.97s+62probes/actualPhase0+2CLIpass/128hashes; no newproductfindings. Handoffwhitespacecleaned, productunchanged. |CompletedSolthreadread; phase2-council-r3-sol.md; gitdiffcheck and128SHAassertions.|2026-11-18|
 
-| Fresh browser visual checks now cover removed-date mismatch and explicit multi-leg selection before opening dossier. T3 preview had no screenshot frames; fallback agent-browser ownsession used and closed. | Viewed phase1-r3-removed-date.png, phase1-r3-group-choice.png, phase1-r3-group-dossier.png; server shutdown exit0. Earlier UNKNOWN visual statement above is superseded by this check. | 2026-11-17 |
-
-| Opus Phase1 R3 approved9/10,325 tests and independent roughlylinear scaling;92 hashes matched. Two nonblocking display/explanation issues recorded. | Delivered review, completed thread read, /tmp/p1r3opus/report.md copied to phase1-council-r3-opus.md; builder inspected desk.py loop/summary. | 2026-11-17 |
-
-| Builder independently reproduced Opus R3 missing-neighbour explanation and duplicate no_run_selected. | PYTHONDONTWRITEBYTECODE=1 sandbox-exec deny network, six variables unset, /tmp/p1r3opus/ws/.venv/bin/python /tmp/p1r3opus/probe/p2.py /tmp/nightdesk-main-r3-adjacent-repro exit0; bb after1 agrees vs before2, unresolved no_run_selected twice. | 2026-11-17 |
-
-| Sol R3 requests changes8/10 for cubic boundary enumeration. Builder reproduced6*n^3 access counts; prepared fix passes13 focused tests and800-leg queue measured1.181s. | phase1-council-r3-sol.md; command outputs, phase1-r3-prepared-evidence.md and temporary queue_benchmark.py. Main product remains frozen. | 2026-11-17 |
-
-| Prepared R3 fixes pass330 tests22.62s with OS network denied and six credentials unset; not yet applied. Main92 frozen hashes still match. | uv run --offline --no-sync pytest -q exit0 in phase1-r3-prepared-path.txt workspace; prepared-files.json SHA256; main snapshot assertions. | 2026-11-17 |
-
-| Prepared adjacency explanation visibly shows unknown in surviving-leg dossier with explicit link; proposal not applied. | Temporary app on8502, own agent-browser fallback, viewed phase1-r3-prepared-adjacent.png; both closed; fixture restored and hashes asserted. | 2026-11-17 |
-
-| Phase2 is now held until user continuation after Phase1 fixes/review/commit. | Latest user instruction in this chat; state/next/TODO checkpoint updated. | 2026-11-17 |
-
-| Local commit preflight: three run-fixture hashes/counts match manifest; existing Git history224 commits/611 distinct blobs has zero private-key/GitHub/OpenAI-key pattern matches; no tracked data or remote. | Python assertions using runs/manifest.json, git rev-list --all/ls-tree/cat-file, git ls-files data/, git remote -v. This is a pattern scan, not a guarantee of absence. Proposal retained in phase1-r3-proposal.json; candidates listed but not staged. | 2026-11-17 |
-
-| All R3 reviews finished; applied exactly two prepared product files, now330 tests22.04s pass with network denial/six credentials unset. Phase0 and full actual CLI integration pass;800-leg queue1.185s. | Completed Grok thread read/report; main phase1-r4-*.log EXIT0; new93-file snapshot diff assertions. Initial extra CLI setup failed from interpreter symlink resolution, then corrected without product edits. | 2026-11-17 |
-
-| Focused R4 council launched with all three exact skill models/options; no score claimed. All93 product hashes match. | delegate_task returned starting/working with completion-wakeup policy; phase1-council-r4-tasks.json and SHA256 assertions. | 2026-11-17 |
-
-| Phase1 task-by-task builder completion audit mapped every P1.1–P1.13 and app/swap requirement to current evidence; R4 approval and local commit remain pending. All14 model class names and four EXIT0 logs asserted;93 hashes match. | phase1-completion-audit.md, AST/model and log/SHA256 assertions. | 2026-11-17 |
-
-| Opus R4 approved9/10;330 tests+46 probes and roughlylinear all-sequence1 queue;93 hashes matched. Mixed-request pre-existing quadratic unknown expansion noted as nonblocking. | Completed thread read; phase1-council-r4-opus.md, /tmp/p1r4opus/multi-r4.log; builder inspected candidate and link gates. | 2026-11-17 |
-
-| Sol R4 approved9/10;330 tests+7 independent checks,1757 selected-leg evaluations preserve findings order; Phase0/CLI pass and93 hashes match. | Completed Sol thread read and saved phase1-council-r4-sol.md from /tmp/nightdesk-p1-r4-sol-0wjknr87/report.md. | 2026-11-17 |
-
-| Mixed-request sequence expansion reproduced in main code without source edits; every emitted boundary entry unknown/unlinked. | phase1-r4-mixed-requests.log EXIT0,25/50 requests and audit payload assertions; no positive inferred. | 2026-11-17 |
-
-| Phase1 R4 unanimously APPROVE9/10; all93 product hashes matched each reviewer. Frozen offline sync exit0 checked45 packages. P1-R4-O1 explicitly deferred nonblocking; local commit pending. | Saved phase1-council-r4-{opus,sol,grok}.md, completed thread reads, uv sync output, review.md decision and hash assertions. | 2026-11-17 |
-
-| Approved Phase1 product committed locally as 6d11e5c4ce426ea25d565c418d9e4ac2a1ff2412;93 Git blobs/working files match approved snapshot;4 protected hashes match; committed paths pattern scan clean; no tracked data or remote. | git commit exit0; git show/working SHA256 assertions, protected baseline, git ls-files data/, git remote -v and committed-blob pattern scan. | 2026-11-17 |
-
-| User-authorised P1-R4-O1 follow-up passes336 tests33.53s OSnetworkdenied/sixcredentialsunset, Phase0/CLI and frozen sync; mixed800legs queue1.189s,1 border entry per row. Native UI unlinked/ambiguous/chosen states actually viewed. | phase1-mixed-fix-tests/phase0/cli/scaling.log EXIT0; phase1-mixed-fix-unlinked/ambiguous/chosen.png and native preview output; browser/server closed. | 2026-11-18 |
-
-| Final same-member/different-sequence ambiguity guard included;336 tests33.53s/Phase0/CLI pass under network denial/six credentials unset. R5 three reviews launched;94 product hashes frozen. | phase1-mixed-fix-tests/phase0/cli.log EXIT0, phase1-council-r5-snapshot.json and task handles. | 2026-11-18 |
-
-| Opus R5 approved8.5/10,336 tests;94 hashes match. Reentry/deselected-neighbour nonblockers recorded; proposed changes prepared in temporary copy, not main. | Completed thread read/report phase1-council-r5-opus.md; phase1-r5-prepared-proposal.json. | 2026-11-18 |
-
-| Prepared R5 reentry/excluded-neighbour refinements pass337 tests35.08s, OSnetworkdenied/sixcredentialsunset; not applied to main. | phase1-r5-prepared-tests.log EXIT0, proposal hash/delta assertions and phase1-r5-prepared-evidence.md. | 2026-11-18 |
-
-| Sol R5 approved9/10;336 tests+16 probes, Phase0/CLI pass networkdenied;94 hashes match;800leg mixedqueue1.217s/1entry. | Completed thread read; phase1-council-r5-sol.md copied from reviewer report. | 2026-11-18 |
-
-| User authorised Phase2 after the current fix closes and requested goal resume. Backend goal still paused at read; no active/resume update tool exists. | Latest user instruction and get_goal output/tool schema; state/next/TODO updated without claiming a changed backend status. | 2026-11-18 |
-
-| R5 all approve8.5/9/9;94 hashes matched. Applied exactly3 prepared refinement files after reviews ended. Main337 tests34.55s and CLI pass; live reentryDOM2mismatches, screenshots failed. | Saved R5reports; phase1-r6-tests/cli.log EXIT0; R5→R6SHA assertions; nativebrowserDOM; browser/server closed. No fresh reentry visual claim. | 2026-11-18 |
-
-| Focused3-file R6 recheck launched with exact council models; no verdict claimed;94 hashes match. | delegate_task starting/working outputs and phase1-council-r6-tasks.json; SHA256 assertions. | 2026-11-18 |
-
-| Opus R6 approved9/10;337 tests/94hashes; reentry and excluded-neighbour gaps fixed. Precommit product/protected hashes, pattern scan and no-data/no-remote assertions pass. | Completed thread read, phase1-council-r6-opus.md; local SHA256/pattern/git assertions. | 2026-11-18 |
-
-| Sol R6 approved9/10;337 tests+14 independent probes pass,94 hashes match. | Completed Sol thread read and saved phase1-council-r6-sol.md. | 2026-11-18 |
-
-| R6 unanimously APPROVE9/10;337 tests and94 matching hashes each. Follow-up complete pending local commit, then Phase2 authorised. | Saved phase1-council-r6-{opus,sol,grok}.md and completed thread reads. | 2026-11-18 |
+| GrokR3 APPROVE9/10,429tests42.47s/Phase0+2CLIpass/128hashes. R3unanimous9/10; no remainingmaterialPhase2findings. |CompletedGrokthreadread; phase2-council-r3-grok.md;128SHAassertions.|2026-11-18|

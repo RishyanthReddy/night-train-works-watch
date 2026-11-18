@@ -32,7 +32,7 @@ def run(**changes):
 def test_a_needs_both_endpoints_and_known_line_time():
     result = match_work(work(), run())
     assert result.outcome == "A" and result.overlap_window
-    assert len(result.input_refs) == 2 and result.rule_version == "match-v3"
+    assert len(result.input_refs) == 2 and result.rule_version == "match-v4"
     assert all(g.passed for g in result.gate_results)
 
 

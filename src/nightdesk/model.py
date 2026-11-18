@@ -320,6 +320,7 @@ class Exposure(_Record):
     overlap_window: list[AwareDatetime] | None = None
     gate_results: list[GateResult] = Field(default_factory=list)
     input_refs: list[SourceRef] = Field(default_factory=list)
+    place_resolution: dict[str, JSONValue] = Field(default_factory=dict)
     rule_version: str = "match-v1"
 
 
@@ -357,3 +358,9 @@ class FollowUp(_Record):
         if self.deadline is not None and self.deadline_source is None:
             raise ValueError("deadline_requires_source")
         return self
+
+
+class Refusal(_Record):
+    reason_code: str
+    detail: str
+    what_would_fix_it: str

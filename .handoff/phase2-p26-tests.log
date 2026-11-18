@@ -1,0 +1,5 @@
+COMMAND: ['sandbox-exec', '-p', '(version 1)(allow default)(deny network*)', 'uv', 'run', '--offline', '--no-sync', 'pytest', '-q', 'tests/test_text_security.py', 'tests/test_text.py']
+............                                                             [100%]
+12 passed in 0.57s
+
+EXIT: 0

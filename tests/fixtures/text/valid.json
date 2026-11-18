@@ -1,0 +1,42 @@
+{
+  "dataset": "synthetic_text",
+  "licence": "synthetic",
+  "proposal": {
+    "fields": {
+      "clock_from": "23:00",
+      "clock_to": "04:55",
+      "country": "zz",
+      "date_end": "2026-11-18",
+      "date_start": "2026-11-17",
+      "effect": "closure",
+      "from_place": "Synthetic Alpha",
+      "recurrence": "periodical",
+      "timezone": "Europe/Brussels",
+      "to_place": "Synthetic Charlie",
+      "weekdays": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "work_id": "synthetic-notice"
+    },
+    "quotes": {
+      "clock_from": "\"23:00\"",
+      "clock_to": "\"04:55\"",
+      "country": "\"zz\"",
+      "date_end": "\"2026-11-18\"",
+      "date_start": "\"2026-11-17\"",
+      "effect": "\"closure\"",
+      "from_place": "\"Synthetic Alpha\"",
+      "recurrence": "\"periodical\"",
+      "timezone": "\"Europe/Brussels\"",
+      "to_place": "\"Synthetic Charlie\"",
+      "weekdays": "[1, 2, 3, 4, 5]",
+      "work_id": "\"synthetic-notice\""
+    }
+  },
+  "source_text": "Authored synthetic notice, not an operational event.\nwork_id: \"synthetic-notice\"\ncountry: \"zz\"\ndate_start: \"2026-11-17\"\ndate_end: \"2026-11-18\"\nclock_from: \"23:00\"\nclock_to: \"04:55\"\nrecurrence: \"periodical\"\nweekdays: [1, 2, 3, 4, 5]\ntimezone: \"Europe/Brussels\"\nfrom_place: \"Synthetic Alpha\"\nto_place: \"Synthetic Charlie\"\neffect: \"closure\"",
+  "version": 1
+}

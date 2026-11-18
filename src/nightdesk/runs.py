@@ -21,9 +21,9 @@ def build_runs(rows: list[RunRow], *, kind: str | None = None) -> list[TrainRun]
     groups = defaultdict(list)
     for row in rows:
         # Different captures/sources are different observations, never merged.
-        groups[(row.source.bundle, row.source.dataset, row.source.capture_id, row.service_date, row.train_no)].append(row)
+        groups[(row.source.bundle, row.source.dataset, row.source.capture_id, row.service_date, row.train_no, row.kind, row.trip_id or "")].append(row)
     runs = []
-    for (_, dataset, _, service_date, train_no), points in sorted(groups.items()):
+    for (_, dataset, _, service_date, train_no, _, _), points in sorted(groups.items()):
         point_order = lambda p: (utc(p.planned_dep or p.planned_arr)
                                   if p.planned_dep or p.planned_arr else datetime.max.replace(tzinfo=timezone.utc))
         ordered = sorted(points, key=point_order)

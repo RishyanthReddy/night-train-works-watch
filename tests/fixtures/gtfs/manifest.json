@@ -1,0 +1,34 @@
+{
+  "licence": "CC0",
+  "source_url": "https://github.com/deryclem/european-sleeper-gtfs",
+  "licence_url": "https://github.com/deryclem/european-sleeper-gtfs#license",
+  "saved_source_path": "data/raw/2026-11-14/gtfs.zip",
+  "source_sha256": "3709cba860addad9da44361bbeba673a9a098f2d38f21cab7bc10fa8ccfaf350",
+  "selection": "First trip in saved feed with an arrival hour greater than24; all its stop times/stops and linked route/agency; first2calendar_dates. Original field values retained; CSV formatting normalized.",
+  "files": {
+    "agency.txt": {
+      "rows": 1,
+      "sha256": "d4e8e1d8c8fc849c31584e23205550a1257779d394d058011b98986563394713"
+    },
+    "routes.txt": {
+      "rows": 1,
+      "sha256": "2a93602825b9f6133b69a63eb519570e373e0cfa9441ed48de272161726f4861"
+    },
+    "trips.txt": {
+      "rows": 1,
+      "sha256": "ebdaa1a2964dc37b33d521bb7ae974809d66d56dc1af591c34ead7ca6a6d5ab1"
+    },
+    "stop_times.txt": {
+      "rows": 11,
+      "sha256": "a5baa06737d0217d07910f4380ca23ae28c2f8164b7e2d493af7f844470b46c2"
+    },
+    "stops.txt": {
+      "rows": 11,
+      "sha256": "3d1672ae5211e1a3a9e43d036e7f56fe982b7d66b19a8f20dbd855b0306ee811"
+    },
+    "calendar_dates.txt": {
+      "rows": 2,
+      "sha256": "ee403440c2971b7792b845c232d432caf3df9c36a85cb7cfa8177d0e96bf3ff0"
+    }
+  }
+}

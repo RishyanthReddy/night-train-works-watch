@@ -1,13 +1,9 @@
 # Next action
-Collect already-running focused council R6 results on exactly3-file delta from approved R5, then collect verdicts, commit this Phase1 follow-up and start Phase2 P2.1 per latest user authorisation.
+Collect Grok focused Phase2 council R3 completionwake (Opus/SolAPPROVE9/10each; handles phase2-council-r3-tasks.json) on128-filefreeze, five-file delta phase2-r3-delta.json; allR2reviewsfinished and verifiedfixes applied.429tests40.09s, actualPhase0/2CLI EXIT0. Keep product frozen during reviews; local commit only after accepted review.
 
-R5 unanimously approved (Opus8.5/Sol9/Grok9). All94 hashes matched all reviews. Opus nonblockers O1/O2 refined AFTER all reviews ended: explicit distinct-sequence reentry legs can be chosen together; excluded adjacent sequence yields sourced unknown. Changed desk.py,ui/app.py,test_boundary_scope.py only vsR5; phase1-council-r6-snapshot.json94files.
-Main337 tests34.55s and actualCLI pass under OSnetworkdenial/sixcredentialsunset (phase1-r6-tests/cli.log). Phase0 passed against prior five-file delta; other current regressions all included. Main live native-browser DOM confirms2mismatches after explicit reentry choices; snapshot frame failure means no new image claim. Earlier follow-up screenshots actually viewed; no model/browser source truth claim. Browser/server closed.
 
-Keep product frozen during R6. No push/remote. After unanimous approval commit selected source/evidence only; do not stage historical research. Then Phase2 per KICKOFF in order, TODO/checks/browser/council/localcommit. Goal backend still reports paused; user asked resume but no active/resume update schema exists; preserve unfinished full goal, do not mark complete to replace it.
+Read KICKOFF.md section0, Phase2 and .handoff/state.md/TODO.md/review.md. Phase2 P2.1–P2.7 implemented; P2.8 skipped. User authorised Phase2 after Phase1 follow-up, superseding old stop checkpoint. Original full goal includes Phase3, backend paused with no resume API; do not falsely complete it.
 
-All three exact council R6 models launched, no verdicts yet. Task handles phase1-council-r6-tasks.json; completion wakes thread, no polling. Product94 hashes frozen. After closure proceedPhase2 as latest user requests; prior stop checkpoint is superseded.
+Current branchphase2, HEAD1ff48d320d5256e0a4b292ce1f1c64eb91b9db0e. Latest full tests429passed40.09s exit0 with network denied/sixkeysunset; phase2-r3-final-tests.log. Actual CLI acceptance exit0; five viewed native app screenshots. No live model call, browser/server stopped. No remote/data tracked; protected hashes match. No new dependency/lock changes.
 
-R6 Opus APPROVE9/10,337 tests,94 matching hashes; report saved. Low nonblocking excluded-record origin note recorded P1-R6-O1, no extra code change planned. Product/protected hashes and credential-pattern scan pass; no data tracked or remote. Sol/Grok remain pending; do not poll.
-
-R6 Sol APPROVE9/10,337 tests+14 independent probes,94hashes match; report phase1-council-r6-sol.md. Only Grok pending. All product files remain frozen; user authorised Phase2 immediately after fix closure/commit.
+Phase2 allowed: src/nightdesk/**,mappings/**,tests/**,.handoff/**. Preserve historical untracked files. Council: kiro/claude-opus-5.5 medium, codex/gpt-6.1-sol high, grok/grok-4.7 high, all read-only. Do not poll active delegates; completion wakes deliver results. No product edits while any review is active. Record real scores; local commit only after accepted review. No push. Phase3 begins only after Phase2 closes.

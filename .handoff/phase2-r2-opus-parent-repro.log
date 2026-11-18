@@ -1,0 +1,5 @@
+Nested replay: RecursionError; refusal events=0
+No declared timezone: stored=None basis=declared_mapping
+Ordinary prose: This is a 3 month period. ['declared_month_unknown']
+Ordinary prose: Works for one month of December nights. ['declared_month_unknown']
+Corrupt deflate: zlib.error audit_delta=0

@@ -2,7 +2,7 @@
 
 Authority: KICKOFF.md section 9; user now authorised Phases 1–3 in order, task by task (2026-11-17).
 Implementation/checks: current Codex agent. Council at each phase end: Kiro Opus medium, Codex Sol high, Grok 4.7 high.
-Latest checkpoint: finish Phase1 fixes/review/commit, then stop before Phase2 for user continuation.
+Latest checkpoint: Phase1 follow-up committed; user authorised Phase2 continuation.
 No remote creation, push, merge or deploy. P0.9 skipped. Stop after Phase 3. P3.6 account/remote actions remain gated.
 
 ## Phase 0 — execute in order
@@ -39,13 +39,13 @@ No remote creation, push, merge or deploy. P0.9 skipped. Stop after Phase 3. P3.
 - [x] Phase1 close: acceptance/screenshots/swap/current330 offline tests/CLI pass; R4 unanimous9/10; product commit 6d11e5c,93 blobs verified. STOP before Phase2 per user.
 
 ### Phase 2 — Trust and edge cases
-- [ ] P2.1 `stations.py` + alias rows under `mappings/aliases/` (each row with a source, reviewed;
-- [ ] P2.2 Harden identity and dates: uncertain identity, service date vs calendar date across
-- [ ] P2.3 Scheduled runs from the saved CC0 GTFS (`adapters/gtfs.py`): expand `calendar_dates`, times
-- [ ] P2.4 `estimate.py`: every delay request returns `Refusal("prediction_not_validated", detail,
-- [ ] P2.5 Text door: `llm/client.py` (plain HTTPS to Mistral; `mistral`, `replay`, `off`), the
-- [ ] P2.6 Security fixtures, all authored and synthetic: (a) a notice containing injected
-- [ ] P2.7 `nightdesk demo check`: demo mode loads only assets listed in a manifest as synthetic or
+- [x] P2.1 `stations.py` + alias rows under `mappings/aliases/` (each row with a source, reviewed;
+- [x] P2.2 Harden identity and dates: uncertain identity, service date vs calendar date across
+- [x] P2.3 Scheduled runs from the saved CC0 GTFS (`adapters/gtfs.py`): expand `calendar_dates`, times
+- [x] P2.4 `estimate.py`: every delay request returns `Refusal("prediction_not_validated", detail,
+- [x] P2.5 Text door: `llm/client.py` (plain HTTPS to Mistral; `mistral`, `replay`, `off`), the
+- [x] P2.6 Security fixtures, all authored and synthetic: (a) a notice containing injected
+- [x] P2.7 `nightdesk demo check`: demo mode loads only assets listed in a manifest as synthetic or
 - [x] P2.8 Optional notice version extraction skipped by recorded scope decision.
 
 - [ ] Phase 2 acceptance in real app, viewed screenshots, offline tests, swap check, council, local commit and handoff.
@@ -71,3 +71,30 @@ No remote creation, push, merge or deploy. P0.9 skipped. Stop after Phase 3. P3.
 ### Phase1 follow-up — user-authorised2026-11-18; Phase2 starts after closure
 - [x] Fix P1-R4-O1: explicit journey/date boundary scope; one unlinked summary; explicit ambiguous-leg selection.
 - [x] Mixed-request/ambiguity and prior checks/browser/council pass:337 tests, R6 allthree9/10. Local commit recorded in state.
+
+P2.1 evidence: phase2-p21-tests.log,347 passed34.29s networkdenied/sixcredentialsunset. Reviewed aliases/importCLI, bundle isolation/tamper tests, ambiguity/no guess, unchanged revision plus sourced match-v4 evidence and queue/dossier/export parity. P2.2 verified below.
+
+P2.2 evidence: phase2-p22-tests.log,67 targeted checks pass16.42s networkdenied/sixcredentialsunset; regressionfirst reproduced uncertainwork→A and multi-dateeventreuse→agreement, now unknown. Singleton midnight/offset/DST/halfopen and incompletecaptures retained. NextP2.3.
+
+P2.3 evidence: phase2-p23-tests.log,65 tests pass0.48s networkdenied/sixcredentialsunset; CC0subset hashes and overnight/DST/variants/normalpipeline/CLI checks. P2.4 in progress.
+
+P2.4 evidence: tests/test_estimate.py + test_desk.py3passed0.81s networkdenied; refusal exported and rendered/clicked in AppTest, no numeric field/value. Existing multi-date boundary assertion updated to P2.2 unknown rule.
+
+P2.5/P2.6 evidence: phase2-p25/p26-tests.log,10/12checks pass incl manualAppTest and mockedfixedhost/consent/revocation/replay; phase2-interim-tests.log371passed35.28s. No live model calls or spend. P2.7: phase2-p27-tests.log15passed0.97s; demo CLI27hashedsyntheticassets, recursive reference and tamper/refusal tests. Full end-of-phase checks remain.
+
+Phase2 builder acceptance: phase2-final-tests.log381passed36.09s EXIT0; frozen offline sync45packages EXIT0; Phase0/Phase2 actual CLI EXIT0. Five viewed native-browser screenshots cover three unknowns, malicious refusal and nonnumeric delay refusal. Protected/scope checks pass. Council and local commit remain pending; Phase2 is not closed.
+
+### Phase2 council R1 fixes — execute before R2
+- [x] O1/S1: static audited errors; visible-ASCII key validation; replay/envelope shape validation; UI accepts only validated proposal objects. Malformed input/key regressions in test_phase2_council.py.
+- [x] S2/O3/O4/G4: indexed calendar evidence (at most2 date parses per exception), output-row limit, CSV/encrypted archive refusal, unsupported frequencies refused.
+- [x] G1: queue/dossier stay usable with unknown until explicit run observation choice; UI selector and audited/exported choices. API and full-AppTest pass.
+- [x] O2/G3/O5/O6/O7: normalized injection markers; declared drafting origin carried through form/CLI; mapping timezone retained with basis; month declaration within full date range.
+- [x] G2 reviewed against official GTFS: agency timezone retained correctly; valid foreign stop zone cannot shift stop_times, invalid stop zone refused. Disputed conversion recommendation recorded in decisions/review.
+- [x] R2 final checks415passed39.00s EXIT0/networkdenied, actualPhase0/Phase2CLI EXIT0, scope/protected checks.128-file review freeze; council/local commit remain pending.
+
+### Phase2 council R2 fixes
+- [x] S1: replay version/string metadata validated before licence set membership; malformedlist/object API/actualCLI/AppTest refusal regressions pass.
+- [x] O1/O2: deeply nested JSON and corruptcompressedZIP normalized to audited refusal; no partialcapture.
+- [x] O3/O4: no-source/no-mappingtimezone basis=none; ordinary month prose accepted, explicit unknownmonth/contradictions stillrefused.
+- [x] Focused71tests3.81s EXIT0/networkdenied/sixkeysunset.
+- [x] Finalfullsuite429passed40.09s/networkdenied, actualCLIPhase0/2EXIT0; R3freeze128files. Focusedcouncil/localcommit remainpending. Phase3 stillhelduntilPhase2closes.
