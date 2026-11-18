@@ -63,6 +63,15 @@ def test_saved_works_through_comparison_export_and_app(tmp_path, monkeypatch):
     app.selectbox(key=f"test-works-evidence:works_before:{ids[1]}").set_value(ids[0]).run()
     assert any("incomplete_capture" in element.value for element in app.info)
     assert not app.exception
+    assert any(set(table.value["Finding"]) == {"Left the rolling window after expiry", "Entered the rolling window"}
+               for table in app.dataframe if "Finding" in table.value.columns)
+    app.text_input(key="test-works-evidence:work_search").set_value("synthetic-new").run()
+    app.session_state["test-works-evidence:active_tab"] = "Queue"
+    app.run()
+    app.session_state["test-works-evidence:active_tab"] = "Works evidence"
+    app.run()
+    assert app.selectbox(key=f"test-works-evidence:works_before:{ids[1]}").value == ids[0]
+    assert app.text_input(key="test-works-evidence:work_search").value == "synthetic-new"
 
 
 def test_german_saved_source_hash_is_required(tmp_path):

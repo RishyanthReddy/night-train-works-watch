@@ -103,3 +103,11 @@ Require a recorded local GTFS import receipt with the ZIP hash and a supported r
 ## Public demo and real-data checkpoint
 
 The named demo bundle requires manifest-approved ingress in the core file, batch, alias and replay paths. Live provider staging and unrestricted GTFS import stay in practice. The public launcher locks to the demo bundle, checks its exact data first and binds loopback. Practice and NDA ingestion keep their existing workflows. This implements the parent review's mechanical gate without a global licence override. The demo uses the previously approved synthetic assets and one already-tracked CC0 Infrabel run, with source evidence shown separately.
+
+## Phase 4 visual direction
+
+The user approved the newer `.handoff/phase4-modern-review.html` prototype in chat. Use its queue alongside train details, prominent time comparison and accessible source and review actions as the P4.2 direction.
+
+Keep KICKOFF P1.9 revision-based reviews. The train/date view exposes this scope in the queue and shows the affected dates before saving. Display boundary instants in the selected source offset when available, while preserving the exact UTC comparison and UTC evidence in the report.
+
+Close Phase 4 locally if Grok's follow-up gives no verdict, as authorized by the user following the HTTP 403. Preserve its initial score and findings, both follow-up approvals and the parent verification in the review ledger.

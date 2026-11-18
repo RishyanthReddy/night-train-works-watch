@@ -4,6 +4,7 @@ import csv
 from pathlib import Path
 import shutil
 
+import pytest
 from streamlit.testing.v1 import AppTest
 
 from nightdesk.config import get_bundle
@@ -14,16 +15,20 @@ REPO = Path(__file__).resolve().parents[1]
 APP = REPO / "src/nightdesk/ui/app.py"
 
 
-def test_queue_open_dossier_record_local_review_and_question(tmp_path, monkeypatch):
+@pytest.mark.parametrize("train", ["aa:101", "aa:[APPROVED](#approved)"])
+def test_queue_open_dossier_record_local_review_and_question(tmp_path, monkeypatch, train):
     shutil.copytree(REPO / "mappings", tmp_path / "mappings")
     shutil.copytree(REPO / "tests/fixtures/paths", tmp_path / "paths")
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("NIGHTDESK_BUNDLE", "test-ui")
     bundle = get_bundle("test-ui")
     confirm_mapping("mappings/synthetic_path_legs.yaml", bundle)
-    old = ingest("paths/legs.csv", "mappings/synthetic_path_legs.yaml", bundle)
     with Path("paths/legs.csv").open() as f:
         reader = csv.DictReader(f);header = reader.fieldnames;rows = list(reader)
+    rows[0]["train_no"] = train
+    with Path("paths/legs.csv").open("w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=header);writer.writeheader();writer.writerows(rows)
+    old = ingest("paths/legs.csv", "mappings/synthetic_path_legs.yaml", bundle)
     rows[0]["exit_time"] = "2026-11-17 23:01"
     with Path("paths/legs.csv").open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=header);writer.writeheader();writer.writerows(rows)
@@ -33,10 +38,11 @@ def test_queue_open_dossier_record_local_review_and_question(tmp_path, monkeypat
     app.selectbox(key="test-ui:before").set_value(old["capture_id"]).run()
     app.selectbox(key="test-ui:after").set_value(new["capture_id"]).run()
     options = app.selectbox(key="test-ui:selected").options
-    assert "aa:101 / 2026-11-17" in options
+    assert f"{train} / 2026-11-17" in options
     app.selectbox(key="test-ui:selected").select_index(0).run()
     assert not app.exception
-    assert any("aa:101 / 2026-11-17" in t.value for t in app.text)
+    assert any(f"{train} / 2026-11-17" in t.value for t in app.text)
+    assert any(f"<h2>Train {train}</h2>" == element.value for element in app.get("html"))
     def by_label(elements, label):
         return next(e for e in elements if e.label == label)
     by_label(app.text_area, "Local reason").set_value("Synthetic question about this revision")
@@ -49,4 +55,19 @@ def test_queue_open_dossier_record_local_review_and_question(tmp_path, monkeypat
     by_label(app.button, "Export local dossier").click().run()
     assert not app.exception and len(list((bundle.root / "exports").glob("*.json"))) == 1
     assert not any("DeltaGenerator" in str(e.value) for e in app.markdown)
+    clock_panels = [str(element.value) for element in app.get("html")]
+    assert any("23:00" in panel and "23:01" in panel and "UTC+01:00" in panel
+               for panel in clock_panels)
+    assert any("Follow-up · Person A" in element.value for element in app.text)
+    assert any("all 2 service dates" in item.value for item in app.warning)
+    assert any("applicability to individual service dates is unverified" in item.value for item in app.warning)
+
+    app.selectbox(key="test-ui:before").set_value(new["capture_id"])
+    app.selectbox(key="test-ui:after").set_value(old["capture_id"]).run()
+    assert any("earlier recorded timestamp" in item.value for item in app.warning)
+
+    app.selectbox(key="test-ui:before").set_value(old["capture_id"]).run()
+    assert not app.exception
+    assert any("No changes found" in item.value for item in app.info)
+    assert not any(f"<h2>Train {train}</h2>" == element.value for element in app.get("html"))
 

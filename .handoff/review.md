@@ -285,3 +285,66 @@ Opus R2 requests changes at 7.5/10. The 173-file freeze and product correctness 
 Grok R2 approved 9/10. Verified 173 frozen hashes, G1–G5, 495 offline tests with one expected local-data skip, and Phase 0/2/3 acceptance. ES-R2-G1 remains a documented scope limit: direct local audit writer privileges can append a receipt. The app verifies recorded provenance, and local audit history does not prove source authenticity. No required product change. Grok did not execute the full preflight shell script.
 
 Parent planning go/no-go on d2a83d1 closed B1–B4. The corrected preflight independently passed from a clean committed archive, and audit refusals reproduced. See t3-thread://v2/2ca7f808-629d-4ecf-bee3-c14edf78b296/a7c906e8-55e1-4db6-b9d3-c21bdb1ef81a, run 116.
+
+## P4.1 prototype council
+
+R1 froze three artefacts under `/tmp/nightdesk-ui-council-r1.Z1Dbck`. Opus 6.5/10, Sol 7/10 and Grok 7/10 drove the browser workflow, requested revisions and checked all three hashes. R2 froze three artefacts under `/tmp/nightdesk-ui-council-r2.V7VjT6`. Opus and Grok both approved at 9/10 after browser checks and verified all three hashes before and after. Sol hit the usage limit and returned no R2 verdict.
+
+| ID | Finding | Status | Parent evidence |
+| --- | --- | --- | --- |
+| P4-UI-R1-1 | A stale status lacked the earlier decision and follow-up. The queue omitted the assigned owner. | Fixed | Opus and Grok R2 checked decision, reason, question, owner, replacement review and queue return. |
+| P4-UI-R1-2 | Unsaved edits looked saved and the download still contained older values. | Fixed | Opus and Grok R2 checked download gating, preserved edits and actual saved downloads. |
+| P4-UI-R1-3 | Capture context and source values were thin. Partial missing records and unresolved works needed clearer wording. | Fixed | Opus and Grok R2 checked capture dates, exact AA/BB rows, missing-record display, four works with their scope, and downloaded provenance. |
+| P4-UI-R2-1 | Collapsed follow-up stopped focus from reaching a required field. | Fixed | Parent Chrome test reproduced the collapsed section, reopened it on save and confirmed focus and invalid state on the owner field. |
+
+Parent verification after the small R2 follow-ups passed via `/tmp/nightdesk-ui-final-qa.eK4EvM/check.cjs`. It also checked that the download groups all source records, including Network BB, before the review. Multi-train and empty queue states, real observed clocks and durable revision history are P4.2 checks. The prototype keeps drafts for the current page session and the queue shows saved dispositions. Streamlit must read prior decisions from revision history.
+
+## Phase 4 implementation council
+
+R1 reviewed 180 frozen product files at `/tmp/nightdesk-phase4-council-r1.LPU36u`. Clean install, preflight, 504 tests with one restricted-data skip, Phase 0/2/3 acceptance, browser flow and 47-second video decode passed before launch.
+
+- [Nightdesk Phase 4 council R1 — Opus](t3-thread://v2/2ca7f808-629d-4ecf-bee3-c14edf78b296/thread:delegated-task:command%3Amcp%3Ab0f8741c-c318-458e-9fa3-bc1df0a3cc3c%3Adelegate-task%3A09a42cae-ebec-4135-aeae-019d0b7f7a89)
+- [Nightdesk Phase 4 council R1 — Sol](t3-thread://v2/2ca7f808-629d-4ecf-bee3-c14edf78b296/thread:delegated-task:command%3Amcp%3Ab0f8741c-c318-458e-9fa3-bc1df0a3cc3c%3Adelegate-task%3A947bf24f-71f3-4a92-b1f4-c863c28cbd64)
+- [Nightdesk Phase 4 council R1 — Grok](t3-thread://v2/2ca7f808-629d-4ecf-bee3-c14edf78b296/thread:delegated-task:command%3Amcp%3Ab0f8741c-c318-458e-9fa3-bc1df0a3cc3c%3Adelegate-task%3Ad5256b92-7c50-4f70-be7a-170584c5fd54)
+
+Opus R1 returned a conditional pass at 7/10, confirmed 180/180 hashes, reproduced the documented workflow and checked 10 tests. It found unclear review scope, mixed display offsets, ambiguous service-date applicability and capture ordering, and a fallback recorded from a previously used demo bundle.
+
+| ID | Finding | Status | Evidence |
+| --- | --- | --- | --- |
+| P4-R1-O1 | A dated row appeared to save a dated review. | Verified in Opus R2 | `test_ui.py` shows both dates and warns that the save applies to all dates on the selected revision, as specified by KICKOFF P1.9. |
+| P4-R1-O2 | Local and UTC clocks for one instant looked like different times. | Verified in Opus R2 | `test_boundary_scope.py` checks both boundary values in the selected source offset. UTC evidence is retained. |
+| P4-R1-O3 | Multi-date path record shows one absolute timestamp. | Verified in Opus R2 | `test_ui.py` verifies warning that individual service-date applicability is unverified. |
+| P4-R1-O4 | Capture labels and reversed selection obscured ordering. | Verified in Opus R2 | Labels include receipt timestamp and ID. `test_ui.py` verifies an earlier after capture is flagged. |
+| P4-R1-O5 | The default actor and prior audit events exposed a local account name in the recording. | Verified in Opus R2 | Fresh demo bundle uses Demo reviewer. All nine offline Chrome scenes passed. AVFoundation decoded the replacement MP4 at 47 seconds; viewed frames show the neutral actor and scoped times. |
+
+The audit input help and demo runbook now name the actual path to type. Run provenance labels import time and the runbook links the exact Infrabel source from the fixture manifest. Replay controls show file names. The technical Markdown export structure belongs to the existing backend; P4 leaves its format intact.
+
+The focused Opus R2 recheck used `/tmp/nightdesk-phase4-council-r2.QLST6o`. All 180 paths matched the R2 snapshot. The six changes from R1 were two UI files, two regression-test files, the demo runbook and the refreshed video.
+
+## Phase 4 council R1 — Grok, on the LPU36u freeze
+
+Grok 7/10, changes requested. Report: `.handoff/phase4-council-r1-grok.md`. These rows are about `/tmp/nightdesk-phase4-council-r1.LPU36u/product`, which still shows the offset clash. They are not a recheck of the later R2 tree.
+
+| ID | Finding | Severity | Status | Fixed by |
+|---|---|---|---|---|
+| P4-R1-G1 | aa:101 shows a boundary in two offsets and styles the adjacent entry as the after value. | high | Corrected | Same correction as O2, plus neutral styling for the second paired value. |
+| P4-R1-G2 | Local actor defaults to the OS account. | medium | Corrected | Same correction as O5. |
+| P4-R1-G3 | Reversed before/after captures produce no ordering warning. | medium | Corrected | Same correction as O4. |
+| P4-R1-G4 | Revision-wide local review scope was unclear. | medium | Corrected | Same correction as O1. |
+| P4-R1-G5 | CC0 partial reason and works-window classes stay raw. The Brussels timezone assumption is only in the run JSON. | low | Corrected | App renders plain coverage and membership labels, and shows the recorded time-basis assumption next to the clocks. |
+
+- [Nightdesk Phase 4 council R2 — Opus](t3-thread://v2/2ca7f808-629d-4ecf-bee3-c14edf78b296/thread:delegated-task:command%3Amcp%3Ab0f8741c-c318-458e-9fa3-bc1df0a3cc3c%3Adelegate-task%3A111f6b52-625b-4e9e-9a14-550f7e438be5)
+
+Opus R2 approved 9/10 and confirmed the five corrections on 180 hashes, eight focused tests and viewed offline frames.
+
+Sol R1 requested changes at 8/10 for tab resets, Markdown interpretation of a train ID and download reruns. Sol R2 approved 9/10 after 21 targeted checks and 180 matching hashes. Chrome on the parent copy downloaded both exact files from one export, retained the selected CC0 run and retained the 1,200 km CO₂ assumption through tabs.
+
+- [Nightdesk Phase 4 council R2 — Sol](t3-thread://v2/2ca7f808-629d-4ecf-bee3-c14edf78b296/thread:delegated-task:command%3Amcp%3Ab0f8741c-c318-458e-9fa3-bc1df0a3cc3c%3Adelegate-task%3A0737be44-a8f0-43a3-ab50-06b7fab8f350)
+
+Grok R2 checked the hashes of `/tmp/nightdesk-phase4-council-r4.hIPPq2`, then its provider returned HTTP 403 before a verdict. The five changes from the Sol snapshot are two UI files, two regression-test files and the final fallback recording.
+
+- [Nightdesk Phase 4 council R2 — Grok](t3-thread://v2/2ca7f808-629d-4ecf-bee3-c14edf78b296/thread:delegated-task:command%3Amcp%3Ab0f8741c-c318-458e-9fa3-bc1df0a3cc3c%3Adelegate-task%3Aa232ec5d-3c16-42d0-9e7f-162459009801)
+
+The user authorized closing if Grok gave no response. The retry had no verdict at close and cancellation was requested. Parent verification passed 25 network-denied regression tests covering the original findings. The disposable demo AppTest confirmed both boundary display clocks use UTC+01:00, UTC source details retain 22:01Z and 22:00Z, the demo actor is neutral and reversing the captures raises a warning. Logs are under `/tmp/nightdesk-phase4-grok-parent.2Alf12`. All 180 product hashes matched again. Grok's R2 score is unavailable.
+
+- [Nightdesk Phase 4 council R2 — Grok retry](t3-thread://v2/2ca7f808-629d-4ecf-bee3-c14edf78b296/thread:delegated-task:command%3Amcp%3Ab0f8741c-c318-458e-9fa3-bc1df0a3cc3c%3Adelegate-task%3A9cb97132-7134-4db7-a027-6a53f7386bf0)

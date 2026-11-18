@@ -26,14 +26,15 @@ uv run --offline nightdesk demo serve
 
 ### Five-minute walkthrough
 
-1. **Queue.** Select **Synthetic v1** before and **Synthetic v2** after. Select **syn-journey**, enter `syn:border1,syn:border2` in the boundary points field, and confirm those identities. Open **aa:101 / 2026-11-17**.
-2. **Dossier.** Open the **Dossier** tab. Point out capture provenance, the changed exit time, works grades A and B, the separate unlocated work, and `boundary_instants_differ`. Show the delay request returning `prediction_not_validated` without a delay estimate. Record a local decision and export the dossier.
-3. **Rejects.** In **Rejects and audit**, show `invalid_work_dates` from the deliberately malformed capture. In **Text notice**, select `injected.json` under **Public synthetic replay** and click **Replay checked notice**. Show `text_addresses_model`.
-4. **Real run.** Select the `cc0_2026.csv` run capture, open **Run evidence**, and select **be:400 / 2026-10-01**. The CC0 Infrabel excerpt shows an observed Hergenrath departure at 09:59:40 against 09:05:00 planned. This separate capture supplies observed point times for one train in Belgium.
-5. **Audit.** Verify the intact copy using the saved hash and count. Make a separate truncated copy with the command below. In **Rejects and audit**, select that copy, enter the same hash and count, and verify again. Expect `external_seal_or_count_mismatch`.
+1. **Real run.** Select the `cc0_2026.csv` run capture, open **Run evidence**, and select **be:400 / 2026-10-01**. At Hergenrath, show **09:05:00 scheduled** and **09:59:40 observed**. Open **Capture provenance** to show Infrabel, CC0 and partial coverage. This is an observation at a selected Belgian point on one service. [Source file from Infrabel](https://fr.ftp.opendatasoft.com/infrabel/PunctualityHistory/Data_raw_punctuality_202610.csv)
+2. **Review queue.** Clear the optional run selection to keep the examples separate. Select **Synthetic v1** before and **Synthetic v2** after. Select **syn-journey**, enter `syn:border1,syn:border2` in the boundary points field, and confirm those identities. Open **aa:101 / 2026-11-17**. The adjacent detail shows the changed exit time, scoped boundary check, works evidence and unresolved items.
+3. **Local review.** Show the delay request returning `prediction_not_validated`. Open **Capture provenance**, record a local decision and export the dossier. The synthetic pair demonstrates the workflow when dated path revisions and reviewed links are available.
+4. **Rejects.** In **Rejects and audit**, show `invalid_work_dates` from the deliberately malformed capture. In the sidebar’s **Text notice** section, select `injected.json` under **Public synthetic replay**, click **Replay checked notice**, and show `text_addresses_model`.
+5. **CO₂ scenario.** Open **CO₂ scenario**, change the alternative from car to long-distance coach, and show the changed result, the assumption controls and the 2024 source.
+6. **Audit.** In **Rejects and audit**, type `data/out/demo/audit-copies/before-demo.jsonl` into **Audit copy file**. Enter the saved hash and count and click **Verify audit chain**. Make a separate truncated copy with the command below, replace the file field with `data/out/demo/audit-copies/tail-cut.jsonl`, and verify again with the same hash and count. Expect `external_seal_or_count_mismatch`.
 
 ```sh
 sed '$d' data/out/demo/audit-copies/before-demo.jsonl > data/out/demo/audit-copies/tail-cut.jsonl
 ```
 
-The comparison and decisions use synthetic fixtures. The observed-run example uses a hashed CC0 fixture. For a private rehearsal with broader coverage, use the practice workflow in [Real data in Nightdesk](REAL_DATA.md).
+The [fallback recording](nightdesk-demo.mp4) shows the local demo screens and can be played offline. For a private rehearsal using saved provider captures, use the practice workflow in [Real data in Nightdesk](REAL_DATA.md).

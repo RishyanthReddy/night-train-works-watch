@@ -1,7 +1,8 @@
-"""Plain Phase 1 queue and dossier. Styling/design research belongs to Phase 4."""
+"""Nightdesk review, source evidence and local intake."""
 
 from datetime import date, datetime, time, timedelta
 import getpass
+from html import escape
 import os
 from pathlib import Path
 
@@ -17,12 +18,16 @@ from nightdesk.intake.mapping import captures, confirm_mapping, ingest
 from nightdesk.intake.batch import batches, confirm_batch, ingest_batch
 from nightdesk.links import import_links, links, link_id
 from nightdesk.review import record_decision, follow_up
+from nightdesk.gates import capture_comparison_gate
+from nightdesk.ui.scenario import render_scenario
+from nightdesk.ui.review_desk import (
+    REVIEW_LABELS, comparison_panel, queue_summary, reason_label, render_boundary_clocks, render_brand,
+    render_change, review_label, time_value,
+)
 
 
 def main():
-    st.set_page_config(page_title="nightdesk")
-    st.title("nightdesk")
-    st.caption("Compare selected revisions, inspect sourced checks, record a local decision.")
+    st.set_page_config(page_title="Nightdesk", layout="wide")
     locked_demo = os.environ.get(PUBLIC_DEMO_ENV) == "1"
     if locked_demo:
         name = PUBLIC_DEMO_BUNDLE
@@ -38,7 +43,8 @@ def main():
     key = lambda text: bundle.name + ":" + text
     if bundle.name != PUBLIC_DEMO_BUNDLE:
         st.sidebar.caption("NDA: data stays local" if bundle.nda else "Local practice / test bundle")
-    actor = st.sidebar.text_input("Local actor", value=getpass.getuser(), key=key("actor"))
+    actor = st.sidebar.text_input("Local actor", value="Demo reviewer" if bundle.name == PUBLIC_DEMO_BUNDLE else
+                                  getpass.getuser(), key=key("actor"))
     demo_registry = None
     if bundle.name == PUBLIC_DEMO_BUNDLE or st.sidebar.checkbox("Public demo mode", key=key("demo_mode")):
         try:
@@ -48,6 +54,8 @@ def main():
         except (ValueError, OSError) as exc:
             st.error("Public demo refused: " + str(exc))
             st.stop()
+    mode = "Public demo" if demo_registry else "Restricted workspace" if bundle.nda else "Local workspace"
+    render_brand(f"{mode} · {bundle.name}")
     if key("flash") in st.session_state:
         st.success(st.session_state.pop(key("flash")))
     with st.sidebar.expander("Import local file"):
@@ -92,7 +100,8 @@ def main():
                 st.rerun()
             except (ValueError, OSError) as exc:
                 st.error(str(exc))
-    render_text_intake(bundle, actor, key, demo_registry=demo_registry)
+    with st.sidebar:
+        render_text_intake(bundle, actor, key, demo_registry=demo_registry)
     try:
         reader = ReadSession(bundle)
         imported = captures(bundle, reader=reader) + batches(bundle, reader=reader)
@@ -106,8 +115,8 @@ def main():
         state = "complete" if capture.complete else "incomplete"
         label = c["metadata"].get("label", Path(c["metadata"]["path"]).name)
         if label == "capture.json":
-            label = f"{capture.dataset} · {capture.captured_at.isoformat(timespec='minutes')}"
-        return f"{label} · {identifier[:10]} · {state}"
+            label = capture.dataset
+        return f"{label} · {capture.captured_at.isoformat(timespec='seconds')} · {identifier[:10]} · {state}"
     def contains(c, record):
         return c["metadata"].get("record_type") == record or record in c["metadata"].get("record_types", [])
     path_ids = [i for i, c in by_id.items() if contains(c, "PathLeg") or c["metadata"].get("record_type") == "Batch"]
@@ -124,7 +133,6 @@ def main():
     reviewed = {p.strip() for p in reviewed_text.split(",") if p.strip()}
     if not st.sidebar.checkbox("I reviewed those boundary point identities", key=key("reviewed")):
         reviewed = set()
-    from nightdesk.stations import load_aliases
     alias_ids = sorted({e.payload["table_id"] for e in read_events(bundle) if e.kind == "aliases_confirmed"})
     alias_table_id = st.sidebar.selectbox("Station alias table (optional)", alias_ids, index=None,
         key=key("aliases"), help="Choose one reviewed table if this bundle contains more than one.")
@@ -153,49 +161,48 @@ def main():
     run_selection_ids = st.sidebar.multiselect("Run observations (optional)", list(dated_runs),
         format_func=dated_runs.get, key=key(f"run_choices:{old_id}:{new_id}:{runs_id}"),
         help="Choose a source run if several trips fit a train and date. Works checks use planned times. The Run evidence tab shows scheduled, published and observed times separately.")
-    queue_tab, dossier_tab, audit_tab, evidence_tab, work_tab = st.tabs(
-        ["Queue", "Dossier", "Rejects and audit", "Run evidence", "Works evidence"], key=key("active_tab"), on_change="rerun")
+    queue_tab, dossier_tab, audit_tab, evidence_tab, work_tab, scenario_tab = st.tabs(
+        ["Queue", "Dossier", "Rejects and audit", "Run evidence", "Works evidence", "CO₂ scenario"],
+        key=key("active_tab"), on_change="rerun")
+    if not evidence_tab.open:
+        run = st.session_state.get(key(f"source_run:{runs_id}"))
+        retain_widget_values(key, "es_run_review", f"source_run:{runs_id}", f"clock_point:{runs_id}:{run}")
+    if not work_tab.open:
+        before = st.session_state.get(key(f"works_before:{works_id}"))
+        classification = st.session_state.get(key("membership_classification"))
+        query = st.session_state.get(key("work_search"), "").strip().casefold()
+        validity = st.session_state.get(key("work_validity"))
+        retain_widget_values(key, f"works_before:{works_id}", "membership_classification",
+                             f"membership_page:{works_id}:{before}:{classification}", "work_search", "work_validity",
+                             f"work_page:{works_id}:{query}:{validity}", "source_work")
     rows = []
+    comparison_error = False
+    selections = dict(works_capture_id=works_id, run_capture_id=runs_id, link_identifier=link_identifier,
+                      reviewed_points=reviewed, boundary_revision_ids=boundary_ids, alias_table_id=alias_table_id,
+                      run_selection_ids=run_selection_ids)
     if old_id and new_id:
         try:
-            rows = queue(bundle, old_id, new_id, works_capture_id=works_id, run_capture_id=runs_id,
-                         link_identifier=link_identifier, reviewed_points=reviewed, boundary_revision_ids=boundary_ids, alias_table_id=alias_table_id, run_selection_ids=run_selection_ids)
+            rows = queue(bundle, old_id, new_id, **selections)
         except (ValueError, OSError) as exc:
-            st.error(str(exc))
+            comparison_error = True
+            with queue_tab:
+                st.error("Could not compare these captures.")
+                st.text(str(exc))
+    comparison_pair = (old_id, new_id)
+    if st.session_state.get(key("comparison_pair")) != comparison_pair:
+        st.session_state[key("comparison_pair")] = comparison_pair
+        st.session_state.pop(key("selected"), None)
+        st.session_state.pop(key("source_leg"), None)
     with queue_tab:
-        st.subheader("Changed between selected captures")
-        st.caption("Rows absent from a partial export have unknown meaning. No automatic supersession.")
-        if not old_id or not new_id:
-            st.info("Import files and choose a before and after capture.")
-        elif not rows:
-            st.info("No comparable changed path-leg rows in these selected captures. Review rejects and completeness.")
-        else:
-            st.dataframe([{k:v for k,v in row.items() if k not in {"old_revision", "new_revision", "selection_revision", "leg_changes"}} for row in rows], hide_index=True)
-        choices = [(row["selection_revision"], row["service_date"]) for row in rows]
-        labels = {choice: rows[i]["train_no"] + " / " + choice[1] for i, choice in enumerate(choices)}
-        selected = st.selectbox("Open train/date", choices, index=None, format_func=lambda c: labels[c], key=key("selected"))
-    with dossier_tab:
-        st.subheader("Train/date dossier")
-        st.caption("Local review is not national approval. A checked boundary is not whole-journey feasibility.")
-        if selected is None:
-            st.info("Open a changed train/date from the queue.")
-        else:
-            try:
-                task = next(row for row in rows if (row["selection_revision"], row["service_date"]) == selected)
-                leg_choices = {leg["selection_revision"]: leg for leg in task["leg_changes"]}
-                revision = selected[0]
-                if len(leg_choices) > 1:
-                    revision = st.selectbox("Source leg revision", list(leg_choices), index=None,
-                        format_func=lambda i: leg_choices[i]["subject_key"] + " · " + i[:10], key=key("source_leg"))
-                    if revision is None:
-                        st.info("Choose a source leg revision to inspect. No source leg is selected automatically.")
-                if revision is not None:
-                    report = dossier(bundle, old_id, new_id, revision, date.fromisoformat(selected[1]),
-                                     works_capture_id=works_id, run_capture_id=runs_id, link_identifier=link_identifier,
-                                     reviewed_points=reviewed, boundary_revision_ids=boundary_ids, alias_table_id=alias_table_id, run_selection_ids=run_selection_ids)
-                    render_dossier(bundle, report, actor, key)
-            except (ValueError, OSError) as exc:
-                st.error(str(exc))
+        left, right = st.columns([1, 2.7], gap="large")
+        with left, st.container(key="nightdesk_queue"):
+            selected = render_queue(rows, old_id, new_id, by_id, caption, comparison_error, key)
+        with right:
+            if not dossier_tab.open:
+                render_selected_dossier(bundle, rows, selected, old_id, new_id, selections, actor, key)
+    if dossier_tab.open:
+        with dossier_tab:
+            render_selected_dossier(bundle, rows, selected, old_id, new_id, selections, actor, key)
     with audit_tab:
         st.subheader("Rejected rows")
         from nightdesk.audit import canonical_json
@@ -210,7 +217,8 @@ def main():
         st.subheader("Audit")
         st.caption("Local append-only history; a log does not prove source truth.")
         from nightdesk.audit import verify, upgrade_legacy
-        copy_path = st.text_input("Audit copy file (optional, inside this bundle)", key=key("audit_copy"))
+        copy_path = st.text_input("Audit copy file (optional, inside this bundle)", key=key("audit_copy"),
+                                  help="Use a path from the checkout root or an absolute path inside this bundle.")
         seal = st.text_input("Trusted external audit seal (optional)", key=key("audit_seal"))
         count = st.text_input("Trusted external event count (optional)", key=key("audit_count"))
         st.caption("Use a seal and count retained before the copy was changed. A log's own hash does not prove its history or source truth.")
@@ -233,14 +241,84 @@ def main():
     with work_tab:
         if work_tab.open:
             render_works_evidence(bundle, works_id, by_id, caption, key, reader)
+    with scenario_tab:
+        render_scenario(key)
 
 
-def render_provenance(report):
-    with st.expander("Capture provenance", expanded=True):
+def retain_widget_values(key, *names):
+    """Keep inactive evidence inputs without inspecting or exporting their records."""
+    for name in names:
+        widget = key(name)
+        if widget in st.session_state:
+            st.session_state[widget] = st.session_state[widget]
+
+
+def render_queue(rows, old_id, new_id, by_id, caption, comparison_error, key):
+    st.subheader("Review queue")
+    if not old_id or not new_id:
+        st.info("Choose a before and after capture in the sidebar.")
+        return None
+    st.text("Before · " + caption(old_id) + "\nAfter  · " + caption(new_id))
+    if by_id[new_id]["capture"].captured_at < by_id[old_id]["capture"].captured_at:
+        st.warning("The after capture has an earlier recorded timestamp. Check the selected order.")
+    comparison = capture_comparison_gate(by_id[old_id]["capture"], by_id[new_id]["capture"])
+    if not comparison.passed:
+        st.warning("Record presence comparison limited. " + reason_label(comparison.reason_code) + ".")
+    if not rows:
+        if not comparison_error:
+            st.info("No changes found in the selected captures." if comparison.passed else
+                    "No comparable train changes available for these captures.")
+        return None
+    options = {(row["selection_revision"], row["service_date"]): row for row in rows}
+    selected = st.selectbox("Open train/date", options, index=None,
+                            format_func=lambda choice: options[choice]["train_no"] + " / " + choice[1],
+                            key=key("selected"),
+                            on_change=lambda: st.session_state.pop(key("source_leg"), None))
+    for choice, row in list(options.items())[:8]:
+        with st.container(border=choice == selected):
+            lines = [row["train_no"] + " · " + row["service_date"], queue_summary(row), review_label(row["local_review"])]
+            if row["next_owner"] != "unassigned":
+                lines.append("Follow-up · " + row["next_owner"])
+            st.text("\n".join(lines))
+    st.caption("Review status and follow-up apply to the source revision across its service dates.")
+    if len(options) > 8:
+        st.caption(f"Showing 8 of {len(options)} entries. Use the train picker to find any entry.")
+    return selected
+
+
+def render_selected_dossier(bundle, rows, selected, old_id, new_id, selections, actor, key):
+    if selected is None:
+        st.info("Open a train to see what changed and review its evidence.")
+        return
+    try:
+        task = next(row for row in rows if (row["selection_revision"], row["service_date"]) == selected)
+        leg_choices = {leg["selection_revision"]: leg for leg in task["leg_changes"]}
+        revision = selected[0]
+        if len(leg_choices) > 1:
+            revision = st.selectbox("Source leg revision", list(leg_choices), index=None,
+                                    format_func=lambda i: leg_choices[i]["subject_key"] + " · " + i[:10],
+                                    key=key("source_leg"))
+            if revision is None:
+                st.info("Choose a source leg revision to inspect.")
+                return
+        report = dossier(bundle, old_id, new_id, revision, date.fromisoformat(selected[1]), **selections)
+        render_dossier(bundle, report, actor, key)
+    except (ValueError, OSError) as exc:
+        st.error("Could not open this train.")
+        st.text(str(exc))
+
+
+def render_provenance(report, *, expanded=True):
+    with st.expander("Capture provenance", expanded=expanded):
         for row in report["provenance"]:
-            coverage = "Complete" if row["complete"] else "Partial · " + ", ".join(row["incomplete_reasons"])
-            st.text(f"{row['role']} · {row['dataset']} · {row['licence']} · {row['captured_at']} · {coverage}\n"
-                    f"Capture {row['capture_id']}\n{row['source']}")
+            coverage = "Complete" if row["complete"] else "Partial · " + ", ".join(
+                reason_label(reason) for reason in row["incomplete_reasons"])
+            recorded = "Local import time" if report.get("kind") == "run_evidence" and not report.get("capture_origin") else "Capture record timestamp"
+            source = row["source"]
+            if report.get("bundle") == PUBLIC_DEMO_BUNDLE and not source.startswith(("https://", "http://")):
+                source = Path(source).name
+            st.text(f"{row['role']} · {row['dataset']} · {row['licence']} · {coverage}\n"
+                    f"{recorded} · {row['captured_at']}\nCapture {row['capture_id']}\n{source}")
 
 
 def render_run_evidence(bundle, capture_id, key, reader):
@@ -257,7 +335,23 @@ def render_run_evidence(bundle, capture_id, key, reader):
         if selection is None:
             return
         report = run_evidence(bundle, capture_id, selection, reader=reader)
-        render_provenance(report)
+        run = report["run"]
+        st.text(f"{run['train_no']} · {run['service_date']} · {run['kind']}")
+        timed = [point for point in run["points"] if point["planned_dep"] and point["real_dep"]]
+        if timed:
+            choice = st.selectbox(
+                "Compare departure times at", range(len(timed)),
+                format_func=lambda i: (timed[i]["name"] or timed[i]["point_id"]) + " · " + timed[i]["real_dep"],
+                key=key(f"clock_point:{capture_id}:{selection}"),
+            )
+            point = timed[choice]
+            comparison_panel("Departure · " + (point["name"] or point["point_id"]),
+                             time_value(point["planned_dep"], show_seconds=True),
+                             time_value(point["real_dep"], show_seconds=True),
+                             labels=("Scheduled", "Observed"), note="One source point in the selected run.")
+        for assumption in run["extra"].get("assumptions", []):
+            st.text("Time basis · " + assumption)
+        render_provenance(report, expanded=False)
         st.caption(" · ".join(report["limits"]))
         origin = report["capture_origin"]
         if origin and origin["evidence"].get("coverage"):
@@ -265,9 +359,8 @@ def render_run_evidence(bundle, capture_id, key, reader):
         if origin and origin["evidence"].get("attribution"):
             st.text(origin["evidence"]["attribution"])
         if not report["capture"]["complete"]:
-            st.warning("Partial capture: " + ", ".join(report["capture"]["incomplete_reasons"]))
-        run = report["run"]
-        st.text(f"{run['train_no']} · {run['service_date']} · {run['kind']}")
+            st.warning("Partial capture: " + ", ".join(
+                reason_label(reason) for reason in report["capture"]["incomplete_reasons"]))
         labels = {"point_id": "Source point", "name": "Name", "planned_arr": "Scheduled arrival",
                   "planned_dep": "Scheduled departure", "real_arr": "Observed arrival", "real_dep": "Observed departure",
                   "published_arr": "Published arrival", "published_dep": "Published departure",
@@ -367,7 +460,7 @@ def render_works_evidence(bundle, capture_id, available, caption, key, reader):
         report = works_evidence(bundle, capture_id, before, reader=reader)
         render_provenance(report)
         if not capture.complete:
-            st.warning("Partial capture: " + ", ".join(capture.incomplete_reasons))
+            st.warning("Partial capture: " + ", ".join(reason_label(reason) for reason in capture.incomplete_reasons))
         origin = report["capture_origin"]
         if origin:
             with st.expander("Capture origin"):
@@ -379,8 +472,10 @@ def render_works_evidence(bundle, capture_id, available, caption, key, reader):
             groups = Counter(item["classification"] for item in result["membership_changes"])
             if groups:
                 st.caption("Source window and membership findings")
-                st.dataframe([{"classification": name, "records": count} for name, count in sorted(groups.items())], hide_index=True)
-                classification = st.selectbox("Membership finding", sorted(groups), key=key("membership_classification"))
+                st.dataframe([{"Finding": reason_label(name), "Records": count} for name, count in sorted(groups.items())],
+                             hide_index=True)
+                classification = st.selectbox("Membership finding", sorted(groups), format_func=reason_label,
+                                              key=key("membership_classification"))
                 selected = [row for row in result["membership_changes"] if row["classification"] == classification]
                 page = evidence_page(selected, "Membership findings page", key(f"membership_page:{capture_id}:{before}:{classification}"))
                 st.dataframe([{"revision": item["revision_id"], "reason": item["reason"],
@@ -439,7 +534,8 @@ def render_text_intake(bundle, actor, key, demo_registry=None):
         st.caption("Proposals do not import a record or record a review. Every nonempty field needs an exact source quote. Missing facts stay missing.")
         st.caption("Mistral consent: " + ("allowed for this bundle" if allowed(bundle) else "off for this bundle"))
         if demo_registry:
-            replay_path = st.selectbox("Public synthetic replay", demo_registry.paths("replay"), key=key("demo_replay"))
+            replay_path = st.selectbox("Public synthetic replay", demo_registry.paths("replay"),
+                                       format_func=lambda path: path.name, key=key("demo_replay"))
             if st.button("Replay checked notice", key=key("demo_replay_button")):
                 demo_registry.require(replay_path)
                 body = json.loads(replay_path.read_text())
@@ -480,44 +576,65 @@ def render_text_intake(bundle, actor, key, demo_registry=None):
 
 
 def render_dossier(bundle, report, actor, key):
-    st.text(report["train_no"] + " / " + report["service_date"] + " — " + report["data_label"])
-    render_provenance(report)
-    left, right = st.columns(2)
-    with left:
-        st.write("Before")
-        if report["before"] is None:
-            st.info("Source record not observed in the selected before capture; operational meaning unknown.")
+    st.html(f"<h2>Train {escape(report['train_no'])}</h2>")
+    st.text(report["train_no"] + " / " + report["service_date"] + " · " +
+            ("Synthetic data" if report["data_label"] == "synthetic" else "Source licences shown in provenance"))
+    render_change(report)
+    if report["capture_comparison"] and report["capture_comparison"]["reason"]:
+        st.warning("Record presence comparison limited. " +
+                   reason_label(report["capture_comparison"]["reason"]) + ".")
+    status = report["operating_date_presence"]
+    if status["before"] != status["after"]:
+        descriptions = {True: "Listed", False: "Not listed", None: "Unknown"}
+        st.caption(f"Service date in source · Before: {descriptions[status['before']]} · "
+                   f"After: {descriptions[status['after']]}")
+
+    st.subheader("Evidence")
+    st.markdown("**Boundary checks**")
+    if not report["findings"]:
+        st.info("No boundary check available for this selection.")
+    if any(f["reason"] in {"ambiguous_boundary_leg", "boundary_leg_not_selected"} for f in report["findings"]):
+        st.warning("Boundary source leg choice needed. Choose the intended records in the sidebar.")
+    for finding in report["findings"]:
+        reason = finding["reason"]
+        if finding["result"] == "unknown":
+            st.info("Boundary could not be checked. " + (reason_label(reason) + "." if reason else ""))
         else:
-            st.json(report["before"])
-    with right:
-        st.write("After")
-        if report["after"] is None:
-            st.info("Source record not observed in the selected after capture; operational meaning unknown.")
-        else:
-            st.json(report["after"])
-    st.write("Source presence in each selected capture")
-    st.json(report["source_presence"])
-    st.caption("An absent source record does not establish cancellation or withdrawal. Null presence means comparison unavailable.")
-    st.write("Operating date in each selected revision")
-    st.json(report["operating_date_presence"])
-    st.caption("A removed operating date is a source-field change, not an inferred cancellation.")
-    st.write("Changed fields")
-    st.dataframe(report["changes"]["field_diffs"], hide_index=True)
-    st.write("Checks between selected captures")
-    st.json({"before": report["checks_before"], "after": report["checks_after"], "work_changes": report["works_state_changes"]})
-    st.write("Works exposures — evidence grades, no delay prediction")
-    st.dataframe([{"grade": e["outcome"], "work_revision": e["work_revision"], "reasons": e["reasons"],
-                   "overlap": e["overlap_window"]} for e in report["works_exposures"]], hide_index=True)
-    st.caption(f"No-match pairs: {report['no_match_checked_pairs']} of {report['checked_pairs']} checked pairs only. No match is not safe.")
+            st.text(reason_label(reason) if reason else "Boundary agrees on the checked fields.")
+        render_boundary_clocks(report, finding)
+        with st.expander("Boundary source details"):
+            st.text(finding["result"] + (" · " + reason if reason else ""))
+            if finding["detail"].get("left_at") and finding["detail"].get("right_at"):
+                for role, source in zip(("Exit", "Entry"), finding["input_refs"][:2]):
+                    st.text(f"{role} · {source['record_id']} · Capture {source['capture_id']}")
+            st.json(finding)
+
+    st.markdown("**Works evidence**")
+    if report["works_exposures"]:
+        works = {work["revision_id"]: work["payload"] for work in report["work_records"]}
+        labels = {"A": "Path and time overlap", "B": "Possible overlap", "time_unknown": "Time could not be checked"}
+        st.dataframe([{
+            "Works record": works.get(item["work_revision"], {}).get("work_id", item["work_revision"]),
+            "Evidence": labels.get(item["outcome"], item["outcome"]),
+            "Grade": item["outcome"],
+            "Reason": ", ".join(reason_label(reason) for reason in item["reasons"]),
+        } for item in report["works_exposures"]], hide_index=True)
+    if report["checked_pairs"]:
+        st.caption(f"No-match pairs: {report['no_match_checked_pairs']} of {report['checked_pairs']} checked pairs. "
+                   "These checks cannot establish that the route is clear.")
     if report["unlocated_checks_not_attached_to_train"]:
-        st.warning("Unlocated works: not attached to this train; unlocated is not clear.")
-        st.json(report["unlocated_checks_not_attached_to_train"])
-    with st.expander("Inspect work records, sources and extra fields"):
-        st.json(report["work_records"])
-    with st.expander("Inspect earlier work records, run and boundary evidence"):
-        st.json({"works": report["work_records_before"], "run": report["selected_run_before"], "findings": report["findings_before"]})
-    with st.expander("Inspect selected run and source points"):
-        st.json(report["selected_run"])
+        st.warning(f"{len(report['unlocated_checks_not_attached_to_train'])} works record(s) without a resolved "
+                   "location could not be assigned to this train.")
+    unknowns = list(dict.fromkeys(reason_label(reason) for reason in report["unknowns"]))
+    if unknowns:
+        st.text("Unresolved · " + " · ".join(unknowns))
+    render_provenance(report, expanded=False)
+    with st.expander("Inspect source records and check details"):
+        st.json({name: report[name] for name in (
+            "before", "after", "source_presence", "operating_date_presence", "checks_before", "checks_after",
+            "works_state_changes", "work_records", "work_records_before", "unlocated_checks_not_attached_to_train",
+            "selected_run", "selected_run_before", "findings_before", "unknowns", "assumptions", "capture_comparison",
+        )})
     if st.button("Ask for a delay estimate", key=key("delay_request")):
         from nightdesk.estimate import estimate_delay
         from nightdesk.audit import append_event
@@ -526,25 +643,30 @@ def render_dossier(bundle, report, actor, key):
         st.warning(refusal.detail)
         st.text(refusal.reason_code)
         st.text(refusal.what_would_fix_it)
-    st.write("Boundary checks")
-    if any(f["reason"] == "unlinked" for f in report["findings"]):
-        st.info("Journey not linked — boundary not checked.")
-    if any(f["reason"] in {"ambiguous_boundary_leg", "boundary_leg_not_selected"} for f in report["findings"]):
-        st.warning("Boundary source leg choice needed. Choose the intended before/after records in Boundary source legs.")
-    for finding in report["findings"]:
-        st.text(finding["result"] + (": " + finding["reason"] if finding["reason"] else ""))
-        st.json(finding)
-    st.write("Unknowns and assumptions")
-    st.json({"unknowns": report["unknowns"], "assumptions": report["assumptions"], "capture_comparison": report["capture_comparison"]})
-    st.write("Local review history and follow-ups")
-    if any(d["stale"] for d in report["local_reviews"]):
-        st.warning("Stale local review: another revision of this subject arrived. Review the selected evidence again.")
-    st.json({"local_reviews": report["local_reviews"], "follow_ups": report["follow_ups"]})
-    with st.form(key("review_form")):
-        disposition = st.selectbox("Local disposition", ["needs_clarification", "accepted_locally", "rejected_locally"])
-        reason = st.text_area("Local reason")
-        owner = st.text_input("Question owner (optional)")
-        question = st.text_area("Question (optional)")
+
+    st.subheader("Local review")
+    revision = report["after"] or report["before"]
+    operating_dates = revision["payload"]["operating_dates"]
+    st.caption("The decision and follow-up apply to the selected source revision.")
+    if len(operating_dates) > 1:
+        st.warning(f"This review applies to all {len(operating_dates)} service dates on this revision.")
+        with st.expander("Review scope · service dates"):
+            st.text(", ".join(operating_dates))
+    if any(item["stale"] for item in report["local_reviews"]):
+        st.warning("Review needs updating. Another revision arrived after the earlier decision.")
+    if report["local_reviews"] or report["follow_ups"]:
+        with st.expander("Previous decisions and follow-ups", expanded=True):
+            for item in report["local_reviews"]:
+                st.text(f"{review_label(item['disposition'])} · {item['actor']} · {item['at']}\n{item['reason']}")
+            for item in report["follow_ups"]:
+                st.text(f"{item['owner']} · {reason_label(item['status'])}\n{item['question']}")
+    review_key = f"review_form:{report['selection_revision']}"
+    with st.form(key(review_key), clear_on_submit=False):
+        disposition = st.selectbox("Local disposition", ["needs_clarification", "accepted_locally", "rejected_locally"],
+                                   format_func=REVIEW_LABELS.get, key=key(review_key + ":decision"))
+        reason = st.text_area("Local reason", key=key(review_key + ":reason"))
+        owner = st.text_input("Question owner (optional)", key=key(review_key + ":owner"))
+        question = st.text_area("Question (optional)", key=key(review_key + ":question"))
         if st.form_submit_button("Record local review"):
             if not actor.strip() or not reason.strip() or bool(owner.strip()) != bool(question.strip()):
                 st.error("Give an actor/reason and both an owner and question for a follow-up.")
@@ -558,9 +680,12 @@ def render_dossier(bundle, report, actor, key):
     if st.button("Export local dossier", key=key("export")):
         md, js = export_dossier(report, bundle)
         st.success("Saved local Markdown and JSON dossier.")
-        st.text(str(md));st.text(str(js))
-        st.download_button("Download Markdown", md.read_text("utf-8"), file_name=md.name, mime="text/markdown")
-        st.download_button("Download JSON", js.read_text("utf-8"), file_name=js.name, mime="application/json")
+        st.text(md.name if bundle.name == PUBLIC_DEMO_BUNDLE else str(md))
+        st.text(js.name if bundle.name == PUBLIC_DEMO_BUNDLE else str(js))
+        st.download_button("Download Markdown", md.read_text("utf-8"), file_name=md.name, mime="text/markdown",
+                           on_click="ignore")
+        st.download_button("Download JSON", js.read_text("utf-8"), file_name=js.name, mime="application/json",
+                           on_click="ignore")
 
 
 if __name__ == "__main__":

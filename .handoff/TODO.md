@@ -60,13 +60,14 @@ No remote creation, push, merge or deploy. P0.9 skipped. Stop after Phase 3. P3.
 
 - [x] Phase 3 closed locally after browser DOM acceptance, offline tests, all three council approvals and a verified local commit. Screenshot frames were unavailable.
 
-### Phase 4 — Not authorised: looks, sustainability, handover
-- [ ] P4.1 **Design research before any styling** (the plain screens of phase 1 exist already).
-- [ ] P4.2 Style the queue and dossier to the approved direction, readable from the back of a room;
-- [ ] P4.3 `co2.py` + one **scenario card**: passenger-km x share that would use the alternative mode
-- [ ] P4.4 `docs/DAY_OF.md` (section 10 made concrete with real commands) and `docs/DEMO.md` (short
-- [ ] P4.5 Final rehearsal and freeze: full test run, clean-setup install check, tag the commit.
-- [ ] P4.6 Optional, only after everything above passes, and only after the user approves the extra
+### Phase 4 — Looks, sustainability, handover
+- [x] P4.1 **Design research before any styling**. Public research and interactive prototype are in `design-research.md` and `phase4-ui-prototype.html`. Opus and Grok approved the revised prototype. Sol hit its usage limit.
+- [x] User approved the revised `phase4-modern-review.html` direction before P4.2 styling.
+- [x] P4.2 Style the queue and dossier. Browser review, source panels, local review and export verified. Saved German, Swiss, Infrabel, DB and Dutch archive evidence checked offline.
+- [x] P4.3 Add the CO₂ scenario card using the UBA TREMOD 2024 factors. Unit and AppTest checks passed.
+- [x] P4.4 Write `docs/DAY_OF.md`, update the offline walkthrough in `docs/DEMO.md`, and verify `docs/nightdesk-demo.mp4`.
+- [x] P4.5 Final rehearsal and local freeze at `nightdesk-phase4`. Final local and clean suites, sealed preflight and Phase 0/2/3 acceptance passed. Opus and Sol approved. Grok's provider error and user-approved closure are recorded in the review ledger.
+- P4.6 optional additions are outside this goal.
 
 ### Phase1 follow-up — user-authorised2026-11-18; Phase2 starts after closure
 - [x] Fix P1-R4-O1: explicit journey/date boundary scope; one unlinked summary; explicit ambiguous-leg selection.

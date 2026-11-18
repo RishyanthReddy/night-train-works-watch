@@ -136,6 +136,9 @@ def test_app_explicit_boundary_choices_resolve_ambiguity(workspace, monkeypatch)
     assert not app.exception
     assert any('boundary_instants_differ' in text.value for text in app.text)
     assert not any('Boundary source leg choice needed' in warning.value for warning in app.warning)
+    assert any("Both instants shown in this train’s source offset" in str(panel.value) and
+               "23:01" in str(panel.value) and "23:00" in str(panel.value) and "UTC+01:00" in str(panel.value)
+               for panel in app.get("html"))
 
 
 def test_explicit_reentry_choices_check_both_boundaries_and_keep_excluded_unknown(workspace):

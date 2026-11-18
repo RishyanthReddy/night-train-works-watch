@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nightdesk · Review desk prototype</title>
+<style>
+  :root { color-scheme:light; font: 16px/1.55 system-ui, sans-serif; }
+  * { box-sizing:border-box; }
+  body { margin:0; }
+  .desk { color:#17282f; background:#f3f5f4; border-radius:12px; max-width:980px; margin:auto; }
+  .wrap { padding:clamp(16px, 4vw, 32px); }
+  .mast { background:#142c36; color:#fff; padding:14px clamp(16px, 4vw, 32px); border-radius:12px 12px 0 0; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:4px 16px; }
+  .mast strong { font-size:20px; }
+  .mast span { color:#d4e2e7; font-size:14px; }
+  h1,h2,p { margin:0; }
+  h1 { font-size:clamp(27px, 6vw, 36px); letter-spacing:-.035em; line-height:1.15; margin:12px 0 8px; }
+  h2 { font-size:20px; margin-bottom:8px; }
+  .muted, dt { color:#445b64; }
+  .context { display:flex; flex-wrap:wrap; gap:12px 24px; align-items:end; margin:20px 0 12px; }
+  .context label { display:grid; gap:4px; flex:1 1 220px; min-width:0; }
+  label { font-weight:650; }
+  label > :is(select, input, textarea) { width:100%; min-width:0; }
+  button, select, input, textarea { font:inherit; }
+  button, select, input, textarea { color:inherit; border:1px solid #74868a; border-radius:6px; padding:8px 12px; background:#fff; min-height:44px; }
+  button { cursor:pointer; font-weight:700; }
+  button:hover { background:#e9efee; }
+  button:disabled { cursor:default; color:#495b62; background:#edf0f0; border-color:#a8b3b7; }
+  button.primary { background:#155450; color:#fff; border-color:#155450; }
+  button.primary:hover { background:#0d403d; }
+  .back { padding-left:0; border:0; background:transparent; text-decoration:underline; text-underline-offset:4px; }
+  :focus-visible { outline:3px solid #155450; outline-offset:3px; }
+  .notice { background:#fff3d9; color:#543907; border-left:4px solid #926300; padding:10px 14px; margin:12px 0; }
+  .badge { width:max-content; max-width:100%; background:#e7ecee; color:#263f49; padding:3px 10px; border-radius:5px; font-size:14px; font-weight:700; }
+  .badge.attention { background:#ffedc3; color:#594007; }
+  .row { background:#fff; border:1px solid #cbd5d6; border-radius:8px; padding:18px; display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center; margin:12px 0; }
+  .row strong { font-size:18px; }
+  .row p + p { margin-top:4px; }
+  .row button { grid-column:2; grid-row:1 / span 2; }
+  .row .review-state { grid-column:1; }
+  .review-state { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+  [aria-invalid="true"] { border-color:#926300; border-width:2px; }
+  section + section { margin-top:22px; }
+  .card { background:#fff; border:1px solid #cbd5d6; border-radius:8px; padding:16px; margin:8px 0; }
+  .comparison { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:10px 0; }
+  .comparison div { background:#f0f4f3; padding:12px; border-radius:6px; }
+  .comparison strong { display:block; font-size:22px; font-variant-numeric:tabular-nums; }
+  .works { padding-left:20px; }
+  .works li + li { margin-top:8px; }
+  details { margin-top:10px; }
+  summary { cursor:pointer; font-weight:700; padding:7px 0; text-decoration:underline; text-underline-offset:3px; }
+  dl { display:grid; grid-template-columns:max-content 1fr; column-gap:16px; row-gap:4px; margin:8px 0; }
+  dd { margin:0; }
+  form { display:grid; gap:12px; }
+  form label { display:grid; gap:4px; }
+  .actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .actions output { flex:1 1 200px; }
+  #dossier > header { margin-bottom:16px; }
+  :focus { scroll-margin:1rem; }
+  @media(max-width:480px) {
+    .row,.comparison { grid-template-columns:1fr; }
+    .row button,.row .review-state { grid-column:auto; grid-row:auto; }
+    dl { grid-template-columns:1fr; row-gap:0; }
+    dd { margin-bottom:6px; }
+  }
+</style>
+</head>
+<body>
+<main class="desk">
+  <header class="mast"><strong>Nightdesk</strong><span>Training workspace · synthetic prototype</span></header>
+  <div class="wrap">
+    <div id="queue">
+      <h1 tabindex="-1" id="queue-title">Review queue</h1>
+      <div class="context">
+        <label for="capture">Capture comparison
+          <select id="capture">
+            <option value="full">09:00 → 12:00</option>
+            <option value="partial">09:00 → 14:00 (partial)</option>
+            <option value="revised">12:00 → 16:00</option>
+          </select>
+        </label>
+      </div>
+      <p class="muted">Captured 16 Nov 2026 (CET) · Service date 17 Nov 2026</p>
+      <p id="queue-notice" class="notice" hidden>The later capture is incomplete. Operating status for this train is unknown.</p>
+      <article class="row">
+        <div><strong>Train aa:101</strong><p id="queue-change"></p><p class="muted">Evidence · <span id="queue-check"></span></p></div>
+        <div>
+          <p class="review-state">Review <span id="queue-status" class="badge"></span></p>
+          <p class="muted" id="queue-owner" hidden></p>
+        </div>
+        <button class="primary" id="open" type="button" aria-label="Open train aa:101">Open train</button>
+      </article>
+    </div>
+    <div id="dossier" hidden>
+      <header>
+        <button class="back" id="back" type="button">← Review queue</button>
+        <h1 tabindex="-1" id="train-title">Train aa:101</h1>
+        <p class="muted">17 Nov 2026 · Network AA</p>
+      </header>
+      <section aria-labelledby="change-title">
+        <h2 id="change-title">What changed</h2>
+        <div class="card">
+          <p><strong>Exit time at the AA–BB boundary</strong></p>
+          <div class="comparison">
+            <div>Before<strong id="before"></strong></div>
+            <div>After<strong id="after"></strong></div>
+          </div>
+          <p class="muted">Times shown in CET (UTC+01:00)</p>
+          <details>
+            <summary>Sources for these values</summary>
+            <dl><dt>Source</dt><dd>Synthetic timetable captures</dd>
+              <dt>Capture times (CET)</dt><dd id="source-pair"></dd>
+              <dt>Before record</dt><dd id="before-source"></dd>
+              <dt>After record</dt><dd id="after-source"></dd>
+              <dt id="neighbour-label">Network BB record</dt><dd id="neighbour-source"></dd>
+              <dt>Later capture</dt><dd id="coverage"></dd>
+              <dt>Licence</dt><dd>Synthetic fixture</dd></dl>
+          </details>
+        </div>
+      </section>
+      <section aria-labelledby="evidence-title">
+        <h2 id="evidence-title">Evidence to check</h2>
+        <div class="card">
+          <p><strong id="boundary-title"></strong></p>
+          <p id="boundary-evidence"></p>
+          <p class="muted" id="boundary-next"></p>
+        </div>
+        <details>
+          <summary>Works evidence</summary>
+          <p id="works-unavailable" hidden></p>
+          <div id="works-list" hidden>
+            <p>Works window · 17 Nov 2026 · 22:00–23:00 CET</p>
+            <ul class="works">
+              <li><strong>Path and time overlap.</strong> Closure syn-A, syn:start to syn:end.</li>
+              <li><strong>Possible overlap.</strong> Closure syn-B, syn:mid to syn:elsewhere. Only one endpoint is on the checked path.</li>
+              <li><strong>Time could not be checked.</strong> Closure syn-T, syn:start to syn:end. The recurrence is unknown.</li>
+              <li><strong>Location missing.</strong> Closure syn-U could not be assigned to this train.</li>
+            </ul>
+            <p class="muted">Source · Capture 2 works.csv · Synthetic fixture</p>
+          </div>
+        </details>
+      </section>
+      <section aria-labelledby="review-title">
+        <h2 id="review-title">Local review</h2>
+        <p class="notice" id="stale" hidden>Review needs updating. Check the changed exit time and record a fresh local decision.</p>
+        <details class="card" id="history" hidden>
+          <summary>Previous local decision</summary>
+          <dl><dt>Reviewed capture</dt><dd>Capture 2 · 16 Nov 12:00 CET</dd>
+            <dt>Decision</dt><dd id="prior-decision"></dd>
+            <dt>Reason</dt><dd id="prior-reason"></dd>
+            <dt id="prior-owner-label">Follow-up owner</dt><dd id="prior-owner"></dd>
+            <dt id="prior-question-label">Question</dt><dd id="prior-question"></dd></dl>
+        </details>
+        <p class="muted">Drafts stay in this prototype until the page is closed or refreshed.</p>
+        <form class="card" id="review">
+          <label>Decision
+            <select id="decision" required><option value="">Choose a decision</option><option>Needs clarification</option><option>Accepted locally</option><option>Rejected locally</option></select>
+          </label>
+          <label>Reason<textarea id="reason" rows="2" required></textarea></label>
+          <details id="follow-up">
+            <summary>Add a follow-up question</summary>
+            <label>Question<input id="question"></label>
+            <label>Follow-up owner<input id="owner"></label>
+          </details>
+          <div class="actions">
+            <button class="primary" type="submit">Save draft review</button>
+            <button id="export" type="button" aria-describedby="export-hint" disabled>Download saved draft</button>
+          </div>
+          <p class="muted" id="export-hint">Save a draft to download a copy.</p>
+          <output aria-live="polite" id="feedback"></output>
+        </form>
+      </section>
+    </div>
+  </div>
+</main>
+<script>
+  const byId = id => document.getElementById(id);
+  const say = (id, value) => { byId(id).textContent = value; };
+  const scenarios = {
+    full: {
+      before:'23:00', after:'23:01', change:'Exit time moved from 23:00 to 23:01.',
+      boundary:'Boundary times differ', detail:'Network AA’s exit moved to 23:01. Network BB’s entry stayed at 23:00.',
+      next:'Confirm the timing at this boundary with the neighbouring timetable desk.',
+      coverage:'Complete for the selected comparison', beforeCapture:1, afterCapture:2
+    },
+    partial: {
+      before:'23:00', after:'Record missing', change:'Train record missing from the later capture.',
+      boundary:'Boundary could not be checked', detail:'The later capture does not include this train record. Operating status is unknown.',
+      next:'Use another capture that includes this train to check the boundary.',
+      works:'A works result is unavailable for this selection.',
+      coverage:'Partial · operating status is unknown', beforeCapture:1, afterCapture:null
+    },
+    revised: {
+      before:'23:01', after:'23:02', change:'Exit time moved from 23:01 to 23:02.',
+      boundary:'Boundary times differ', detail:'Network AA’s exit moved to 23:02. Network BB’s entry stayed at 23:00.',
+      next:'Confirm the updated timing at this boundary with the neighbouring timetable desk.',
+      works:'Works evidence for the revised exit time is outside this prototype example.',
+      coverage:'Complete for the selected comparison', beforeCapture:2, afterCapture:3
+    }
+  };
+  const reviews = new Map();
+  const edits = new Map();
+  const examplePrior = {
+    decision:'Needs clarification', reason:'Different times were recorded for the same boundary.',
+    question:'Can you confirm the entry time?', owner:'Network BB timetable desk'
+  };
+  const fields = ['decision', 'reason', 'question', 'owner'];
+  const key = () => byId('capture').value;
+  const captureTimes = () => '16 Nov 2026 · ' + byId('capture').selectedOptions[0].textContent;
+  const priorReview = () => key() === 'revised' ? (reviews.get('full') ?? examplePrior) : null;
+  const draft = () => Object.fromEntries(fields.map(id => [id, byId(id).value.trim()]));
+  function sourceRecords(scenario) {
+    const exitRecord = (capture, time) => 'Capture ' + capture + ' · legs.csv row 2 · aa:101 · exit at syn:border1 · ' + time + ' CET';
+    return {
+      before:exitRecord(scenario.beforeCapture, scenario.before),
+      after:scenario.afterCapture ? exitRecord(scenario.afterCapture, scenario.after) : 'No record in the later capture',
+      neighbour:scenario.afterCapture ?
+        'Captures ' + scenario.beforeCapture + ' and ' + scenario.afterCapture + ' · legs.csv row 3 · bb:202 · entry at syn:border1 · 23:00 CET' : ''
+    };
+  }
+  function updateDownload(saved, dirty) {
+    byId('export').disabled = !saved || dirty;
+    say('export-hint', dirty ? 'Save your edits to download this version.' : saved ? '' : 'Save a draft to download a copy.');
+  }
+  function renderQueue() {
+    const scenario = scenarios[key()];
+    const saved = reviews.get(key());
+    const prior = priorReview();
+    say('queue-change', scenario.change);
+    say('queue-check', scenario.boundary);
+    say('queue-status', saved?.decision ?? (prior ? 'Review needs updating' : 'Awaiting review'));
+    byId('queue-status').classList.toggle('attention', saved ? saved.decision === 'Needs clarification' : Boolean(prior));
+    byId('queue-notice').hidden = key() !== 'partial';
+    const owner = (saved ?? prior)?.owner;
+    say('queue-owner', owner ? (saved ? 'Follow-up · ' : 'Previous follow-up · ') + owner : '');
+    byId('queue-owner').hidden = !owner;
+  }
+  function openTrain() {
+    const scenario = scenarios[key()];
+    const saved = reviews.get(key());
+    const prior = priorReview();
+    const source = sourceRecords(scenario);
+    say('before', scenario.before);
+    say('after', scenario.after);
+    say('source-pair', captureTimes());
+    say('before-source', source.before);
+    say('after-source', source.after);
+    say('neighbour-source', source.neighbour);
+    byId('neighbour-source').hidden = byId('neighbour-label').hidden = !source.neighbour;
+    say('coverage', scenario.coverage);
+    say('boundary-title', scenario.boundary);
+    say('boundary-evidence', scenario.detail);
+    say('boundary-next', scenario.next);
+    byId('works-list').hidden = Boolean(scenario.works);
+    byId('works-unavailable').hidden = !scenario.works;
+    say('works-unavailable', scenario.works ?? '');
+    for (const panel of byId('dossier').querySelectorAll('details')) panel.open = false;
+    byId('stale').hidden = !prior || Boolean(saved);
+    byId('history').hidden = !prior;
+    byId('history').open = Boolean(prior && !saved);
+    if (prior) {
+      for (const field of fields) say('prior-' + field, prior[field]);
+      for (const field of ['owner', 'question']) {
+        byId('prior-' + field).hidden = !prior[field];
+        byId('prior-' + field + '-label').hidden = !prior[field];
+      }
+    }
+    byId('review').reset();
+    const values = edits.get(key()) ?? saved;
+    for (const id of fields) {
+      byId(id).value = values?.[id] ?? '';
+      byId(id).removeAttribute('aria-invalid');
+    }
+    byId('follow-up').open = Boolean(values?.question || values?.owner);
+    updateDownload(saved, edits.has(key()));
+    say('feedback', edits.has(key()) ? 'You have unsaved edits for this comparison.' :
+      saved ? 'Draft review saved for this comparison.' : '');
+    byId('queue').hidden = true;
+    byId('dossier').hidden = false;
+    byId('train-title').focus();
+  }
+  byId('capture').addEventListener('change', renderQueue);
+  byId('open').addEventListener('click', openTrain);
+  byId('back').addEventListener('click', () => {
+    renderQueue();
+    byId('dossier').hidden = true;
+    byId('queue').hidden = false;
+    byId('open').focus();
+  });
+  byId('review').addEventListener('input', event => {
+    event.target.removeAttribute('aria-invalid');
+    const saved = reviews.get(key());
+    const current = draft();
+    const dirty = fields.some(id => current[id] !== (saved?.[id] ?? ''));
+    if (dirty) edits.set(key(), current);
+    else edits.delete(key());
+    updateDownload(saved, dirty);
+    say('feedback', dirty ? 'Unsaved edits.' : '');
+  });
+  byId('review').addEventListener('submit', event => {
+    event.preventDefault();
+    const review = draft();
+    if (!review.reason || Boolean(review.question) !== Boolean(review.owner)) {
+      const empty = !review.reason ? 'reason' : !review.question ? 'question' : 'owner';
+      say('feedback', {reason:'Enter a reason for your decision.', question:'Enter a follow-up question.', owner:'Enter a follow-up owner.'}[empty]);
+      if (empty !== 'reason') byId('follow-up').open = true;
+      byId(empty).setAttribute('aria-invalid', 'true');
+      byId(empty).focus();
+      return;
+    }
+    reviews.set(key(), review);
+    edits.delete(key());
+    byId('stale').hidden = true;
+    updateDownload(review, false);
+    say('feedback', 'Draft review saved for this comparison.');
+  });
+  byId('export').addEventListener('click', () => {
+    const review = reviews.get(key());
+    const scenario = scenarios[key()];
+    const source = sourceRecords(scenario);
+    const body = ['Nightdesk prototype · synthetic data', 'Train aa:101 · 17 Nov 2026',
+      'Example capture times (CET): ' + captureTimes(),
+      'AA–BB boundary · Before: ' + scenario.before + ' · After: ' + scenario.after,
+      scenario.change, scenario.detail, 'Before record: ' + source.before,
+      'After record: ' + source.after];
+    if (source.neighbour) body.push('Network BB record: ' + source.neighbour);
+    body.push('Later capture: ' + scenario.coverage, 'Licence: Synthetic fixture',
+      'Local decision: ' + review.decision, 'Reason: ' + review.reason);
+    if (review.question) body.push('Question: ' + review.question, 'Follow-up owner: ' + review.owner);
+    const url = URL.createObjectURL(new Blob([body.join('\n') + '\n'], {type:'text/plain'}));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'nightdesk-synthetic-draft.txt';
+    link.click();
+    say('feedback', 'Saved draft download requested.');
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  renderQueue();
+</script>
+</body>
+</html>

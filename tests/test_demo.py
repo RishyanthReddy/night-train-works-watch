@@ -102,4 +102,19 @@ def test_public_bundle_guards_cli_ingress_and_locks_app(workspace, monkeypatch, 
     app.selectbox(key=f'demo:source_run:{real_capture}').set_value(selection).run()
     assert not app.exception
     assert any('infrabel_punctuality · CC0' in text.value for text in app.text)
+    assert any('Time basis' in item.value and 'Europe/Brussels' in item.value for item in app.text)
+    assert any('Source did not declare complete coverage' in item.value for item in app.warning)
     assert any('Observed departure' in table.value.columns for table in app.dataframe)
+    point_key = f'demo:clock_point:{real_capture}:{selection}'
+    app.selectbox(key=point_key).select_index(1).run()
+    app.session_state['demo:active_tab'] = 'CO₂ scenario'
+    app.run().number_input(key='demo:co2_distance').set_value(1200.0).run()
+    app.session_state['demo:active_tab'] = 'Queue'
+    app.run()
+    app.session_state['demo:active_tab'] = 'Run evidence'
+    app.run()
+    assert app.selectbox(key=f'demo:source_run:{real_capture}').value == selection
+    assert app.selectbox(key=point_key).value == 1
+    app.session_state['demo:active_tab'] = 'CO₂ scenario'
+    app.run()
+    assert app.number_input(key='demo:co2_distance').value == 1200.0
