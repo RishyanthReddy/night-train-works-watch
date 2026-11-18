@@ -55,8 +55,30 @@
     {
       "name": "Grok",
       "task_id": "node:delegated-task:command%3Amcp%3A8fc6eb76-7e0a-4ccd-9710-4eea57583e82%3Adelegate-task%3Aefc55369-7eb5-41c4-9c0d-1a5272f6a5ca",
-      "status": "started",
-      "score": null
+      "status": "approved",
+      "score": 9,
+      "tests": "495 passed and one expected skip, Phase 0/2/3 passed, G1\u2013G5 and demo focused probes",
+      "nonblocking": "A caller with direct local audit write privileges can append a receipt. No CLI exposes that action. Source authenticity is not claimed."
     }
-  ]
+  ],
+  "validated_followup_commit": "d2a83d14f9f3c77bab5ed7d271ecf65e200905c2",
+  "validated_followup_paths": [
+    "docs/DEMO.md",
+    "scripts/demo_preflight.sh",
+    "tests/phase2_acceptance.py",
+    "tests/phase3_acceptance.py"
+  ],
+  "planning_readiness": {
+    "thread": "t3-thread://v2/2ca7f808-629d-4ecf-bee3-c14edf78b296/a7c906e8-55e1-4db6-b9d3-c21bdb1ef81a",
+    "run": 116,
+    "verdict": "go",
+    "closed": [
+      "B1",
+      "B2",
+      "B3",
+      "B4"
+    ],
+    "commit": "d2a83d14f9f3c77bab5ed7d271ecf65e200905c2",
+    "verification": "Clean git archive without .handoff; 495 passed, 1 expected local-data skip; demo setup and sealed preflight exit 0; truncated copy and drifted live audit each refused."
+  }
 }
