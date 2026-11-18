@@ -48,7 +48,7 @@ No remote creation, push, merge or deploy. P0.9 skipped. Stop after Phase 3. P3.
 - [x] P2.7 `nightdesk demo check`: demo mode loads only assets listed in a manifest as synthetic or
 - [x] P2.8 Optional notice version extraction skipped by recorded scope decision.
 
-- [ ] Phase 2 acceptance in real app, viewed screenshots, offline tests, swap check, council, local commit and handoff.
+- [x] Phase2close:429offlinechecks, actualCLI/app/viewedscreenshots/swap, R3unanimous9/10, localproductcommit 493d570;128blobsverified, handoffupdated.
 
 ### Phase 3 — The swap, isolation, security
 - [ ] P3.1 **Unseen-shape rehearsal**, whole path from file to export, once with all keys unset: a

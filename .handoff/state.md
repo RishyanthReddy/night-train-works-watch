@@ -33,3 +33,6 @@ Phase2 R1changesrequested7.5/8/7; R2OpusAPPROVE8.5/Solchangesrequested8.5/GrokAP
 - GTFS input ids use an explicit feed namespace, no national point/train correspondence guessed; multiple trips remain separate.
 - Browser server logged Streamlit automatic Arrow conversion of heterogeneous diff values; app completed without exception. No claim of a warning-free server log.
 - Earlier state/sources preserved at history/20261118-before-phase2-council/. No Phase3 started.
+
+## Phase2 closed
+Approved product committedlocally as 493d570c895b824cb6afe92e286d85a999ebb833; all128approvedGitblobs match R3freeze. No remote/push/trackeddata. P2.1–P2.7 andacceptance/swap/councilcomplete, P2.8skipped. ContinueoriginalauthorisedPhase3next; no Phase4.
