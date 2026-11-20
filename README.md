@@ -45,6 +45,37 @@ that may explain it — for one train and one date.*
 
 ---
 
+## If you are starting without me
+
+Everything below runs with no keys and no network. In order:
+
+1. **Get it running.**
+   ```sh
+   uv sync
+   uv run nightdesk demo check          # verifies the demo files by hash
+   ```
+2. **Open the desk** — `uv run nightdesk demo serve`. That is the thing we are showing.
+3. **Do the pipeline by hand, once**, so the desk stops being magic:
+   ```sh
+   uv run nightdesk mapping confirm mappings/infrabel_works.yaml --bundle test-mine
+   uv run nightdesk ingest example-data/infrabel-works/capture.json \
+     --mapping mappings/infrabel_works.yaml --bundle test-mine
+   uv run nightdesk stage-rijden-archive example-data/rijden-archive/services.csv.gz \
+     --month 2026-10 --bundle test-mine
+   ```
+   The first prints `accepted=8693 rejected=0 filtered=843 licence=CC0`; the second reports 359
+   rows. Those are real Belgian and Dutch captures, in [`example-data/`](example-data/), published
+   because their licences (CC0 and CC BY 4.0) allow it. The Rijden file carries an attribution
+   line you must keep.
+4. **See what has already been pulled** — [`data-catalogue.json`](data-catalogue.json) lists every
+   capture held on this machine: source, licence, size, sha256, capture time. Nothing is published
+   from it that a licence does not allow.
+5. **What is not here** — the German, Swiss, NS and Train Archive captures record their licence as
+   `UNKNOWN`, so they stay off the repository. Get your own key — see "Where each key comes from"
+   below — and `uv run nightdesk doctor` will say what is still missing.
+
+---
+
 ## Add your keys
 
 Every source is optional. The Belgian file needs no key at all, so you can start with an empty

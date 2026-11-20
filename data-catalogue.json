@@ -1,0 +1,728 @@
+{
+  "generated_at": "2026-11-20T07:31:41+00:00",
+  "note": "Metadata only: no captured data is included. Reproduce a capture with the nightdesk command for its provider and your own key, then compare the sha256. Redistributable marks the files a licence permits publishing; example-data/ holds those, everything else stays out of the repository.",
+  "captures": [
+    {
+      "bundle": "practice",
+      "provider": "db-openboards",
+      "folder": "db-openboards-e2v8trzb",
+      "captured_at": "2026-11-20T06:35:10.747093Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/open-boards/v1/arrivals",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "arrivals.json",
+          "bytes": 81646,
+          "sha256": "d50b26135c0374d2a21eec0542a5065ee20f50e45b686d609bfa4d198deabbea"
+        },
+        {
+          "name": "departures.json",
+          "bytes": 72899,
+          "sha256": "16c7ddeb32e976b48439a3f29b88be178aad3e512202d8a4621b81d8b9745303"
+        }
+      ]
+    },
+    {
+      "bundle": "practice",
+      "provider": "db-openboards",
+      "folder": "db-openboards-k8ngnbxc",
+      "captured_at": "2026-11-20T06:35:11.044507Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/open-boards/v1/arrivals",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "arrivals.json",
+          "bytes": 54104,
+          "sha256": "709d7d8309efd9646ef5f0d274a8658285e6a42371e9f2f791769145f1f79906"
+        },
+        {
+          "name": "departures.json",
+          "bytes": 51561,
+          "sha256": "1480f526a3f2a70aaeb7c1144e69b36c5ee1acad47602cf8e64e55fd8e3a5137"
+        }
+      ]
+    },
+    {
+      "bundle": "test-db-daily",
+      "provider": "db-openboards",
+      "folder": "db-openboards-0co9ngzi",
+      "captured_at": "2026-11-20T06:34:31.284683Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/open-boards/v1/arrivals",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "arrivals.json",
+          "bytes": 81644,
+          "sha256": "47e91341e6d1d00e478134c96dbc1cade62a67a07bd6cf7e1e0de3c159caac0e"
+        },
+        {
+          "name": "departures.json",
+          "bytes": 74176,
+          "sha256": "36653693a42fd22d5377dade6e889644317babf7801fdbeb6aa74ba724872aeb"
+        }
+      ]
+    },
+    {
+      "bundle": "test-db-daily",
+      "provider": "db-openboards",
+      "folder": "db-openboards-68v39xek",
+      "captured_at": "2026-11-20T06:30:26.695565Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/open-boards/v1/arrivals",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "arrivals.json",
+          "bytes": 78573,
+          "sha256": "181cbd5609d5b35e1982f47bbd9e22f8874695c541e6ccd6066cc9bddd314e96"
+        },
+        {
+          "name": "departures.json",
+          "bytes": 75376,
+          "sha256": "d7fdab6aaf07d024a6ac0e0f7b37dbc42804d359656b7722f1f09484129da556"
+        }
+      ]
+    },
+    {
+      "bundle": "test-db-daily",
+      "provider": "db-openboards",
+      "folder": "db-openboards-ia81le86",
+      "captured_at": "2026-11-20T06:31:19.115624Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/open-boards/v1/arrivals",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "arrivals.json",
+          "bytes": 54659,
+          "sha256": "ba3a6a787eec488b4caff8da8a29602cac5951a4764caabf4165b7529531b6d2"
+        },
+        {
+          "name": "departures.json",
+          "bytes": 53696,
+          "sha256": "0534fda27c105f6083ab421307795f5dfe39f6efc25c33558a062e3c354a53a1"
+        }
+      ]
+    },
+    {
+      "bundle": "test-db-daily",
+      "provider": "db-openboards",
+      "folder": "db-openboards-rmtl3cj2",
+      "captured_at": "2026-11-20T06:34:31.637700Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/open-boards/v1/arrivals",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "arrivals.json",
+          "bytes": 52127,
+          "sha256": "37cd4875521c6b16b81dd3452506b8020c8c0ebebe05b55d4ddee1743bd16a12"
+        },
+        {
+          "name": "departures.json",
+          "bytes": 51555,
+          "sha256": "97989d5750223ac159d91bb92f7f6602e8cc6b42365dc396aca8b6e6980d1744"
+        }
+      ]
+    },
+    {
+      "bundle": "test-db-live",
+      "provider": "db-timetables",
+      "folder": "db-timetables-2upunq52",
+      "captured_at": "2026-11-18T07:49:43.645421Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/fchg/8000207",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "fchg.xml",
+          "bytes": 377405,
+          "sha256": "bfd96ffc1dc42cd5f74b0a885e4b4707b5ef0f553ce42108cda3f431a75601ba"
+        },
+        {
+          "name": "plan.xml",
+          "bytes": 30080,
+          "sha256": "cd12723e1046f7c805eb18e6b4d820468d89a5d3bc2e177b480da011ba7fc21d"
+        }
+      ]
+    },
+    {
+      "bundle": "test-db-live",
+      "provider": "db-timetables",
+      "folder": "db-timetables-7dvs9xg_",
+      "captured_at": "2026-11-18T08:09:34.641283Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/fchg/8000207",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "fchg.xml",
+          "bytes": 385249,
+          "sha256": "404371a210f2a5ed04fdf17831228201f3a15ea784907f6eb37ab8612cb88c48"
+        },
+        {
+          "name": "plan.xml",
+          "bytes": 30080,
+          "sha256": "cd12723e1046f7c805eb18e6b4d820468d89a5d3bc2e177b480da011ba7fc21d"
+        }
+      ]
+    },
+    {
+      "bundle": "test-db-live",
+      "provider": "db-timetables",
+      "folder": "db-timetables-gkdc527w",
+      "captured_at": "2026-11-18T08:09:34.641283Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/fchg/8000207",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "fchg.xml",
+          "bytes": 385249,
+          "sha256": "404371a210f2a5ed04fdf17831228201f3a15ea784907f6eb37ab8612cb88c48"
+        },
+        {
+          "name": "plan.xml",
+          "bytes": 30080,
+          "sha256": "cd12723e1046f7c805eb18e6b4d820468d89a5d3bc2e177b480da011ba7fc21d"
+        }
+      ]
+    },
+    {
+      "bundle": "test-db-live",
+      "provider": "db-timetables",
+      "folder": "db-timetables-gpycg87v",
+      "captured_at": "2026-11-18T08:09:34.641283Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/fchg/8000207",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "fchg.xml",
+          "bytes": 385249,
+          "sha256": "404371a210f2a5ed04fdf17831228201f3a15ea784907f6eb37ab8612cb88c48"
+        },
+        {
+          "name": "plan.xml",
+          "bytes": 30080,
+          "sha256": "cd12723e1046f7c805eb18e6b4d820468d89a5d3bc2e177b480da011ba7fc21d"
+        }
+      ]
+    },
+    {
+      "bundle": "test-db-live",
+      "provider": "db-wire",
+      "folder": "db-wire-gdqaxas0",
+      "captured_at": "2026-11-18T07:49:43.645421Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/fchg/8000207",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "fchg.xml",
+          "bytes": 377405,
+          "sha256": "bfd96ffc1dc42cd5f74b0a885e4b4707b5ef0f553ce42108cda3f431a75601ba"
+        },
+        {
+          "name": "plan.xml",
+          "bytes": 30080,
+          "sha256": "cd12723e1046f7c805eb18e6b4d820468d89a5d3bc2e177b480da011ba7fc21d"
+        }
+      ]
+    },
+    {
+      "bundle": "test-db-live",
+      "provider": "db-wire",
+      "folder": "db-wire-z8sup2eg",
+      "captured_at": "2026-11-18T07:49:13.226106Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/fchg/8011160",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "fchg.xml",
+          "bytes": 13,
+          "sha256": "6993c138e9f2d10e431e6bca75ced8cf073f69df9954fca213fb352a4791be89"
+        },
+        {
+          "name": "plan.xml",
+          "bytes": 13,
+          "sha256": "6993c138e9f2d10e431e6bca75ced8cf073f69df9954fca213fb352a4791be89"
+        }
+      ]
+    },
+    {
+      "bundle": "test-es-national",
+      "provider": "rijden-archive",
+      "folder": "rijden-archive-3bdlm8n7",
+      "captured_at": "2026-11-18T10:58:11.912728Z",
+      "licence": "CC BY 4.0",
+      "attribution": "Rijden de Treinen, Open data about train services (CC BY 4.0)",
+      "source_url": "https://www.rijdendetreinen.nl/en/open-data/train-archive",
+      "redistributable": true,
+      "files": [
+        {
+          "name": "services.csv.gz",
+          "bytes": 35004285,
+          "sha256": "7d113a91381a792bf205b8eee27137d40a7cd9e44cddaf27ab824b278b270a9d"
+        }
+      ]
+    },
+    {
+      "bundle": "test-es-national",
+      "provider": "rijden-archive",
+      "folder": "rijden-archive-rc_aop_e",
+      "captured_at": "2026-11-18T11:41:22.285812Z",
+      "licence": "CC BY 4.0",
+      "attribution": "Rijden de Treinen, Open data about train services (CC BY 4.0)",
+      "source_url": "https://www.rijdendetreinen.nl/en/open-data/train-archive",
+      "redistributable": true,
+      "files": [
+        {
+          "name": "services.csv.gz",
+          "bytes": 35004285,
+          "sha256": "7d113a91381a792bf205b8eee27137d40a7cd9e44cddaf27ab824b278b270a9d"
+        }
+      ]
+    },
+    {
+      "bundle": "test-es-national",
+      "provider": "rijden-archive",
+      "folder": "rijden-archive-tpx7ja38",
+      "captured_at": "2026-11-18T11:13:14.324829Z",
+      "licence": "CC BY 4.0",
+      "attribution": "Rijden de Treinen, Open data about train services (CC BY 4.0)",
+      "source_url": "https://www.rijdendetreinen.nl/en/open-data/train-archive",
+      "redistributable": true,
+      "files": [
+        {
+          "name": "services.csv.gz",
+          "bytes": 35004285,
+          "sha256": "7d113a91381a792bf205b8eee27137d40a7cd9e44cddaf27ab824b278b270a9d"
+        }
+      ]
+    },
+    {
+      "bundle": "test-infrabel-live",
+      "provider": "infrabel-works",
+      "folder": "infrabel-works-z9bqud25",
+      "captured_at": "2026-11-18T07:43:51.213842Z",
+      "licence": "CC0",
+      "attribution": null,
+      "source_url": "https://opendata.infrabel.be/api/explore/v2.1/catalog/datasets/langetermijnplanning-tcr-spoornetwerk/exports/json?order_by=id",
+      "redistributable": true,
+      "files": [
+        {
+          "name": "works.json",
+          "bytes": 42307473,
+          "sha256": "575be025cd1c4e7da87d6e3c887f8252f05df52eb4d13638fb5727696a59ecbc"
+        }
+      ]
+    },
+    {
+      "bundle": "test-keycheck",
+      "provider": "ns-maintenance",
+      "folder": "ns-maintenance-3ev0beq5",
+      "captured_at": "2026-11-20T06:47:28.988597Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://gateway.apiportal.ns.nl/disruptions/v3?type=maintenance&isActive=false",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "maintenance.json",
+          "bytes": 643613,
+          "sha256": "3b9b74701b334a645ea474c23725a35624e0762b3738f136860095dc37bdf583"
+        }
+      ]
+    },
+    {
+      "bundle": "test-keycheck",
+      "provider": "train-archive",
+      "folder": "train-archive-tp27itnf",
+      "captured_at": "2026-11-20T06:48:22.286877Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://data.train-archive.eu/daily/provider=ch-opentransportdata/service=TripUpdate/date=2026-11-13.csv.gz",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "trip-updates.csv",
+          "bytes": 48741828,
+          "sha256": "3b436ee430dde210538ea5c91ac5aa7f0140fa6caaf516c4b4b6704c487ecbfd"
+        }
+      ]
+    },
+    {
+      "bundle": "test-ns-live",
+      "provider": "ns-maintenance",
+      "folder": "ns-maintenance-28hx3qn5",
+      "captured_at": "2026-11-18T08:09:34.651782Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://gateway.apiportal.ns.nl/disruptions/v3?type=maintenance&isActive=false",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "maintenance.json",
+          "bytes": 650272,
+          "sha256": "107e1ec827d354cdfd99ad9fb1940e71f16fdabda9b70ac03abea54a267e6cf8"
+        }
+      ]
+    },
+    {
+      "bundle": "test-ns-live",
+      "provider": "ns-maintenance",
+      "folder": "ns-maintenance-gda86ilz",
+      "captured_at": "2026-11-18T07:46:58.849078Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://gateway.apiportal.ns.nl/disruptions/v3?type=maintenance&isActive=false",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "maintenance.json",
+          "bytes": 650272,
+          "sha256": "107e1ec827d354cdfd99ad9fb1940e71f16fdabda9b70ac03abea54a267e6cf8"
+        }
+      ]
+    },
+    {
+      "bundle": "test-ns-live",
+      "provider": "ns-wire",
+      "folder": "ns-wire-z9vrdx4p",
+      "captured_at": "2026-11-18T07:46:58.849078Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://gateway.apiportal.ns.nl/disruptions/v3?type=maintenance&isActive=false",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "maintenance.json",
+          "bytes": 650272,
+          "sha256": "107e1ec827d354cdfd99ad9fb1940e71f16fdabda9b70ac03abea54a267e6cf8"
+        }
+      ]
+    },
+    {
+      "bundle": "test-strecken-info",
+      "provider": "strecken-info",
+      "folder": "strecken-info-858eksqa",
+      "captured_at": "2026-11-17T11:19:46.892804Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://strecken-info.de/api/baustellen",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "manifest.json",
+          "bytes": 1963,
+          "sha256": "0d0ad4699724786d7a55c9a1d1b32a20850d797da09073c292279fd0f73e6e93"
+        }
+      ]
+    },
+    {
+      "bundle": "test-strecken-info",
+      "provider": "strecken-info",
+      "folder": "strecken-info-vl0by5zm",
+      "captured_at": "2026-11-18T05:24:21.721941Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://strecken-info.de/api/baustellen",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "manifest.json",
+          "bytes": 1964,
+          "sha256": "c7e4b29cb4c31a620d5d49cca453d60e032ff22627b66a1d71d6574d1f0a6ec3"
+        }
+      ]
+    },
+    {
+      "bundle": "test-strecken-info-r2",
+      "provider": "strecken-info",
+      "folder": "strecken-info-92ns7kg0",
+      "captured_at": "2026-11-17T11:19:46.892804Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://strecken-info.de/api/baustellen",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "baustellen.json",
+          "bytes": 37189079,
+          "sha256": "2e5ca4cac806c138e400a54f6792d5f7bbbbac2fa8fbb47cb6bf3c9dfb37e759"
+        },
+        {
+          "name": "manifest.json",
+          "bytes": 1963,
+          "sha256": "0d0ad4699724786d7a55c9a1d1b32a20850d797da09073c292279fd0f73e6e93"
+        }
+      ]
+    },
+    {
+      "bundle": "test-strecken-info-r2",
+      "provider": "strecken-info",
+      "folder": "strecken-info-it_lhlc6",
+      "captured_at": "2026-11-18T05:24:21.721941Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://strecken-info.de/api/baustellen",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "baustellen.json",
+          "bytes": 36927789,
+          "sha256": "740268e8fb9181f97cac07f1ab175c3ac49f903d48136edd87d6be260dce071a"
+        },
+        {
+          "name": "manifest.json",
+          "bytes": 1964,
+          "sha256": "c7e4b29cb4c31a620d5d49cca453d60e032ff22627b66a1d71d6574d1f0a6ec3"
+        }
+      ]
+    },
+    {
+      "bundle": "test-swiss-live",
+      "provider": "swiss-siri",
+      "folder": "swiss-siri-iu5v7z82",
+      "captured_at": "2026-11-18T10:05:36.866473Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://api.opentransportdata.swiss/la/siri-sx",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "gtfs-reference-1.zip",
+          "bytes": 292257915,
+          "sha256": "8c928b2c80ea6b01fe4140ceb8568c6a5b12bdacb1fcf265f47f4ac5ee74ab04"
+        },
+        {
+          "name": "gtfs-reference-2.zip",
+          "bytes": 111001333,
+          "sha256": "52fe85cd337a431f4c4df5444b41deff4af3347376ec51e5f7a67534034d5b70"
+        },
+        {
+          "name": "situations.xml",
+          "bytes": 143857193,
+          "sha256": "01fa5f3e338958d64ab25158f925c6d94bc35820bb288eea7c614731cdda801d"
+        }
+      ]
+    },
+    {
+      "bundle": "test-train-archive-live",
+      "provider": "archive-wire",
+      "folder": "archive-wire-tvma321l",
+      "captured_at": "2026-11-18T07:57:22.311676Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://data.train-archive.eu/daily/provider=ch-opentransportdata/service=TripUpdate/date=2026-11-13.csv.gz",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "trip-updates.csv",
+          "bytes": 48741828,
+          "sha256": "3b436ee430dde210538ea5c91ac5aa7f0140fa6caaf516c4b4b6704c487ecbfd"
+        }
+      ]
+    },
+    {
+      "bundle": "test-train-archive-live",
+      "provider": "train-archive",
+      "folder": "train-archive-23hiijk_",
+      "captured_at": "2026-11-18T07:57:22.311676Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://data.train-archive.eu/daily/provider=ch-opentransportdata/service=TripUpdate/date=2026-11-13.csv.gz",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "trip-updates.csv",
+          "bytes": 48741828,
+          "sha256": "3b436ee430dde210538ea5c91ac5aa7f0140fa6caaf516c4b4b6704c487ecbfd"
+        }
+      ]
+    },
+    {
+      "bundle": "test-train-archive-live",
+      "provider": "train-archive",
+      "folder": "train-archive-btkmtk_u",
+      "captured_at": "2026-11-18T08:09:35.417376Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://data.train-archive.eu/daily/provider=ch-opentransportdata/service=TripUpdate/date=2026-11-13.csv.gz",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "trip-updates.csv",
+          "bytes": 48741828,
+          "sha256": "3b436ee430dde210538ea5c91ac5aa7f0140fa6caaf516c4b4b6704c487ecbfd"
+        }
+      ]
+    },
+    {
+      "bundle": "test-train-archive-live",
+      "provider": "train-archive",
+      "folder": "train-archive-e5k7joxy",
+      "captured_at": "2026-11-18T08:09:35.417376Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://data.train-archive.eu/daily/provider=ch-opentransportdata/service=TripUpdate/date=2026-11-13.csv.gz",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "trip-updates.csv",
+          "bytes": 48741828,
+          "sha256": "3b436ee430dde210538ea5c91ac5aa7f0140fa6caaf516c4b4b6704c487ecbfd"
+        }
+      ]
+    },
+    {
+      "bundle": "test-train-archive-live",
+      "provider": "train-archive",
+      "folder": "train-archive-qpzuxdbd",
+      "captured_at": "2026-11-18T08:09:35.417376Z",
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": "https://data.train-archive.eu/daily/provider=ch-opentransportdata/service=TripUpdate/date=2026-11-13.csv.gz",
+      "redistributable": false,
+      "files": [
+        {
+          "name": "trip-updates.csv",
+          "bytes": 48741828,
+          "sha256": "3b436ee430dde210538ea5c91ac5aa7f0140fa6caaf516c4b4b6704c487ecbfd"
+        }
+      ]
+    },
+    {
+      "bundle": "data/snapshots",
+      "provider": "de snapshot",
+      "folder": "de/2026-11-14",
+      "captured_at": null,
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": null,
+      "redistributable": false,
+      "files": [
+        {
+          "name": "baustellen.json",
+          "bytes": 37168221,
+          "sha256": "0f87929822f56f05729148eb2b06e09e0e7dfd0bda005f40ef8ae96edcd442df"
+        },
+        {
+          "name": "stoerungen.json",
+          "bytes": 44631,
+          "sha256": "f3a5ea32c04ac0e2d2950a250bcc94fe7a071f6994356f8da1919c91ff641c9e"
+        },
+        {
+          "name": "streckenruhen.json",
+          "bytes": 1186980,
+          "sha256": "4596e84c1327bd8ee88a13569e87a89e8a6c156b5bc67b411f7ca1681c3d45d4"
+        }
+      ]
+    },
+    {
+      "bundle": "data/snapshots",
+      "provider": "de snapshot",
+      "folder": "de/2026-11-17T1119Z",
+      "captured_at": null,
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": null,
+      "redistributable": false,
+      "files": [
+        {
+          "name": "baustellen.json",
+          "bytes": 37189079,
+          "sha256": "2e5ca4cac806c138e400a54f6792d5f7bbbbac2fa8fbb47cb6bf3c9dfb37e759"
+        },
+        {
+          "name": "stoerungen.json",
+          "bytes": 56709,
+          "sha256": "6c288f59be48427ac363cc2cac78c0fe4d53b44b905ef37e126626e9cbe69cae"
+        },
+        {
+          "name": "streckenruhen.json",
+          "bytes": 1186980,
+          "sha256": "15c5016f312712202226ba8ae6fc7a3dd9927bca214177009a8f3d6af3c3b18e"
+        }
+      ]
+    },
+    {
+      "bundle": "data/snapshots",
+      "provider": "de snapshot",
+      "folder": "de/2026-11-18T0524Z",
+      "captured_at": null,
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": null,
+      "redistributable": false,
+      "files": [
+        {
+          "name": "baustellen.json",
+          "bytes": 36927789,
+          "sha256": "740268e8fb9181f97cac07f1ab175c3ac49f903d48136edd87d6be260dce071a"
+        },
+        {
+          "name": "stoerungen.json",
+          "bytes": 50369,
+          "sha256": "46ba2a741f5245b5cf38fd38e686fb9a2b24113f340e51c05577958cbf7bf392"
+        },
+        {
+          "name": "streckenruhen.json",
+          "bytes": 1186980,
+          "sha256": "79673c45eb16268af83a6f3a1c9c94c1120f8dc0767b75a88ec28f50ece81523"
+        }
+      ]
+    },
+    {
+      "bundle": "data/snapshots",
+      "provider": "it snapshot",
+      "folder": "it/2026-11-14",
+      "captured_at": null,
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": null,
+      "redistributable": false,
+      "files": [
+        {
+          "name": "infolavori.txt",
+          "bytes": 97997,
+          "sha256": "95dff33cdd4fc943a641111e77e7e6ea2183b3d632cbdac93199a914407813f4"
+        }
+      ]
+    },
+    {
+      "bundle": "data/snapshots",
+      "provider": "nl snapshot",
+      "folder": "nl/2026-11-14",
+      "captured_at": null,
+      "licence": "UNKNOWN",
+      "attribution": null,
+      "source_url": null,
+      "redistributable": false,
+      "files": [
+        {
+          "name": "railinfo.json",
+          "bytes": 2048602,
+          "sha256": "db40963bfb364d7c8815f3f477abd3774138b81eafb05a9ef4e6a8bb10afe0e1"
+        }
+      ]
+    }
+  ]
+}
