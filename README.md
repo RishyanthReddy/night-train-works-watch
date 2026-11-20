@@ -66,6 +66,8 @@ it. It never prints a value.
 
 ## What the pipeline can fetch
 
+![Flowchart: a source is fetched once, saved raw with its provenance, checked against a reviewed mapping, stored as an immutable revision, and compared with an earlier revision](docs/img/pipeline-flow.svg)
+
 | Source | Country | What it gives | Key |
 | --- | --- | --- | --- |
 | Infrabel punctuality | Belgium | Monthly punctuality file, CC0 | none |
@@ -104,6 +106,8 @@ a train with no wifi.
 ---
 
 ## How a planner uses the desk
+
+![Flowchart: pick a folder, pick two pulls of one source, see which trains moved, open one train, record a decision, export the dossier, append to the history](docs/img/desk-flow.svg)
 
 1. Pick the case folder and two pulls of the same source — an earlier file and a later file.
 2. The desk lists the trains whose records changed, and why the checks gave a different answer.

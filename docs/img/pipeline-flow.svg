@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="998" viewBox="0 0 980 998" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<rect width="980" height="998" fill="#ffffff"/>
+<text x="56" y="50" font-size="27" font-weight="650" fill="#111827">The data pipeline</text>
+<text x="56" y="80" font-size="15" fill="#4b5563">One source at a time. Every step writes a file; no step re-fetches what the previous one saved.</text>
+<defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4f46e5"/></marker></defs>
+<rect x="56" y="136" width="500" height="96" rx="10" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.6"/>
+<text x="78" y="168" font-size="18" font-weight="600" fill="#111827">A country's API</text>
+<text x="78" y="192" font-size="14" fill="#4b5563">Germany (OpenBoards), the Netherlands, Switzerland,</text>
+<text x="78" y="212" font-size="14" fill="#4b5563">Belgium, or an archive of past reports.</text>
+<line x1="306.0" y1="232" x2="306.0" y2="266" stroke="#4f46e5" stroke-width="2" marker-end="url(#arw)"/>
+<rect x="56" y="274" width="500" height="96" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<text x="78" y="306" font-size="18" font-weight="600" fill="#111827">Fetch</text>
+<text x="78" y="330" font-size="14" fill="#4b5563">One command per source. The response is read once,</text>
+<text x="78" y="350" font-size="14" fill="#4b5563">with a size cap and an allow-listed host.</text>
+<text x="612" y="304" font-size="13" fill="#6b7280">Germany      DB_CLIENT_ID + DB_API_KEY</text>
+<text x="612" y="323" font-size="13" fill="#6b7280">Netherlands  NS_API_KEY</text>
+<text x="612" y="342" font-size="13" fill="#6b7280">Switzerland  SWISS_OTD_TOKEN</text>
+<text x="612" y="361" font-size="13" fill="#6b7280">Archive      TRAIN_ARCHIVE_TOKEN</text>
+<text x="612" y="380" font-size="13" fill="#6b7280">Belgium      no key needed</text>
+<line x1="306.0" y1="370" x2="306.0" y2="404" stroke="#4f46e5" stroke-width="2" marker-end="url(#arw)"/>
+<rect x="56" y="412" width="500" height="96" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<text x="78" y="444" font-size="18" font-weight="600" fill="#111827">Save the raw file</text>
+<text x="78" y="468" font-size="14" fill="#4b5563">Original bytes, plus sha256, source URL, capture time</text>
+<text x="78" y="488" font-size="14" fill="#4b5563">and licence. Nothing is cleaned on the way in.</text>
+<text x="612" y="442" font-size="13" fill="#6b7280">a folder per pull;</text>
+<text x="612" y="461" font-size="13" fill="#6b7280">later steps never re-fetch</text>
+<line x1="306.0" y1="508" x2="306.0" y2="542" stroke="#4f46e5" stroke-width="2" marker-end="url(#arw)"/>
+<rect x="56" y="550" width="500" height="116" rx="10" fill="#fdf6e7" stroke="#d9a441" stroke-width="1.6" stroke-dasharray="6 4"/>
+<text x="78" y="582" font-size="18" font-weight="600" fill="#111827">Check against a mapping</text>
+<text x="78" y="606" font-size="14" fill="#4b5563">One reviewed YAML per source: columns, types, units,</text>
+<text x="78" y="626" font-size="14" fill="#4b5563">and the assumptions attached to them.</text>
+<text x="78" y="646" font-size="14" fill="#4b5563">A row that fails is kept, with its reason.</text>
+<text x="612" y="580" font-size="13" fill="#6b7280">nothing is fixed silently;</text>
+<text x="612" y="599" font-size="13" fill="#6b7280">an unmapped value stays unknown</text>
+<line x1="306.0" y1="666" x2="306.0" y2="700" stroke="#4f46e5" stroke-width="2" marker-end="url(#arw)"/>
+<rect x="56" y="708" width="500" height="96" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<text x="78" y="740" font-size="18" font-weight="600" fill="#111827">Immutable revision</text>
+<text x="78" y="764" font-size="14" fill="#4b5563">Each accepted set becomes a revision that is never</text>
+<text x="78" y="784" font-size="14" fill="#4b5563">edited. A later pull is a new revision, not an overwrite.</text>
+<text x="612" y="738" font-size="13" fill="#6b7280">the same file always gives</text>
+<text x="612" y="757" font-size="13" fill="#6b7280">the same answer</text>
+<line x1="306.0" y1="804" x2="306.0" y2="838" stroke="#4f46e5" stroke-width="2" marker-end="url(#arw)"/>
+<rect x="56" y="846" width="500" height="96" rx="10" fill="#e8f5ee" stroke="#2f855a" stroke-width="1.6"/>
+<text x="78" y="878" font-size="18" font-weight="600" fill="#111827">Compare two revisions</text>
+<text x="78" y="902" font-size="14" fill="#4b5563">Which trains changed, in which field, and which check</text>
+<text x="78" y="922" font-size="14" fill="#4b5563">produced the different answer. This is the output.</text>
+<text x="612" y="876" font-size="13" fill="#6b7280">usable on its own,</text>
+<text x="612" y="895" font-size="13" fill="#6b7280">or read by the desk</text>
+</svg>

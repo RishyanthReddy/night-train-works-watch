@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="1136" viewBox="0 0 980 1136" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<rect width="980" height="1136" fill="#ffffff"/>
+<text x="56" y="50" font-size="27" font-weight="650" fill="#111827">The example desk</text>
+<text x="56" y="80" font-size="15" fill="#4b5563">What a planner does on a real morning. Every number on screen comes from a saved report.</text>
+<defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f855a"/></marker></defs>
+<rect x="56" y="136" width="500" height="96" rx="10" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.6"/>
+<text x="78" y="168" font-size="18" font-weight="600" fill="#111827">Pick a case folder</text>
+<text x="78" y="192" font-size="14" fill="#4b5563">practice, or an NDA folder.</text>
+<text x="78" y="212" font-size="14" fill="#4b5563">Folders never read each other's files.</text>
+<line x1="306.0" y1="232" x2="306.0" y2="266" stroke="#2f855a" stroke-width="2" marker-end="url(#arw)"/>
+<rect x="56" y="274" width="500" height="96" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<text x="78" y="306" font-size="18" font-weight="600" fill="#111827">Pick two pulls of one source</text>
+<text x="78" y="330" font-size="14" fill="#4b5563">An earlier file and a later file of the same</text>
+<text x="78" y="350" font-size="14" fill="#4b5563">dataset. Only those two are compared.</text>
+<text x="612" y="304" font-size="13" fill="#6b7280">nothing else is loaded</text>
+<line x1="306.0" y1="370" x2="306.0" y2="404" stroke="#2f855a" stroke-width="2" marker-end="url(#arw)"/>
+<rect x="56" y="412" width="500" height="96" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<text x="78" y="444" font-size="18" font-weight="600" fill="#111827">See which trains moved</text>
+<text x="78" y="468" font-size="14" fill="#4b5563">The changed field, the row it came from, and the</text>
+<text x="78" y="488" font-size="14" fill="#4b5563">rule that answered differently this time.</text>
+<line x1="306.0" y1="508" x2="306.0" y2="542" stroke="#2f855a" stroke-width="2" marker-end="url(#arw)"/>
+<rect x="56" y="550" width="500" height="116" rx="10" fill="#fdf6e7" stroke="#d9a441" stroke-width="1.6" stroke-dasharray="6 4"/>
+<text x="78" y="582" font-size="18" font-weight="600" fill="#111827">Open one train</text>
+<text x="78" y="606" font-size="14" fill="#4b5563">The border-handover check on linked path legs,</text>
+<text x="78" y="626" font-size="14" fill="#4b5563">and any engineering works on that route.</text>
+<text x="78" y="646" font-size="14" fill="#4b5563">Two labelled clocks, never a single verdict.</text>
+<text x="612" y="580" font-size="13" fill="#6b7280">the desk shows facts;</text>
+<text x="612" y="599" font-size="13" fill="#6b7280">it never says "will be late"</text>
+<line x1="306.0" y1="666" x2="306.0" y2="700" stroke="#2f855a" stroke-width="2" marker-end="url(#arw)"/>
+<rect x="56" y="708" width="500" height="96" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<text x="78" y="740" font-size="18" font-weight="600" fill="#111827">Record a decision</text>
+<text x="78" y="764" font-size="14" fill="#4b5563">Accepted, rejected, or needs an answer,</text>
+<text x="78" y="784" font-size="14" fill="#4b5563">with a reason and a person. Bound to that revision.</text>
+<text x="612" y="738" font-size="13" fill="#6b7280">a missing row is not</text>
+<text x="612" y="757" font-size="13" fill="#6b7280">a cancelled train</text>
+<line x1="306.0" y1="804" x2="306.0" y2="838" stroke="#2f855a" stroke-width="2" marker-end="url(#arw)"/>
+<rect x="56" y="846" width="500" height="96" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.6"/>
+<text x="78" y="878" font-size="18" font-weight="600" fill="#111827">Export the dossier</text>
+<text x="78" y="902" font-size="14" fill="#4b5563">The decision, the evidence it rested on,</text>
+<text x="78" y="922" font-size="14" fill="#4b5563">and what the data does not say.</text>
+<line x1="306.0" y1="942" x2="306.0" y2="976" stroke="#2f855a" stroke-width="2" marker-end="url(#arw)"/>
+<rect x="56" y="984" width="500" height="96" rx="10" fill="#e8f5ee" stroke="#2f855a" stroke-width="1.6"/>
+<text x="78" y="1016" font-size="18" font-weight="600" fill="#111827">Append to the history</text>
+<text x="78" y="1040" font-size="14" fill="#4b5563">Hash-chained and append-only. It proves the record</text>
+<text x="78" y="1060" font-size="14" fill="#4b5563">was not edited; it does not prove the data is true.</text>
+<text x="612" y="1014" font-size="13" fill="#6b7280">tampering shows,</text>
+<text x="612" y="1033" font-size="13" fill="#6b7280">truth does not</text>
+</svg>
