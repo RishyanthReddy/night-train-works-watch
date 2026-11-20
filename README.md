@@ -62,6 +62,26 @@ A real environment variable always wins over both files, and `.env` is git-ignor
 `nightdesk doctor` tells you exactly which variable is missing for each source and where to get
 it. It never prints a value.
 
+### Where each key comes from
+
+All four are free, and each person gets their own — a key belongs to an account, so someone
+else's `.env` will not work on your machine. The Belgian files need none of this.
+
+| Variable | Where | What to do |
+| --- | --- | --- |
+| `DB_CLIENT_ID`, `DB_API_KEY` | [DB API Marketplace — OpenBoards](https://developers.deutschebahn.com/db-api-marketplace/apis/product/open-boards) | Register, open the OpenBoards product, press **Abonnieren / Subscribe** on the **Free** plan (10 requests per second), then read the client id and API key from your applications. Both values are needed. |
+| `NS_API_KEY` | [NS API portaal](https://apiportal.ns.nl/) | Sign in at [apiportal.ns.nl/signin](https://apiportal.ns.nl/signin), subscribe to the NS App product, and copy the primary key (the secondary one works too). |
+| `SWISS_OTD_TOKEN` | [api-manager.opentransportdata.swiss](https://api-manager.opentransportdata.swiss/) | Register, request the SIRI interface, and generate a token for it. |
+| `TRAIN_ARCHIVE_TOKEN` | [train-archive.eu/account](https://www.train-archive.eu/account?new=1) | Create an account with a code sent to your email (no password), then copy a token from [your tokens](https://www.train-archive.eu/account/tokens). Open access covers the last 7 days and up to 5 sources per 30 days. |
+| `MISTRAL_API_KEY` | [console.mistral.ai](https://console.mistral.ai/) | Optional — only `nightdesk text` uses it, and only when a case folder records consent. |
+
+Fill in what you have, run `uv run nightdesk doctor`, and it will say which sources are ready and
+which variable is still missing. Nothing else is required: every command refuses politely when a
+key it needs is absent, rather than half-running.
+
+The macOS Keychain is a convenience on this machine only, not a sharing mechanism — a teammate
+never needs it, and a plain `.env` is the normal path.
+
 ---
 
 ## What the pipeline can fetch
