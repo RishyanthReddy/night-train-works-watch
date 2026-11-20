@@ -1,5 +1,0 @@
-COMMAND: ['sandbox-exec', '-p', '(version 1)(allow default)(deny network*)', 'uv', 'run', '--offline', '--no-sync', 'pytest', '-q', 'tests/test_phase2_council.py::test_multitrip_full_app_exposes_explicit_choices']
-.                                                                        [100%]
-1 passed in 1.72s
-
-EXIT: 0

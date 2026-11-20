@@ -89,29 +89,29 @@ def test_public_bundle_guards_cli_ingress_and_locks_app(workspace, monkeypatch, 
     app = AppTest.from_file(REPO/'src/nightdesk/ui/app.py', default_timeout=30).run()
     assert not app.exception
     assert all(widget.label != 'Bundle' for widget in app.text_input)
-    assert any(caption.value.startswith('Public demo:') for caption in app.sidebar.caption)
+    assert any(caption.value.startswith('Demo mode:') for caption in app.sidebar.caption)
     replay = app.selectbox(key='demo:demo_replay')
     replay.set_value(Path('tests/fixtures/text/injected.json').resolve())
     app.button(key='demo:demo_replay_button').click().run()
     assert not app.exception
     assert any('text_addresses_model' in error.value for error in app.error)
     real_capture = next(item['capture'].capture_id for item in captures(bundle) if item['metadata']['licence'] == 'CC0')
-    app.session_state['demo:active_tab'] = 'Run evidence'
+    app.session_state['demo:active_tab'] = 'Run times'
     app.selectbox(key='demo:runs').set_value(real_capture).run()
     selection, = run_options(bundle, [real_capture])
     app.selectbox(key=f'demo:source_run:{real_capture}').set_value(selection).run()
     assert not app.exception
     assert any('infrabel_punctuality · CC0' in text.value for text in app.text)
-    assert any('Time basis' in item.value and 'Europe/Brussels' in item.value for item in app.text)
-    assert any('Source did not declare complete coverage' in item.value for item in app.warning)
-    assert any('Observed departure' in table.value.columns for table in app.dataframe)
+    assert any('Assumption about times' in item.value and 'Europe/Brussels' in item.value for item in app.text)
+    assert any('the file does not claim to cover the whole period' in item.value for item in app.warning)
+    assert any('Actual departure' in table.value.columns for table in app.dataframe)
     point_key = f'demo:clock_point:{real_capture}:{selection}'
     app.selectbox(key=point_key).select_index(1).run()
     app.session_state['demo:active_tab'] = 'CO₂ scenario'
     app.run().number_input(key='demo:co2_distance').set_value(1200.0).run()
     app.session_state['demo:active_tab'] = 'Queue'
     app.run()
-    app.session_state['demo:active_tab'] = 'Run evidence'
+    app.session_state['demo:active_tab'] = 'Run times'
     app.run()
     assert app.selectbox(key=f'demo:source_run:{real_capture}').value == selection
     assert app.selectbox(key=point_key).value == 1

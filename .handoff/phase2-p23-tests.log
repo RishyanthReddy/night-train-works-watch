@@ -1,5 +1,0 @@
-COMMAND: ['sandbox-exec', '-p', '(version 1)(allow default)(deny network*)', 'uv', 'run', '--offline', '--no-sync', 'pytest', '-q', 'tests/test_gtfs.py', 'tests/test_runs.py', 'tests/test_mapping.py']
-.................................................................        [100%]
-65 passed in 0.48s
-
-EXIT: 0

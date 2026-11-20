@@ -1,5 +1,0 @@
-{"requests": 25, "legs": 50, "queue": 0.121, "border_entries_first_row": 25}
-{"requests": 50, "legs": 100, "queue": 0.331, "border_entries_first_row": 50}
-
-EXIT:0
-Builder audit inspection: all 12500 scoped boundary entries were unknown/unlinked; no positive or mismatch inferred.

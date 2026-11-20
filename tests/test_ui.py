@@ -45,29 +45,29 @@ def test_queue_open_dossier_record_local_review_and_question(tmp_path, monkeypat
     assert any(f"<h2>Train {train}</h2>" == element.value for element in app.get("html"))
     def by_label(elements, label):
         return next(e for e in elements if e.label == label)
-    by_label(app.text_area, "Local reason").set_value("Synthetic question about this revision")
-    by_label(app.text_input, "Question owner (optional)").set_value("Person A")
-    by_label(app.text_area, "Question (optional)").set_value("Please confirm the boundary point")
-    by_label(app.button, "Record local review").click().run()
+    by_label(app.text_area, "Why").set_value("Synthetic question about this revision")
+    by_label(app.text_input, "Who should answer (optional)").set_value("Person A")
+    by_label(app.text_area, "What needs answering (optional)").set_value("Please confirm the boundary point")
+    by_label(app.button, "Record this decision").click().run()
     assert not app.exception
     assert len(decisions(bundle)) == 1 and decisions(bundle)[0].disposition == "needs_clarification"
     assert follow_ups(bundle)[0].owner == "Person A" and follow_ups(bundle)[0].deadline is None
-    by_label(app.button, "Export local dossier").click().run()
+    by_label(app.button, "Export this change").click().run()
     assert not app.exception and len(list((bundle.root / "exports").glob("*.json"))) == 1
     assert not any("DeltaGenerator" in str(e.value) for e in app.markdown)
     clock_panels = [str(element.value) for element in app.get("html")]
     assert any("23:00" in panel and "23:01" in panel and "UTC+01:00" in panel
                for panel in clock_panels)
     assert any("Follow-up · Person A" in element.value for element in app.text)
-    assert any("all 2 service dates" in item.value for item in app.warning)
-    assert any("applicability to individual service dates is unverified" in item.value for item in app.warning)
+    assert any("all 2 dates this train runs" in item.value for item in app.warning)
+    assert any("Which date that time belongs to cannot be checked" in item.value for item in app.warning)
 
     app.selectbox(key="test-ui:before").set_value(new["capture_id"])
     app.selectbox(key="test-ui:after").set_value(old["capture_id"]).run()
-    assert any("earlier recorded timestamp" in item.value for item in app.warning)
+    assert any("was recorded before the one marked Earlier" in item.value for item in app.warning)
 
     app.selectbox(key="test-ui:before").set_value(old["capture_id"]).run()
     assert not app.exception
-    assert any("No changes found" in item.value for item in app.info)
+    assert any("Nothing changed between these two files" in item.value for item in app.info)
     assert not any(f"<h2>Train {train}</h2>" == element.value for element in app.get("html"))
 

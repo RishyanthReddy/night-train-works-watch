@@ -1,6 +1,0 @@
-{"legs": 200, "before_ingest": 0.207, "after_ingest": 0.222, "queue": 0.293, "dossier": 0.365}
-{"legs": 400, "before_ingest": 0.414, "after_ingest": 0.438, "queue": 0.594, "dossier": 0.72}
-{"legs": 800, "before_ingest": 0.834, "after_ingest": 0.902, "queue": 1.185, "dossier": 1.428}
-PASS queue benchmark: local synthetic timings only
-
-EXIT:0

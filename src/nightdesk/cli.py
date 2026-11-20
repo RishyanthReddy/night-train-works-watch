@@ -64,6 +64,16 @@ def _cmd_db(args):
     return _run_source_capture(_bundle(args), "db_timetables", fetch_timetables, args.eva, date.fromisoformat(args.date), args.hour)
 
 
+def _cmd_db_boards(args):
+    from datetime import datetime
+    from nightdesk.adapters.openboards import fetch_boards
+    planned = datetime.fromisoformat(args.planned_time) if args.planned_time else None
+    bundle = _bundle(args)
+    for eva in dict.fromkeys(args.eva):
+        _run_source_capture(bundle, "db_openboards", fetch_boards, eva, args.limit, planned)
+    return 0
+
+
 def _cmd_swiss(args):
     from nightdesk.adapters.swiss_siri import fetch_siri
     return _run_source_capture(_bundle(args), "swiss_siri_works", fetch_siri, gtfs_paths=args.gtfs_reference)
@@ -203,6 +213,14 @@ def build_parser() -> argparse.ArgumentParser:
     db.add_argument("--date", required=True, help="local plan day YYYY-MM-DD")
     db.add_argument("--hour", type=int, required=True, help="local plan hour (00–23)")
     db.set_defaults(func=_cmd_db)
+
+    boards = sub.add_parser("fetch-db-boards", help="capture one German station's departures and arrivals (OpenBoards)")
+    boards.add_argument("--bundle", required=True)
+    boards.add_argument("--eva", required=True, action="append", metavar="EVA",
+                        help="station number; repeat to capture another station in the same run")
+    boards.add_argument("--limit", type=int, default=50, help="stops per board (1–500)")
+    boards.add_argument("--planned-time", help="start looking at this local instant, ISO 8601")
+    boards.set_defaults(func=_cmd_db_boards)
 
     swiss = sub.add_parser("fetch-swiss-siri", help="capture explicitly planned Swiss rail situations")
     swiss.add_argument("--bundle", required=True)
@@ -346,6 +364,16 @@ def build_parser() -> argparse.ArgumentParser:
         if action == "upgrade":
             cmd.add_argument("--actor", required=True)
         cmd.set_defaults(func=_cmd_audit)
+    doctor = sub.add_parser(
+        "doctor",
+        help="check setup: which keys are present and which sources are ready",
+        description=(
+            "Reads .env (or NIGHTDESK_ENV_FILE) and the environment, then prints which "
+            "sources you can fetch. Prints whether each key is present, never its value."
+        ),
+    )
+    doctor.add_argument("--env", default=None, help="key file to read (default: .env)")
+    doctor.set_defaults(func=_cmd_doctor)
     return parser
 
 
@@ -505,12 +533,49 @@ def _cmd_audit(args):
     return 0
 
 
+def _cmd_doctor(args):
+    import platform
+    from pathlib import Path
+
+    from nightdesk.config import SOURCES, credential_present, env_file_paths, load_env_file
+
+    paths = [Path(args.env)] if args.env else env_file_paths()
+    print("Nightdesk setup check")
+    print(f"Python {platform.python_version()}")
+    for path in paths:
+        if path.is_file():
+            print(f"Key file: {path} (read {len(load_env_file(path))} key(s) from it)")
+        else:
+            print(f"Key file: none at {path}")
+    if not any(path.is_file() for path in paths):
+        print(f"Add keys by copying .env.example to {paths[-1]} or {paths[0]}")
+    missing = []
+    print("")
+    for name, names, note in SOURCES:
+        absent = [variable for variable in names if not credential_present(variable)]
+        state = "ready (no key needed)" if not names else ("ready" if not absent
+                                                           else "needs " + " + ".join(absent))
+        print(f"  {name:<44} {state}")
+        missing.extend((variable, note) for variable in absent)
+    print("")
+    if missing:
+        print("To unlock the rest:")
+        for variable, note in missing:
+            print(f"  {variable:<22} {note}")
+    else:
+        print("Everything is set. Next: nightdesk fetch-infrabel --month 2026-10 --out <folder>")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.command is None:
         parser.print_help()
         return 0
+    from nightdesk.config import load_all_env_files
+    if not (hasattr(args, "env") and args.env):
+        load_all_env_files()
     try:
         return args.func(args)
     except (ValueError, OSError, LookupError) as exc:

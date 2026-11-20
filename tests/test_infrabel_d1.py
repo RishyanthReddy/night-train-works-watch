@@ -94,7 +94,7 @@ def test_source_train_labels_render_as_plain_text(tmp_path, monkeypatch):
     capture = ingest(staged["capture"], mapping, bundle)["capture_id"]
     app = AppTest.from_file(repo / "src/nightdesk/ui/app.py", default_timeout=30).run()
     app.selectbox(key="test-source-label:runs").set_value(capture)
-    app.session_state["test-source-label:active_tab"] = "Run evidence"
+    app.session_state["test-source-label:active_tab"] = "Run times"
     app.run()
     selection, = run_options(bundle, [capture])
     app.selectbox(key=f"test-source-label:source_run:{capture}").set_value(selection).run()

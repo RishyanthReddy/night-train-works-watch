@@ -81,12 +81,12 @@ def test_app_can_review_and_export_a_whole_removed_leg(workspace,monkeypatch):
     app.selectbox(key=b.name+':before').set_value(a['capture'].capture_id).run()
     app.selectbox(key=b.name+':after').set_value(c['capture'].capture_id).run()
     app.selectbox(key=b.name+':selected').select_index(0).run()
-    assert not app.exception and any('not observed in the selected after capture' in str(e.value) for e in app.info)
+    assert not app.exception and any('is not in the later file' in str(e.value) for e in app.info)
     def field(items,label):return next(e for e in items if e.label==label)
-    field(app.text_area,'Local reason').set_value('Synthetic source omission, not cancellation')
-    field(app.button,'Record local review').click().run()
+    field(app.text_area,'Why').set_value('Synthetic source omission, not cancellation')
+    field(app.button,'Record this decision').click().run()
     assert not app.exception
-    field(app.button,'Export local dossier').click().run()
+    field(app.button,'Export this change').click().run()
     assert not app.exception
     assert json.loads(next((b.root/'exports').glob('*.json')).read_text())['after'] is None
 

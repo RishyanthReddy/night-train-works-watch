@@ -124,19 +124,19 @@ def test_app_explicit_boundary_choices_resolve_ambiguity(workspace, monkeypatch)
     app = AppTest.from_file(APP).run(timeout=30)
     def select(label, value):
         next(widget for widget in app.selectbox if widget.label == label).select(value).run(timeout=30)
-    select('Before capture', ids[0]); select('After capture', ids[1]); select('Journey link (optional)', options['link_identifier'])
-    next(widget for widget in app.text_input if widget.label.startswith('Boundary points')).set_value('syn:border1,syn:border2').run(timeout=30)
-    next(widget for widget in app.checkbox if widget.label.startswith('I reviewed')).check().run(timeout=30)
+    select('Earlier file', ids[0]); select('Later file', ids[1]); select('Confirmed train link (optional)', options['link_identifier'])
+    next(widget for widget in app.text_input if widget.label.startswith('Border handover points')).set_value('syn:border1,syn:border2').run(timeout=30)
+    next(widget for widget in app.checkbox if widget.label.startswith('I checked those handover points')).check().run(timeout=30)
     rows = queue(workspace, *ids, **options); bb = next(row for row in rows if row['train_no'] == 'bb:202')
-    select('Open train/date', (bb['selection_revision'], DAY.isoformat()))
-    assert not app.exception and any('Boundary source leg choice needed' in warning.value for warning in app.warning)
+    select('Open a train and date', (bb['selection_revision'], DAY.isoformat()))
+    assert not app.exception and any('More than one record could match this train' in warning.value for warning in app.warning)
     choices = [r.revision_id for identifier in ids for r in snapshot_revisions(workspace, identifier)
                if r.subject_type == 'path_leg' and r.payload.request_id == 'syn-request' and r.payload.sequence == 1]
-    next(widget for widget in app.multiselect if widget.label == 'Boundary source legs (optional)').set_value(choices).run(timeout=30)
+    next(widget for widget in app.multiselect if widget.label == 'Border handover records (optional)').set_value(choices).run(timeout=30)
     assert not app.exception
     assert any('boundary_instants_differ' in text.value for text in app.text)
-    assert not any('Boundary source leg choice needed' in warning.value for warning in app.warning)
-    assert any("Both instants shown in this train’s source offset" in str(panel.value) and
+    assert not any('More than one record could match this train' in warning.value for warning in app.warning)
+    assert any("Both times shown in the timezone this train" in str(panel.value) and
                "23:01" in str(panel.value) and "23:00" in str(panel.value) and "UTC+01:00" in str(panel.value)
                for panel in app.get("html"))
 

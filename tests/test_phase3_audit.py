@@ -43,9 +43,9 @@ def test_production_app_shows_tail_copy_seal_failure(tmp_path,monkeypatch):
     monkeypatch.chdir(tmp_path);b,seal,path=prepared();raw=audit_path(b).read_bytes();path.write_text('\n'.join(raw.decode().splitlines()[:-1])+'\n')
     monkeypatch.setenv('NIGHTDESK_BUNDLE',b.name)
     app=AppTest.from_file(str(REPO/'src/nightdesk/ui/app.py')).run()
-    next(x for x in app.text_input if x.label=='Audit copy file (optional, inside this bundle)').set_value(str(path))
-    next(x for x in app.text_input if x.label=='Trusted external audit seal (optional)').set_value(seal['hash'])
-    next(x for x in app.text_input if x.label=='Trusted external event count (optional)').set_value(str(seal['count']))
-    next(x for x in app.button if x.label=='Verify audit chain').click().run()
+    next(x for x in app.text_input if x.label=='Saved copy of the history (optional)').set_value(str(path))
+    next(x for x in app.text_input if x.label=='Seal from an earlier copy (optional)').set_value(seal['hash'])
+    next(x for x in app.text_input if x.label=='Event count from that copy (optional)').set_value(str(seal['count']))
+    next(x for x in app.button if x.label=='Check the history').click().run()
     assert not app.exception and any('external_seal_or_count_mismatch' in x.value for x in app.error)
     assert audit_path(b).read_bytes()==raw

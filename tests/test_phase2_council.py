@@ -63,11 +63,11 @@ def test_malformed_replay_visible_without_ui_exception(setup,proposal):
     result=propose(b,TEXT,p,provider='replay',replay_path=path)
     assert result['proposal'] is None and result['reasons']==['replay_proposal_invalid']
     app=AppTest.from_string("from nightdesk.ui.app import render_text_intake\nfrom nightdesk.config import get_bundle\nrender_text_intake(get_bundle('practice'),'Synthetic reviewer',lambda x:'mal-'+x)").run()
-    next(x for x in app.text_input if x.label=='Text dataset mapping').set_value(str(p))
-    next(x for x in app.text_input if x.label=='Replay file (local)').set_value(str(path))
-    next(x for x in app.text_area if x.label=='Source notice text').set_value(TEXT)
-    next(x for x in app.selectbox if x.label=='Text proposal provider').select('replay')
-    next(x for x in app.button if x.label=='Get proposal only').click().run()
+    next(x for x in app.text_input if x.label=='Notice mapping (YAML)').set_value(str(p))
+    next(x for x in app.text_input if x.label=='Recorded example file (local)').set_value(str(path))
+    next(x for x in app.text_area if x.label=='Notice text').set_value(TEXT)
+    next(x for x in app.selectbox if x.label=='Who drafts the fields').select('replay')
+    next(x for x in app.button if x.label=='Draft the fields only').click().run()
     assert not app.exception and any('replay_proposal_invalid' in e.value for e in app.error)
     assert read_events(b)[-1].kind=='text_request_refused' and not captures(b)
 
@@ -180,12 +180,12 @@ def test_multitrip_full_app_exposes_explicit_choices(workspace,tmp_path):
     for v in ('v1','v2'):edit(Path('tests/fixtures/syn')/v/'legs.csv',train_no='syn:ES453')
     a,b=load(workspace,'v1'),load(workspace,'v2')
     app=AppTest.from_file(str(REPO/'src/nightdesk/ui/app.py')).run()
-    next(x for x in app.text_input if x.label=='Bundle').set_value(workspace.name).run()
-    next(x for x in app.selectbox if x.label=='Before capture').select(a['capture'].capture_id).run()
-    next(x for x in app.selectbox if x.label=='After capture').select(b['capture'].capture_id).run()
-    next(x for x in app.selectbox if x.label=='Run capture (optional)').select(imported['capture_id']).run()
+    next(x for x in app.text_input if x.label=='Case folder').set_value(workspace.name).run()
+    next(x for x in app.selectbox if x.label=='Earlier file').select(a['capture'].capture_id).run()
+    next(x for x in app.selectbox if x.label=='Later file').select(b['capture'].capture_id).run()
+    next(x for x in app.selectbox if x.label=='Actual run file (optional)').select(imported['capture_id']).run()
     assert not app.exception and not app.error
-    selector=next(x for x in app.multiselect if x.label=='Run observations (optional)')
+    selector=next(x for x in app.multiselect if x.label=='Actual run records (optional)')
     assert len([o for o in selector.options if 'ES453' in o])==2
     from nightdesk.desk import run_options
     options=run_options(workspace,[imported['capture_id']])
@@ -198,14 +198,14 @@ def test_model_draft_origin_survives_form_import(setup):
     from test_text import REPO
     b,p=setup;replay=REPO/'tests/fixtures/text/valid.json';body=json.loads(replay.read_text())
     app=AppTest.from_string("from nightdesk.ui.app import render_text_intake\nfrom nightdesk.config import get_bundle\nrender_text_intake(get_bundle('practice'),'Synthetic reviewer',lambda x:'draft-'+x)").run()
-    next(x for x in app.text_input if x.label=='Text dataset mapping').set_value(str(p))
-    next(x for x in app.text_input if x.label=='Replay file (local)').set_value(str(replay))
-    next(x for x in app.text_area if x.label=='Source notice text').set_value(body['source_text'])
-    next(x for x in app.selectbox if x.label=='Text proposal provider').select('replay')
-    next(x for x in app.button if x.label=='Get proposal only').click().run()
+    next(x for x in app.text_input if x.label=='Notice mapping (YAML)').set_value(str(p))
+    next(x for x in app.text_input if x.label=='Recorded example file (local)').set_value(str(replay))
+    next(x for x in app.text_area if x.label=='Notice text').set_value(body['source_text'])
+    next(x for x in app.selectbox if x.label=='Who drafts the fields').select('replay')
+    next(x for x in app.button if x.label=='Draft the fields only').click().run()
     assert not app.exception and not app.error
-    assert next(x for x in app.selectbox if x.label=='Drafting origin').value=='replay'
-    next(x for x in app.button if x.label=='Check and import this work locally').click().run()
+    assert next(x for x in app.selectbox if x.label=='Who drafted this').value=='replay'
+    next(x for x in app.button if x.label=='Check and add this work').click().run()
     assert not app.exception and not app.error
     row=captures(b)[0]['typed_rows'][0]
     assert row.proposed_by=='llm' and row.extra['drafted_by']=='replay'
@@ -239,11 +239,11 @@ def test_replay_metadata_types_refuse_api_ui_cli(setup,field,value):
     cli=subprocess.run([str(REPO/'.venv/bin/nightdesk'),'text','propose',str(notice),'--mapping',str(p),'--provider','replay','--replay',str(path)],capture_output=True,text=True)
     assert cli.returncode==1 and 'Traceback' not in cli.stderr and 'replay_input_mismatch' in cli.stdout
     app=AppTest.from_string("from nightdesk.ui.app import render_text_intake\nfrom nightdesk.config import get_bundle\nrender_text_intake(get_bundle('practice'),'Synthetic reviewer',lambda x:'metadata-'+x)").run()
-    next(x for x in app.text_input if x.label=='Text dataset mapping').set_value(str(p))
-    next(x for x in app.text_input if x.label=='Replay file (local)').set_value(str(path))
-    next(x for x in app.text_area if x.label=='Source notice text').set_value(TEXT)
-    next(x for x in app.selectbox if x.label=='Text proposal provider').select('replay')
-    next(x for x in app.button if x.label=='Get proposal only').click().run()
+    next(x for x in app.text_input if x.label=='Notice mapping (YAML)').set_value(str(p))
+    next(x for x in app.text_input if x.label=='Recorded example file (local)').set_value(str(path))
+    next(x for x in app.text_area if x.label=='Notice text').set_value(TEXT)
+    next(x for x in app.selectbox if x.label=='Who drafts the fields').select('replay')
+    next(x for x in app.button if x.label=='Draft the fields only').click().run()
     assert not app.exception and any('replay_input_mismatch' in e.value for e in app.error)
     assert read_events(b)[-1].kind=='text_request_refused' and not captures(b)
 

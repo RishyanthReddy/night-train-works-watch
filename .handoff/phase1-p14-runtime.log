@@ -1,9 +1,0 @@
-cc0_2023.csv accepted 27 rejected 0 runs 1 segments 26
-ordered be:453 ['2023-05-22T19:22:00+02:00', '2023-05-22T20:35:00+02:00']
-assumptions ['Times assumed Europe/Brussels; upstream timezone on clock-change nights is not verified.']
-cc0_2026.csv accepted 42 rejected 0 runs 1 segments 41
-ordered be:400 ['2026-10-01T09:05:00+02:00']
-assumptions ['Times assumed Europe/Brussels; upstream timezone on clock-change nights is not verified.']
-cc0_overnight.csv accepted 69 rejected 0 runs 1 segments 68
-ordered be:475 ['2026-03-26T20:48:00+01:00', '2026-03-27T00:28:00+01:00']
-assumptions ['Times assumed Europe/Brussels; upstream timezone on clock-change nights is not verified.']

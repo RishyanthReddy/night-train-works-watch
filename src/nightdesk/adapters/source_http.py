@@ -10,7 +10,9 @@ import zlib
 
 
 def credential(name):
-    value = os.environ.get(name)
+    from nightdesk.config import credential_value
+
+    value = credential_value(name)
     if value is None or not value or any(not 33 <= ord(char) <= 126 for char in value):
         raise ValueError(f"{name}_missing_or_invalid")
     return value
@@ -52,6 +54,44 @@ def read_one(url, allowed_hosts, *, headers=None, limit, allow_redirect=False):
     if len(raw) > limit:
         raise ValueError("provider_response_too_large")
     return raw, None
+
+
+def read_one_post(url, allowed_hosts, *, headers=None, body=b"", limit):
+    """POST a small JSON body to one allow-listed host and return the response bytes.
+
+    Same guards as read_one: https only, exact host, no fragment, bounded size.
+    """
+    target = urlsplit(url)
+    if (target.scheme != "https" or target.netloc not in allowed_hosts
+            or target.fragment or not target.path.startswith("/")):
+        raise ValueError("provider_url_not_allowed")
+    path = target.path + ("?" + target.query if target.query else "")
+    connection = HTTPSConnection(target.hostname, timeout=45)
+    try:
+        connection.request("POST", path, body=body,
+                           headers={"Accept-Encoding": "gzip", **(headers or {})})
+        response = connection.getresponse()
+        if response.status != 200:
+            raise ValueError(f"provider_http_{response.status}")
+        content_encoding = (response.getheader("Content-Encoding") or "").strip().lower()
+        raw = response.read(limit + 1)
+    except (HTTPException, OSError):
+        raise ValueError("provider_transport_failed") from None
+    finally:
+        connection.close()
+    if len(raw) > limit:
+        raise ValueError("provider_response_too_large")
+    if content_encoding == "gzip" or (not content_encoding and raw.startswith(b"\x1f\x8b")):
+        try:
+            with gzip.GzipFile(fileobj=BytesIO(raw)) as compressed:
+                raw = compressed.read(limit + 1)
+        except (OSError, EOFError, zlib.error):
+            raise ValueError("provider_invalid_gzip") from None
+    elif content_encoding not in ("", "identity"):
+        raise ValueError("provider_content_encoding_unsupported")
+    if len(raw) > limit:
+        raise ValueError("provider_response_too_large")
+    return raw
 
 
 def check_xml(raw):

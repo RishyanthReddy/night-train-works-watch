@@ -72,14 +72,14 @@ def test_same_app_repeated_bundle_switches_do_not_render_other_bundle(tmp_path,m
     prepare(tmp_path);monkeypatch.chdir(tmp_path);a,b=build_pair()
     app=AppTest.from_file(str(REPO/'src/nightdesk/ui/app.py')).run(timeout=30)
     for own,other in ((a,b),(b,a),(a,b)):
-        next(x for x in app.text_input if x.label=='Bundle').set_value(own['bundle']).run()
-        next(x for x in app.selectbox if x.label=='Before capture').select(own['old']).run()
-        next(x for x in app.selectbox if x.label=='After capture').select(own['new']).run()
-        next(x for x in app.selectbox if x.label=='Works capture (optional)').select(own['work']).run()
-        next(x for x in app.selectbox if x.label=='Open train/date').select_index(0).run()
+        next(x for x in app.text_input if x.label=='Case folder').set_value(own['bundle']).run()
+        next(x for x in app.selectbox if x.label=='Earlier file').select(own['old']).run()
+        next(x for x in app.selectbox if x.label=='Later file').select(own['new']).run()
+        next(x for x in app.selectbox if x.label=='Engineering works file (optional)').select(own['work']).run()
+        next(x for x in app.selectbox if x.label=='Open a train and date').select_index(0).run()
         assert not app.exception and not app.error
         text='\n'.join(str(x.value) for xs in (app.json,app.text,app.markdown) for x in xs)
         assert own['marker'] in text and other['marker'] not in text
-        next(x for x in app.button if x.label=='Export local dossier').click().run()
+        next(x for x in app.button if x.label=='Export this change').click().run()
         assert not app.exception
         assert all(other['marker'] not in p.read_text() for p in (get_bundle(own['bundle']).root/'exports').glob('*'))

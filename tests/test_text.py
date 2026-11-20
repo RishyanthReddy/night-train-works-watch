@@ -123,10 +123,10 @@ from nightdesk.config import get_bundle
 render_text_intake(get_bundle('practice'), 'Synthetic reviewer', lambda x: 'text-'+x)
 ''')
     app.run()
-    next(x for x in app.text_input if x.label=='Text dataset mapping').set_value(str(p))
-    next(x for x in app.text_area if x.label=='Source notice text').set_value(TEXT)
-    next(x for x in app.text_area if x.label=='Work fields JSON (manual or proposed)').set_value(json.dumps(FIELDS))
-    next(x for x in app.text_area if x.label=='Exact source quotes JSON, keyed by field').set_value(json.dumps(PROPOSAL['quotes']))
-    next(x for x in app.button if x.label=='Check and import this work locally').click().run()
+    next(x for x in app.text_input if x.label=='Notice mapping (YAML)').set_value(str(p))
+    next(x for x in app.text_area if x.label=='Notice text').set_value(TEXT)
+    next(x for x in app.text_area if x.label=='Work fields (JSON)').set_value(json.dumps(FIELDS))
+    next(x for x in app.text_area if x.label=='Exact quotes from the notice, one per field (JSON)').set_value(json.dumps(PROPOSAL['quotes']))
+    next(x for x in app.button if x.label=='Check and add this work').click().run()
     assert not app.exception and not app.error
     assert len(captures(b))==2  # explicit different actor retained as evidence

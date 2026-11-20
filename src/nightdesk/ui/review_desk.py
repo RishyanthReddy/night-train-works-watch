@@ -1,4 +1,4 @@
-"""Presentation for the review desk. All findings come from existing reports."""
+"""Presentation for the review desk. Every number shown comes from a report."""
 
 from datetime import datetime
 from html import escape
@@ -56,44 +56,47 @@ main [data-baseweb="tab-highlight"] { background-color: #235b3e; }
 """
 
 FIELD_LABELS = {
-    "entry.at": "Entry time", "entry.raw_time": "Entry time as supplied", "entry.point_id": "Entry point",
-    "exit.at": "Exit time", "exit.raw_time": "Exit time as supplied", "exit.point_id": "Exit point",
-    "operating_dates": "Operating dates", "status": "Source status", "source_status": "Source status",
-    "source_presence": "Record presence",
+    "entry.at": "Entering time", "entry.raw_time": "Entering time as supplied",
+    "entry.point_id": "Entering point",
+    "exit.at": "Leaving time", "exit.raw_time": "Leaving time as supplied",
+    "exit.point_id": "Leaving point",
+    "operating_dates": "Dates this train runs", "status": "Status in this file",
+    "source_status": "Status in this file",
+    "source_presence": "Listed in the file",
 }
 CHANGE_LABELS = {
-    "checks_changed": "Evidence checks changed",
-    "source_record_added": "Record present only in the after capture",
-    "source_record_removed": "Record present only in the before capture",
-    "record_presence_unknown": "Record missing, operating status unknown",
-    "multiple_source_leg_changes": "Multiple source records changed",
+    "checks_changed": "The checks gave a different answer",
+    "source_record_added": "Appears only in the later file",
+    "source_record_removed": "Appears only in the earlier file",
+    "record_presence_unknown": "No longer listed — we cannot tell if it still runs",
+    "multiple_source_leg_changes": "More than one record for this train changed",
 }
 REVIEW_LABELS = {
-    "not_reviewed_locally": "Awaiting review", "needs_clarification": "Needs clarification",
-    "accepted_locally": "Accepted locally", "rejected_locally": "Rejected locally",
-    "mixed_source_leg_reviews": "Different reviews by source record",
+    "not_reviewed_locally": "Waiting for review", "needs_clarification": "Needs an answer",
+    "accepted_locally": "Accepted by us", "rejected_locally": "Rejected by us",
+    "mixed_source_leg_reviews": "Records for this train have different decisions",
 }
 REASON_LABELS = {
-    "boundary_instants_differ": "Boundary times differ",
-    "operating_dates_differ": "Operating dates differ",
-    "different_boundary_points": "The two records name different boundary points",
+    "boundary_instants_differ": "The two sides give different handover times",
+    "operating_dates_differ": "The two sides list different dates this train runs",
+    "different_boundary_points": "The two records name different handover points",
     "different_event_kinds": "The two records describe different events",
-    "boundary_point_not_reviewed": "Boundary point identity needs review",
-    "incomplete_capture": "At least one capture is partial",
-    "filter_mismatch": "The captures cover different filters",
-    "unlinked": "No reviewed journey link selected",
-    "ambiguous_boundary_leg": "More than one source record could fit",
-    "boundary_leg_not_selected": "The adjacent source record was not selected",
-    "adjacent_leg_not_observed": "The adjacent source record is missing",
-    "missing_time": "The source time is missing",
-    "no_run_selected": "No run selected",
-    "no_scheduled_or_observed_run_selected": "No run selected",
-    "run_selection_required": "Choose the source run to use",
-    "border_not_checked": "Boundary could not be checked",
-    "not_declared_complete": "Source did not declare complete coverage",
-    "expired_out_of_window": "Left the rolling window after expiry",
-    "entering_window": "Entered the rolling window",
-    "leg_not_observed_in_selected_capture; operational_meaning_unknown": "Record missing, operating status unknown",
+    "boundary_point_not_reviewed": "Nobody has confirmed this handover point yet",
+    "incomplete_capture": "At least one file only covers part of the period",
+    "filter_mismatch": "The two files were pulled with different filters",
+    "unlinked": "No confirmed train link was picked",
+    "ambiguous_boundary_leg": "More than one record could match this train",
+    "boundary_leg_not_selected": "The neighbouring record was not picked",
+    "adjacent_leg_not_observed": "The neighbouring record is missing",
+    "missing_time": "The file has no time for this",
+    "no_run_selected": "No actual run was picked",
+    "no_scheduled_or_observed_run_selected": "No actual run was picked",
+    "run_selection_required": "Pick which run to use",
+    "border_not_checked": "The handover could not be checked",
+    "not_declared_complete": "The file does not claim to cover the whole period",
+    "expired_out_of_window": "Dropped out of the rolling window after expiring",
+    "entering_window": "Newly inside the rolling window",
+    "leg_not_observed_in_selected_capture; operational_meaning_unknown": "No longer listed — we cannot tell if it still runs",
 }
 
 
@@ -107,7 +110,7 @@ def reason_label(reason):
 
 def review_label(review):
     disposition, _, stale = review.partition(" (stale)")
-    return "Review needs updating" if stale else REVIEW_LABELS.get(disposition, label(disposition))
+    return "Decision needs another look" if stale else REVIEW_LABELS.get(disposition, label(disposition))
 
 
 def queue_summary(row):
@@ -117,7 +120,7 @@ def queue_summary(row):
     changed = row["changed_fields"]
     fields = ", ".join(dict.fromkeys(FIELD_LABELS.get(field, label(field)) for field in changed
                                      if not (field.endswith(".raw_time") and field.replace(".raw_time", ".at") in changed)))
-    return fields + " changed" if fields else "Source record changed"
+    return fields + " changed" if fields else "Something in this record changed"
 
 
 def render_brand(workspace):
@@ -132,14 +135,14 @@ def render_brand(workspace):
 def time_value(value, *, show_seconds=False, display_zone=None):
     """Render the recorded instant and its date and offset."""
     if not value:
-        return "Time unavailable", ""
+        return "No time given", ""
     observed = datetime.fromisoformat(value)
     if display_zone is not None:
         observed = observed.astimezone(display_zone)
     clock = observed.time().isoformat(timespec="microseconds" if observed.microsecond else
                                      "seconds" if show_seconds or observed.second else "minutes")
     offset = observed.strftime("%z")
-    scope = observed.date().isoformat() + (f" · UTC{offset[:3]}:{offset[3:]}" if offset else " · Offset unknown")
+    scope = observed.date().isoformat() + (f" · UTC{offset[:3]}:{offset[3:]}" if offset else " · Timezone not given")
     return clock, scope
 
 
@@ -159,12 +162,12 @@ def comparison_panel(title, before, after, *, labels=("Before", "After"), note="
 
 def _field_value(change, side):
     if not change[f"{side}_present"]:
-        return "Field missing", ""
+        return "Nothing given", ""
     value = change[side]
     if change["field"].endswith(".at") and isinstance(value, str):
         return time_value(value)
     if value is None:
-        return "Value unknown", ""
+        return "Not stated", ""
     if isinstance(value, list):
         return ", ".join(str(item) for item in value), ""
     return str(value) if not isinstance(value, dict) else json.dumps(value, ensure_ascii=False), ""
@@ -174,14 +177,15 @@ def render_change(report):
     diffs = report["changes"]["field_diffs"]
     if report["before"] is None or report["after"] is None:
         comparison_panel(
-            "Source record presence",
-            ("Record present" if report["before"] else "Record missing", ""),
-            ("Record present" if report["after"] else "Record missing", ""),
-            note="Operating status cannot be inferred from a missing source record.",
+            "Is this train in the file?",
+            ("Listed" if report["before"] else "Not listed", ""),
+            ("Listed" if report["after"] else "Not listed", ""),
+            note="A train missing from a file is not a cancelled train. It may simply be outside what that file covers.",
         )
-        for side in ("before", "after"):
+        for side, word in (("before", "earlier"), ("after", "later")):
             if report[side] is None:
-                st.info(f"Source record not observed in the selected {side} capture. Operating status is unknown.")
+                st.info(f"This train is not in the {word} file. "
+                        "We cannot tell from that whether it still runs.")
     elif diffs:
         primary = next((item for item in diffs if item["field"] in ("exit.at", "entry.at")), diffs[0])
         field = primary["field"]
@@ -191,16 +195,16 @@ def render_change(report):
                 payload = report[side]["payload"]
                 event = payload.get(field.split(".")[0])
                 if event and event["at"] and len(payload["operating_dates"]) > 1:
-                    st.warning(f"{side.title()} source lists several service dates with one timestamp dated "
-                               f"{datetime.fromisoformat(event['at']).date()}. Its applicability to individual "
-                               "service dates is unverified.")
+                    st.warning(f"The {'earlier' if side == 'before' else 'later'} file lists several dates this train runs "
+                               f"but gives one timestamp, dated {datetime.fromisoformat(event['at']).date()}. "
+                               "Which date that time belongs to cannot be checked.")
     else:
-        st.info("Evidence checks changed. The source fields shown here have no recorded differences.")
+        st.info("The checks gave a different answer, but no field in the file itself changed.")
     if diffs:
-        with st.expander("All changed fields"):
+        with st.expander("Every field that changed"):
             st.dataframe([{"Field": FIELD_LABELS.get(item["field"], label(item["field"])),
-                           "Before": " · ".join(filter(None, _field_value(item, "old"))),
-                           "After": " · ".join(filter(None, _field_value(item, "new")))}
+                           "Earlier": " · ".join(filter(None, _field_value(item, "old"))),
+                           "Later": " · ".join(filter(None, _field_value(item, "new")))}
                           for item in diffs], hide_index=True)
 
 
@@ -218,9 +222,10 @@ def render_boundary_clocks(report, finding):
                 display_zone = datetime.fromisoformat(event["at"]).tzinfo
                 break
     comparison_panel(
-        "Reviewed point · " + detail["point_id"],
+        "Handover point · " + detail["point_id"],
         time_value(detail["left_at"], display_zone=display_zone),
         time_value(detail["right_at"], display_zone=display_zone),
-        labels=("Exit", "Entry"), transition=False,
-        note=("Both instants shown in this train’s source offset." if display_zone else "Both instants shown in UTC."),
+        labels=("Leaves", "Arrives"), transition=False,
+        note=("Both times shown in the timezone this train's file uses." if display_zone
+              else "Both times shown in UTC."),
     )

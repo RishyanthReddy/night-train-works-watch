@@ -4,3 +4,8 @@ __pycache__/
 .pytest_cache/
 data/
 *.egg-info/
+.env
+!.env.example
+
+# Local working memory and planning notes; kept on disk, never in the repo.
+.handoff/

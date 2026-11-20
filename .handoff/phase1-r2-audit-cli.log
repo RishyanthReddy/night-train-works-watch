@@ -1,5 +1,0 @@
-Keep this hash and count outside the audit log; source truth is not proved.
-{"count": 128, "external_seal_checked": false, "hash": "e77bb15f852a73e91681a59f8fc063f7d0f2c4001f7702689ce0812659e1267c", "limits": "Internal consistency only; no proof of source truth. Tail/rewrite detection needs a trusted external seal and count.", "valid": true}
-exit 0
-{"count": 128, "external_seal_checked": true, "hash": "e77bb15f852a73e91681a59f8fc063f7d0f2c4001f7702689ce0812659e1267c", "limits": "Internal consistency only; no proof of source truth. Tail/rewrite detection needs a trusted external seal and count.", "valid": true}
-exit 0

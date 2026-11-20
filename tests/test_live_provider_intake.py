@@ -115,7 +115,7 @@ def test_db_plan_exact_stop_and_published_times(tmp_path, monkeypatch):
     app = AppTest.from_file(MAPPINGS.parent / "src/nightdesk/ui/app.py", default_timeout=30).run()
     capture_id = selected["capture"].capture_id
     app.selectbox(key="test-db:runs").set_value(capture_id)
-    app.session_state["test-db:active_tab"] = "Run evidence"
+    app.session_state["test-db:active_tab"] = "Run times"
     app.run()
     app.selectbox(key=f"test-db:source_run:{capture_id}").set_value(chosen).run()
     assert not app.exception

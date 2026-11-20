@@ -1,6 +1,0 @@
-{"requests": 50, "legs": 100, "queue": 0.154, "border_entries_first_row": 1}
-{"requests": 100, "legs": 200, "queue": 0.293, "border_entries_first_row": 1}
-{"requests": 200, "legs": 400, "queue": 0.583, "border_entries_first_row": 1}
-{"requests": 400, "legs": 800, "queue": 1.189, "border_entries_first_row": 1}
-
-EXIT:0

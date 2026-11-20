@@ -57,18 +57,18 @@ def test_saved_works_through_comparison_export_and_app(tmp_path, monkeypatch):
     assert "capture_membership_checked" in [event.kind for event in read_events(bundle)]
     app = AppTest.from_file(REPO / "src/nightdesk/ui/app.py", default_timeout=30).run()
     app.selectbox(key="test-works-evidence:works").set_value(ids[1])
-    app.session_state["test-works-evidence:active_tab"] = "Works evidence"
+    app.session_state["test-works-evidence:active_tab"] = "Works"
     app.run()
     assert not app.exception
     app.selectbox(key=f"test-works-evidence:works_before:{ids[1]}").set_value(ids[0]).run()
     assert any("incomplete_capture" in element.value for element in app.info)
     assert not app.exception
-    assert any(set(table.value["Finding"]) == {"Left the rolling window after expiry", "Entered the rolling window"}
+    assert any(set(table.value["Finding"]) == {"Dropped out of the rolling window after expiring", "Newly inside the rolling window"}
                for table in app.dataframe if "Finding" in table.value.columns)
     app.text_input(key="test-works-evidence:work_search").set_value("synthetic-new").run()
-    app.session_state["test-works-evidence:active_tab"] = "Queue"
+    app.session_state["test-works-evidence:active_tab"] = "Changes"
     app.run()
-    app.session_state["test-works-evidence:active_tab"] = "Works evidence"
+    app.session_state["test-works-evidence:active_tab"] = "Works"
     app.run()
     assert app.selectbox(key=f"test-works-evidence:works_before:{ids[1]}").value == ids[0]
     assert app.text_input(key="test-works-evidence:work_search").value == "synthetic-new"

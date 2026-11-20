@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import os
 import re
+import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -30,6 +32,150 @@ CREDENTIAL_ENV_VARS = (
     "DB_API_KEY",
     "TRAIN_ARCHIVE_TOKEN",
 )
+
+# What each source needs before it can be fetched. Used by `nightdesk doctor`
+# and shown by the setup instructions; never a place where a value is stored.
+#   (label, variable names, what you can do once they are set)
+SOURCES = (
+    ("Infrabel punctuality (Belgium)", (), "Public CC0 monthly file. No key: works as-is."),
+    ("NS maintenance (Netherlands)", ("NS_API_KEY",),
+     "Dutch engineering works. Free key from the NS developer portal."),
+    ("Rijden de Treinen archive (Netherlands)", (),
+     "Saved archive reports. Fetch them yourself; no key needed here."),
+    ("DB station boards (Germany)", ("DB_CLIENT_ID", "DB_API_KEY"),
+     "German station departures and arrivals. Free OpenBoards plan on the DB API Marketplace."),
+    ("Swiss SIRI (Switzerland)", ("SWISS_OTD_TOKEN",),
+     "Planned Swiss disruptions. Free token from opentransportdata.swiss."),
+    ("Train Archive", ("TRAIN_ARCHIVE_TOKEN",),
+     "Daily archive trips by train number."),
+    ("Mistral (optional drafting)", ("MISTRAL_API_KEY",),
+     "Draft work fields from a notice. Off unless you also consent per case folder."),
+)
+
+
+def env_file_path():
+    """Where keys are read from. Point NIGHTDESK_ENV_FILE elsewhere to use another file."""
+    return os.environ.get("NIGHTDESK_ENV_FILE") or ".env"
+
+
+def machine_env_file_path():
+    """One key file shared by every project on this machine."""
+    override = os.environ.get("NIGHTDESK_MACHINE_ENV_FILE")
+    if override is not None:
+        return Path(override)
+    return Path.home() / ".agents" / "secrets" / "nightdesk.env"
+
+
+def env_file_paths():
+    """Key files, in load order: the project's own file first, then the machine file.
+
+    A value already set wins, so a real environment variable beats both files and
+    a project .env beats the machine file.
+    """
+    return [Path(env_file_path()), machine_env_file_path()]
+
+
+def load_all_env_files():
+    """Load every key file in order. Returns {path: [names loaded]}."""
+    return {path: load_env_file(path) for path in env_file_paths()}
+
+
+def load_env_file(path=".env"):
+    """Load KEY=VALUE lines from a local .env file into os.environ.
+
+    Real environment variables always win, so exporting a key still overrides the
+    file. Returns the names that were loaded. Values are never printed.
+    """
+    file = Path(path)
+    if not file.is_file():
+        return []
+    loaded = []
+    for raw in file.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        name, _, value = line.partition("=")
+        name = name.strip()
+        if name.startswith("export "):
+            name = name[len("export "):].strip()
+        value = value.strip().strip('"').strip("'")
+        if not name or not value or name in os.environ:
+            continue
+        os.environ[name] = value
+        loaded.append(name)
+    return loaded
+
+
+def save_env_values(path, values):
+    """Write NAME=value pairs into a key file, keeping comments and existing lines.
+
+    The file is created readable only by its owner (mode 600). Empty values remove
+    the value but keep the line, so the next reader sees "not set" rather than an error.
+    """
+    file = Path(path)
+    file.parent.mkdir(parents=True, exist_ok=True)
+    lines = file.read_text(encoding="utf-8").splitlines() if file.is_file() else []
+    seen = set()
+    for index, raw in enumerate(lines):
+        name = raw.partition("=")[0].strip()
+        if name.startswith("export "):
+            name = name[len("export "):].strip()
+        if name in values and raw.lstrip()[:1] != "#":
+            lines[index] = f"{name}={values[name]}"
+            seen.add(name)
+    for name, value in values.items():
+        if name not in seen:
+            lines.append(f"{name}={value}")
+    file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    os.chmod(file, 0o600)
+    return file
+
+
+KEYCHAIN_SERVICE = "nightdesk"
+KEYCHAIN_ENV = "NIGHTDESK_KEYCHAIN"
+
+
+def keychain_value(name):
+    """Read a credential from the macOS Keychain. Returns None when unavailable.
+
+    Lookup is by service "nightdesk" and account = the variable name, so a key is
+    stored once per machine and never written to a file or printed. Set
+    NIGHTDESK_KEYCHAIN=off to ignore the Keychain (the test suite does this, so a
+    developer's own keys never change what a test sees).
+    """
+    if sys.platform != "darwin" or os.environ.get(KEYCHAIN_ENV, "").lower() == "off":
+        return None
+    try:
+        result = subprocess.run(
+            ["security", "find-generic-password", "-s", KEYCHAIN_SERVICE, "-a", name, "-w"],
+            capture_output=True, text=True, timeout=5, check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    value = result.stdout.strip()
+    return value if result.returncode == 0 and value else None
+
+
+def keychain_store(name, value):
+    """Save one credential in the macOS Keychain, replacing any earlier value."""
+    subprocess.run(
+        ["security", "add-generic-password", "-U", "-s", KEYCHAIN_SERVICE, "-a", name, "-w", value],
+        capture_output=True, text=True, timeout=10, check=True,
+    )
+
+
+def credential_value(name):
+    """The credential from the environment or the Keychain. Never printed by callers."""
+    value = os.environ.get(name)
+    if value:
+        return value
+    return keychain_value(name)
+
+
+def credential_present(name):
+    """True when a credential holds a plausible value, in the environment or the Keychain."""
+    value = credential_value(name)
+    return bool(value) and all(33 <= ord(char) <= 126 for char in value)
 
 # Fixed bundles. `es` is always nda=True.
 FIXED_BUNDLES: dict[str, bool] = {
