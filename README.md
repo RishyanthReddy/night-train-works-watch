@@ -67,9 +67,11 @@ Everything below runs with no keys and no network. In order:
    rows. Those are real Belgian and Dutch captures, in [`example-data/`](example-data/), published
    because their licences (CC0 and CC BY 4.0) allow it. The Rijden file carries an attribution
    line you must keep.
-4. **See what has already been pulled** — [`data-catalogue.json`](data-catalogue.json) lists every
-   capture held on this machine: source, licence, size, sha256, capture time. Nothing is published
-   from it that a licence does not allow.
+4. **See what has already been pulled** — [`data-catalogue.json`](data-catalogue.json) lists the
+   36 captures made where this was built: source, licence, size, sha256, capture time. Nothing is
+   published from it that a licence does not allow. Rebuilding it
+   (`uv run python scripts/build_catalogue.py`) describes *your* checkout, so on a fresh clone it
+   will hold only the captures you just made — that is correct, not a fault.
 5. **What is not here** — the German, Swiss, NS and Train Archive captures record their licence as
    `UNKNOWN`, so they stay off the repository. Get your own key — see "Where each key comes from"
    below — and `uv run nightdesk doctor` will say what is still missing.
