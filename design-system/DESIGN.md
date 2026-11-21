@@ -97,5 +97,5 @@ One idea per slide. Screenshots and the route map do the talking; text is a capt
 
 ## Not used
 
-Dark backgrounds for content slides, the desk's blue, gradients, GT Ultra and Ambit (not licensed),
-ES logos and photography (not ours to use until ES's team shares assets).
+Dark backgrounds for content slides, the desk's green and cream, gradients, GT Ultra and Ambit
+(not licensed), ES logos and photography (not ours to use until ES's team shares assets).
